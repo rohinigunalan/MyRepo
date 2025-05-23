@@ -35,8 +35,8 @@ message = {
         "requestId": "33389012-bc3b-46d6-9608-597e2180bd0f",
         "appId": "130",
         "detail": {
-            "type": "DELETE_REQUEST",
-            "action": "DELETED",
+            "type": "INFO_REQUEST",
+            "action": "NO_DATA_FOUND",
             "responseDetails": {
                 "personId": "200780162",
                 "alternatePersonId": [

@@ -32,11 +32,11 @@ message = {
         }
     },
     "body": {
-        "requestId": "76070532-bc3b-46d6-9608-597e2180bd0f",
+        "requestId": "33389012-bc3b-46d6-9608-597e2180bd0f",
         "appId": "130",
         "detail": {
-            "type": "DELETE_REQUEST",
-            "action": "DELETED",
+            "type": "INFO_REQUEST",
+            "action": "NO_DATA_FOUND",
             "responseDetails": {
                 "personId": "200780162",
                 "alternatePersonId": [
@@ -84,12 +84,20 @@ message = {
     }
 }
 
-# Publish the message to the SNS topic
-response = sns.publish(
-    TopicArn=sns_topic_arn,
-    Message=json.dumps(message),
-    Subject='DSR Request Update'
-)
+# List of app IDs to publish messages for
+app_ids = [111, 115, 130, 229, 274, 281, 302, 344, 366, 378, 383, 409, 421, 432, 439, 440, 445, 475, 495, 498, 501, 502, 503]
 
-# Print the response from the SNS publish action
-print("SNS Publish Response:", response)
+# Loop through each app ID and publish a message
+for app_id in app_ids:
+    # Update the appId in the message body
+    message["body"]["appId"] = str(app_id)
+
+    # Publish the message to the SNS topic
+    response = sns.publish(
+        TopicArn=sns_topic_arn,
+        Message=json.dumps(message),
+        Subject=f'DSR Request Update for App ID {app_id}'
+    )
+
+    # Print the response from the SNS publish action
+    print(f"SNS Publish Response for App ID {app_id}:", response)

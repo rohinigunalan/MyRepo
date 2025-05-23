@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 
 # AWS CLI profile name
-aws_profile = 'cb-data-subject-rights-nonprod-dev-cli'
+aws_profile = '073316-cli'
 
 # Initialize the session with the specified profile
 session = boto3.Session(profile_name=aws_profile)
@@ -20,18 +20,18 @@ item = {
     "RequestId": "22r6a3f9-b6ad-45e9-b7af-g47622926650",
     "DsrRecordType": "DSR",
     "AlternateEmail": [
-        "joe.smith@outlook.com",
-        "joe.smith@yahoo.com"
+        "rev.three@outlook.com",
+        "rev.three@yahoo.com"
     ],
     "BirthDate": "09/09/1970",
-    "firstName": "ray",
-    "lastName": "duo",
+    "firstName": "Rev",
+    "lastName": "Three",
     "CatapultId": "",
     "CreatedTimestamp": "",
-    "CsrComment": "This is for the delete request",
+    "CsrComment": "This is for the delete request 5/23/2025",
     "DsrRequestType": "DELETE_REQUEST",
     "DsrStatus": "PENDING",
-    "EmailAddress": "ray.due@google.com",
+    "EmailAddress": "rev.three@google.com",
     "OneTrustEventId": "",
     "OneTrustEventTimestamp": "",
     "PersonId": "140131335",

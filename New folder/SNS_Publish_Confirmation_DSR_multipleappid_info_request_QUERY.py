@@ -36,7 +36,7 @@ message = {
         "appId": "130",
         "detail": {
             "type": "INFO_REQUEST",
-            "action": "NO_DATA_FOUND",
+            "action": "QUERY",
             "responseDetails": {
                 "personId": "200780162",
                 "alternatePersonId": [

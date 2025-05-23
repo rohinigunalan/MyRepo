@@ -28,16 +28,18 @@ message = {
             "timestamp": "2024-03-13T18:13:13.260Z"
         },
         "cb": {
-            "env": "uat"
+            "env": "UAT"
         }
     },
     "body": {
-        "requestId": "76070532-bc3b-46d6-9608-597e2180bd0f",
-        "appId": "130",
+        "requestId": "101e6a3f9-b6ad-45e9-b7af-g47622926650",
+        "appId": "111",
         "detail": {
             "type": "DELETE_REQUEST",
             "action": "DELETED",
             "responseDetails": {
+                "firstName": "Bob",
+                "lastName": "Smith",
                 "personId": "200780162",
                 "alternatePersonId": [
                     "140131337",
@@ -63,12 +65,12 @@ message = {
                     "zipcode": "97209"
                 },
                 "birthdate": "09/09/1970",
-                "phoneNumber": "919-386-7669",
-                "sat": {
+                "phoneNumbers": ["919-386-7669", "765-977-7177"],
+                "accommodations management": {
                     "data": {
-                        "assessments": [
+                        "disability": [
                             {
-                                "PSAT/NMSQT Fall 2022 - Wed Standard Score": "1300"
+                                "SAT Fall 2022 - Wed Standard Score": "1300"
                             },
                             {
                                 "SAT August 2023 Score:": "1520"

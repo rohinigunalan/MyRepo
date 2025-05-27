@@ -13,7 +13,7 @@ session = boto3.Session(profile_name=aws_profile)
 sns = session.client('sns')
 
 # Update the SNS topic ARN with the provided details
-sns_topic_arn = 'arn:aws:sns:us-east-1:228209566668:cbconfig-topic-228209566668'
+sns_topic_arn = 'arn:aws:sns:us-east-1:228209566668:nonprod-domainbus-topic'
 
 # Update the message to publish with the provided JSON structure
 message = {
@@ -32,7 +32,7 @@ message = {
         }
     },
     "body": {
-        "requestId": "101e6a3f9-b6ad-45e9-b7af-g47622926650",
+        "requestId": "102e6a3f9-b6ad-45e9-b7af-g47622926650",
         "appId": "130",
         "detail": {
             "type": "DELETE_REQUEST",

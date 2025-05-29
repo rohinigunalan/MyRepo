@@ -17,7 +17,7 @@ table = dynamodb.Table(table_name)
 
 # JSON payload to insert into DynamoDB
 item = {
-   "RequestId": "102e6a3f9-b6ad-45e9-b7af-g47622926650",
+   "RequestId": "AAAf6a3f9-b6ad-45e9-b7af-g47622926650",
     "DsrRecordType": "DSR",
     "AlternateEmail": [
         "random.email1@outlook.com",

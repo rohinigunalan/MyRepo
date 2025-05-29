@@ -17,7 +17,7 @@ table = dynamodb.Table(table_name)
 
 # JSON payload to insert into DynamoDB
 item = {
-    "RequestId": "11r6a3f9-b6ad-45e9-b7af-g47622926650",
+    "RequestId": "104f6a3f9-b6ad-45e9-b7af-g47622926650",
     "DsrRecordType": "DSR",
     "AlternateEmail": [
         "joe.smith@outlook.com",
@@ -64,7 +64,8 @@ item = {
 }
 
 # Insert the item into the DynamoDB table
-response = table.put_item(Item=item)
-
-# Print the response from the DynamoDB put_item action
-print("DynamoDB Insert Response:", response)
+try:
+    response = table.put_item(Item=item)
+    print("DynamoDB Insert Response:", response)
+except Exception as e:
+    print("Error inserting item into DynamoDB:", str(e))

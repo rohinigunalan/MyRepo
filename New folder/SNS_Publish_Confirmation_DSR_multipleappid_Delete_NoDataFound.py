@@ -32,11 +32,11 @@ message = {
         }
     },
     "body": {
-        "requestId": "AAAf6a3f9-b6ad-45e9-b7af-g47622926650",
+        "requestId": "BBBf6a3f9-b6ad-45e9-b7af-g47622926650",
         "appId": "130",
         "detail": {
             "type": "DELETE_REQUEST",
-            "action": "DELETED",
+            "action": "NO_DATA_FOUND",
             "responseDetails": {
                 "firstName": "RandomFirstName",
                 "lastName": "RandomLastName",

@@ -17,55 +17,55 @@ table = dynamodb.Table(table_name)
 
 # JSON payload to insert into DynamoDB
 item = {
-    "RequestId": "104f6a3f9-b6ad-45e9-b7af-g47622926650",
+   "RequestId": "EEEf6a3f9-b6ad-45e9-b7af-g47622926650",
     "DsrRecordType": "DSR",
     "AlternateEmail": [
-        "joe.smith@outlook.com",
-        "joe.smith@yahoo.com"
+        "random.email1@outlook.com",
+        "random.email2@yahoo.com"
     ],
-    "BirthDate": "09/09/1970",
-    "firstName": "ray",
-    "lastName": "duo",
-    "CatapultId": "",
+    "BirthDate": "01/01/20050",
+    "firstName": "RandomFirstName",
+    "lastName": "RandomLastName",
+    "CatapultId": "12345",
     "CreatedTimestamp": "",
-    "CsrComment": "This is for the info request",
+    "CsrComment": "This is a random comment for testing purposes.",
     "DsrRequestType": "INFO_REQUEST",
     "DsrStatus": "PENDING",
-    "EmailAddress": "ray.due@google.com",
-    "OneTrustEventId": "",
-    "OneTrustEventTimestamp": "",
-    "PersonId": "140131335",
+    "EmailAddress": "random.email@google.com",
+    "OneTrustEventId": "random-event-id",
+    "OneTrustEventTimestamp": "2025-05-23T10:00:00Z",
+    "PersonId": "123456789",
     "AlternatePersonId": [
-        "140131337",
-        "150231335"
+        "987654321",
+        "123123123"
     ],
-    "ProfessionalId": "12432",
+    "ProfessionalId": "54321",
     "AlternateProfessionalId": [
-        "12432",
-        "14232"
+        "54321",
+        "67890"
     ],
-    "ProfessionalAccountId": "234523",
-    "PhoneNumber": "919-386-7669",
-    "StudentSchool": "Rose Hamilton Elementary",
+    "ProfessionalAccountId": "67890",
+    "PhoneNumber": "123-456-7890",
+    "StudentSchool": "Random School Name",
     "EducatorSchoolAffiliation": [
-        "Rose Hamilton Elementary",
-        "Centerville High School"
+        "Random School 1",
+        "Random School 2"
     ],
     "Address": {
-        "AddressLine1": "1310 NW Naito Parkway",
-        "AddressLine2": "Unit 1006",
-        "City": "Portland",
-        "State": "OR",
+        "AddressLine1": "123 Random Street",
+        "AddressLine2": "Apt 456",
+        "City": "Random City",
+        "State": "RS",
         "Country": "US",
-        "Zipcode": "97209"
+        "Zipcode": "12345"
     },
-    "UpdatedTimestamp": "",
-    "Username": ""
+    "UpdatedTimestamp": "2025-05-23T10:00:00Z",
+    "Username": "random.username"
 }
 
 # Insert the item into the DynamoDB table
-try:
-    response = table.put_item(Item=item)
-    print("DynamoDB Insert Response:", response)
-except Exception as e:
-    print("Error inserting item into DynamoDB:", str(e))
+response = table.put_item(Item=item)
+
+# Print the response from the DynamoDB put_item action
+print("DynamoDB Insert Response:", response)
+

@@ -32,14 +32,14 @@ message = {
         }
     },
     "body": {
-        "requestId": "AAAf6a3f9-b6ad-45e9-b7af-g47622926650",
+        "requestId": "JJJf6a3f9-b6ad-45e9-b7af-g47622926650",
         "appId": "130",
         "detail": {
             "type": "DELETE_REQUEST",
             "action": "DELETED",
             "responseDetails": {
-                "firstName": "RandomFirstName",
-                "lastName": "RandomLastName",
+                "FirstName": "RandomFirstName",
+                "LastName": "RandomLastName",
                 "personId": "123456789",
                 "alternatePersonId": [
                     "987654321",
@@ -66,6 +66,10 @@ message = {
                 },
                 "birthdate": "01/01/20050",
                 "phoneNumber": "123-456-7890",
+                "StudentSchool": "Random High School",
+                "EducatorSchoolAffiliation": "West County Elementary",
+                "Channel": "C",
+                "Persona": "EDUCATOR",
                 "sat": {
                     "data": {
                         "assessments": [

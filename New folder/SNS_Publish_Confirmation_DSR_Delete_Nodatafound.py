@@ -36,10 +36,10 @@ message = {
         "appId": "111",
         "detail": {
             "type": "DELETE_REQUEST",
-            "action": "DELETED",
+            "action": "NO_DATA_FOUND",
             "responseDetails": {
-                "FirstName": "RandomFirstName",
-                "LastName": "RandomLastName",
+                "firstName": "RandomFirstName",
+                "lastName": "RandomLastName",
                 "personId": "123456789",
                 "alternatePersonId": [
                     "987654321",
@@ -50,7 +50,7 @@ message = {
                     "54321",
                     "67890"
                 ],
-                "proffessionalAccountId": "67890",
+                "professionalAccountId": "67890",
                 "emailAddress": "random.email@google.com",
                 "alternateEmail": [
                     "random.email1@outlook.com",
@@ -64,12 +64,8 @@ message = {
                     "country": "US",
                     "zipcode": "12345"
                 },
-                "birthdate": "01/01/20050",
+                "birthdate": "01/01/2005",
                 "phoneNumber": "123-456-7890",
-                "StudentSchool": "Random High School",
-                "EducatorSchoolAffiliation": "West County Elementary",
-                "Channel": "C",
-                "Persona": "EDUCATOR",
                 "sat": {
                     "data": {
                         "assessments": [

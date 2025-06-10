@@ -32,14 +32,14 @@ message = {
         }
     },
     "body": {
-        "requestId": "JJJf6a3f9-b6ad-45e9-b7af-g47622926650",
-        "appId": "111",
+        "requestId": "AAAf6a3f9-b6ad-45e9-b7af-g47622926650",
+        "appId": "130",
         "detail": {
             "type": "DELETE_REQUEST",
             "action": "DELETED",
             "responseDetails": {
-                "FirstName": "RandomFirstName",
-                "LastName": "RandomLastName",
+                "firstName": "RandomFirstName",
+                "lastName": "RandomLastName",
                 "personId": "123456789",
                 "alternatePersonId": [
                     "987654321",
@@ -66,10 +66,6 @@ message = {
                 },
                 "birthdate": "01/01/20050",
                 "phoneNumber": "123-456-7890",
-                "StudentSchool": "Random High School",
-                "EducatorSchoolAffiliation": "West County Elementary",
-                "Channel": "C",
-                "Persona": "EDUCATOR",
                 "sat": {
                     "data": {
                         "assessments": [
@@ -90,13 +86,20 @@ message = {
     }
 }
 
+# List of app IDs to publish messages for
+app_ids = [111, 115, 130, 229, 274, 281, 302, 344, 366, 378, 383, 409, 421, 432, 439, 440, 445, 475, 495, 498, 501, 502, 503]
 
-# Publish the message to the SNS topic
-response = sns.publish(
-    TopicArn=sns_topic_arn,
-    Message=json.dumps(message),
-    Subject='DSR Request Update'
-)
+# Loop through each app ID and publish a message
+for app_id in app_ids:
+    # Update the appId in the message body
+    message["body"]["appId"] = str(app_id)
 
-# Print the response from the SNS publish action
-print("SNS Publish Response:", response)
+    # Publish the message to the SNS topic
+    response = sns.publish(
+        TopicArn=sns_topic_arn,
+        Message=json.dumps(message),
+        Subject=f'DSR Request Update for App ID {app_id}'
+    )
+
+    # Print the response from the SNS publish action
+    print(f"SNS Publish Response for App ID {app_id}:", response)

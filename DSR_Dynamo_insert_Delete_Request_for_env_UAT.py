@@ -17,15 +17,15 @@ table = dynamodb.Table(table_name)
 
 # JSON payload to insert into DynamoDB
 item = {
-   "RequestId": "QQQf6a3f9-b6ad-45e9-b7af-g47622926650",
+   "RequestId": "FFFf6a3f9-b6ad-45e9-b7af-g47622926650",
     "DsrRecordType": "DSR",
     "AlternateEmail": [
         "random.email1@outlook.com",
         "random.email2@yahoo.com"
     ],
-    "BirthDate": "01/01/2005",
-    "FirstName": "RandomFirstName",
-    "LastName": "RandomLastName",
+    "BirthDate": "01/01/20050",
+    "firstName": "RandomFirstName",
+    "lastName": "RandomLastName",
     "CatapultId": "12345",
     "CreatedTimestamp": "",
     "CsrComment": "This is a random comment for testing purposes.",
@@ -44,12 +44,13 @@ item = {
         "54321",
         "67890"
     ],
-    "ProfessionalAccountId": "67890", 
+    "ProfessionalAccountId": "67890",
     "PhoneNumber": "123-456-7890",
-    "StudentSchool": "Random High School",
-    "EducatorSchoolAffiliation": "West County Elementary",
-    "Channel": "C",
-    "Persona": "EDUCATOR",
+    "StudentSchool": "Random School Name",
+    "EducatorSchoolAffiliation": [
+        "Random School 1",
+        "Random School 2"
+    ],
     "Address": {
         "AddressLine1": "123 Random Street",
         "AddressLine2": "Apt 456",

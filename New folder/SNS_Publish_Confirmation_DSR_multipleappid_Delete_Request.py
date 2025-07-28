@@ -32,7 +32,7 @@ message = {
         }
     },
     "body": {
-        "requestId": "JJJf6a3f9-b6ad-45e9-b7af-g47622926650",
+        "requestId": "tttf6a3f9-b6ad-45e9-b7af-g47622926650",
         "appId": "130",
         "detail": {
             "type": "DELETE_REQUEST",
@@ -66,10 +66,6 @@ message = {
                 },
                 "birthdate": "01/01/20050",
                 "phoneNumber": "123-456-7890",
-                "StudentSchool": "Random High School",
-                "EducatorSchoolAffiliation": "West County Elementary",
-                "Channel": "C",
-                "Persona": "EDUCATOR",
                 "sat": {
                     "data": {
                         "assessments": [

@@ -1,0 +1,3 @@
+Email Address,First_Name,Last_Name,birthDate,phone,country,stateOrProvince,postalCode,city,streetAddress,studentSchoolName,studentGraduationYear,educatorSchoolAffiliation,Request_type,delete_student,delete_parent,delete_educator
+ethan.mitchell@mailinator.com,Ethan,Mitchell,11/8/2004,5712345572,US,Colorado,80209-3456,Denver,"1625 Cherry Creek Drive, Apt 3C",,,,request to delete my data,Student data (if any),Parent data (if any),
+ethan.mitchell@mailinator.com,Ethan,Mitchell,11/8/2004,5712345572,US,Colorado,80209-3456,Denver,"1625 Cherry Creek Drive, Apt 3C",,,,request to copy of my data,,,

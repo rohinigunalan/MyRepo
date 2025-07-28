@@ -12,6 +12,20 @@
                 "isDefault": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Run Privacy Portal Test",
+            "type": "shell",
+            "command": "python test_privacy_portal.py",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Manual Form Inspection",
+            "type": "shell",
+            "command": "python manual_inspection.py",
+            "group": "test",
+            "problemMatcher": []
         }
     ]
 }

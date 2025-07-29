@@ -18,7 +18,8 @@ class TestPrivacyPortal:
         print("📂 Loading ALL form data from file...")
         
         # Try to load from Excel first, then CSV
-        excel_file = "dsr/data/form_data.xlsx"
+        excel_file = "dsr/data/form_data_updated_20250729_015139.xlsx"
+        excel_file_backup = "dsr/data/form_data.xlsx"
         csv_file = "form_data.csv"
         
         try:
@@ -176,6 +177,17 @@ class TestPrivacyPortal:
                         
                         # Pause after delete options
                         print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Handle close account sub-options if applicable
+                        try:
+                            self.handle_close_account_suboptions(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in close account sub-options: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_close_options_record_{record_index + 1}.png")
+                        
+                        # Pause after close account options
+                        print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
                         time.sleep(2)
                         
                         try:
@@ -1395,7 +1407,16 @@ class TestPrivacyPortal:
             'object to processing': ['object', 'opt out', 'withdraw consent'],
             'opt out': ['object', 'opt out', 'withdraw consent'],
             'opt out of search': ['opt out', 'search', 'withdraw consent'],
-            'withdraw consent': ['object', 'opt out', 'withdraw consent']
+            'withdraw consent': ['object', 'opt out', 'withdraw consent'],
+            
+            # Close/deactivate account variants
+            'close/deactivate/cancel my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'close my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'deactivate my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'cancel my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'close account': ['close', 'deactivate', 'cancel', 'account'],
+            'deactivate account': ['close', 'deactivate', 'cancel', 'account'],
+            'cancel account': ['close', 'deactivate', 'cancel', 'account']
         }
         
         # STEP 1: First try EXACT TEXT MATCHING (priority)
@@ -1439,6 +1460,9 @@ class TestPrivacyPortal:
             elif 'object' in request_type_lower or 'opt out' in request_type_lower:
                 search_keywords = ['object', 'opt out', 'withdraw consent']
                 print(f"🔍 Using object/opt-out keywords: {search_keywords}")
+            elif 'close' in request_type_lower or 'deactivate' in request_type_lower or 'cancel' in request_type_lower:
+                search_keywords = ['close', 'deactivate', 'cancel', 'account']
+                print(f"🔍 Using close/deactivate/cancel keywords: {search_keywords}")
             else:
                 # Default to copy if nothing matches
                 search_keywords = ['copy', 'access', 'download', 'portability']
@@ -1997,6 +2021,243 @@ class TestPrivacyPortal:
         print("📸 Screenshot saved: screenshots/delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
+    
+    def handle_close_account_suboptions(self, page: Page):
+        """Handle close account sub-options when 'Close/deactivate/cancel my College Board account' is selected"""
+        print("🚪 Handling close account sub-options...")
+        
+        # Check if this is a close account request
+        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+        if not any(keyword in request_type_from_excel for keyword in ['close', 'deactivate', 'cancel', 'account']):
+            print("ℹ️ Not a close account request, skipping close account sub-options")
+            return
+        
+        # Get close account options from Excel
+        close_student = str(self.form_data.get('close_student', '')).strip()
+        close_educator = str(self.form_data.get('close_educator', '')).strip()
+        
+        print(f"📊 Close account options from Excel:")
+        print(f"  🎓 Student account: '{close_student}'")
+        print(f"  👨‍🏫 Educator account: '{close_educator}'")
+        
+        # Determine which options should be selected based on Excel values
+        def should_select_option(excel_value):
+            """Determine if an option should be selected based on Excel value"""
+            if excel_value is None:
+                return False
+            
+            excel_str = str(excel_value).strip()
+            
+            # Handle pandas NaN, empty strings, and explicit "no" values
+            if excel_str.lower() in ['nan', '', 'none', 'no', 'false', '0', 'n']:
+                return False
+            
+            # Handle explicit "yes" values
+            if excel_str.lower() in ['yes', 'true', '1', 'y']:
+                return True
+                
+            # If it contains descriptive text like "Student account (if any)", select it
+            if any(keyword in excel_str.lower() for keyword in ['account', 'student', 'educator']):
+                return True
+                
+            # For any other non-empty value, consider it as "select"
+            return len(excel_str) > 0
+        
+        student_should_select = should_select_option(close_student)
+        educator_should_select = should_select_option(close_educator)
+        
+        print(f"📋 Selection logic based on Excel data:")
+        print(f"  🎓 Student account: {'SELECT' if student_should_select else 'SKIP'} (Excel: '{close_student}')")
+        print(f"  👨‍🏫 Educator account: {'SELECT' if educator_should_select else 'SKIP'} (Excel: '{close_educator}')")
+        
+        # Count how many options should be selected
+        total_to_select = sum([student_should_select, educator_should_select])
+        print(f"📊 Total options to select: {total_to_select}")
+        
+        if total_to_select == 0:
+            print("⚠️ No close account options to select based on Excel data!")
+            return
+        
+        # Wait a moment for any dynamic content to load after request type selection
+        time.sleep(3)
+        
+        # Look for the close account sub-question text
+        close_question_indicators = [
+            "text=Student account (if any)",
+            "text=Educator data (if any)",
+            "text=Please select which account",
+            "text=Select the account type",
+            "text=Which account would you like to close"
+        ]
+        
+        close_question_found = False
+        for indicator in close_question_indicators:
+            try:
+                if page.locator(indicator).first.is_visible():
+                    close_question_found = True
+                    print(f"✅ Found close account sub-question with indicator: {indicator}")
+                    break
+            except:
+                continue
+        
+        if not close_question_found:
+            print("ℹ️ Close account sub-question not found - may not be required for this form")
+            return
+        
+        print("🔍 Close account sub-question detected! Looking for options...")
+        
+        # Define the option mappings
+        close_options = [
+            {
+                'excel_field': 'close_student',
+                'excel_value': close_student,
+                'should_select': student_should_select,
+                'option_keywords': ['student', 'student account'],
+                'description': '🎓 Student account'
+            },
+            {
+                'excel_field': 'close_educator', 
+                'excel_value': close_educator,
+                'should_select': educator_should_select,
+                'option_keywords': ['educator', 'educator data', 'teacher'],
+                'description': '👨‍🏫 Educator account'
+            }
+        ]
+        
+        # Find all available clickable options
+        print("🔍 Finding all available close account options...")
+        available_options = []
+        
+        # Try direct text selectors for common patterns
+        direct_selectors = [
+            "text=Student account (if any)",
+            "text=Educator data (if any)", 
+            "text=Student account",
+            "text=Educator data",
+            "text=Educator account"
+        ]
+        
+        for selector in direct_selectors:
+            try:
+                elements = page.locator(selector).all()
+                for element in elements:
+                    if element.is_visible():
+                        text = element.inner_text()
+                        option_info = {
+                            'element': element,
+                            'text': text,
+                            'selector': selector
+                        }
+                        available_options.append(option_info)
+                        print(f"  Direct option: text='{text}', selector='{selector}'")
+            except:
+                continue
+        
+        # Also try to find all clickable elements that might contain close account options
+        try:
+            all_clickables = page.locator("button, div[role='button'], span[role='button'], .option, [data-testid], [class*='option']").all()
+            
+            for i, element in enumerate(all_clickables):
+                try:
+                    if element.is_visible():
+                        text = element.inner_text()
+                        if text and any(keyword in text.lower() for keyword in ['student', 'educator', 'account', 'data']):
+                            option_info = {
+                                'element': element,
+                                'text': text,
+                                'selector': f'clickable_{i}'
+                            }
+                            # Avoid duplicates
+                            if not any(opt['text'].lower() == text.lower() for opt in available_options):
+                                available_options.append(option_info)
+                                print(f"  Clickable option: text='{text}'")
+                except Exception as e:
+                    continue
+                    
+        except Exception as e:
+            print(f"⚠️ Error finding clickable options: {str(e)}")
+        
+        # Now process each close account option based on Excel settings
+        for option_config in close_options:
+            excel_value = option_config['excel_value']
+            should_select = option_config['should_select']
+            keywords = option_config['option_keywords']
+            description = option_config['description']
+            
+            print(f"\n🔍 Processing {description} (Excel: '{excel_value}', Should select: {should_select})")
+            
+            if not should_select:
+                print(f"  ⏭️ SKIPPING {description} - Excel value is empty/NaN/no: '{excel_value}'")
+                print(f"  📋 Following Excel instructions: empty = skip, even if option exists on form")
+                continue
+            
+            # Find matching clickable option
+            option_found = False
+            for option_info in available_options:
+                option_text = option_info['text'].lower()
+                
+                # Check if this option matches any of our keywords
+                for keyword in keywords:
+                    if keyword.lower() in option_text:
+                        print(f"  🎯 Found matching option for '{keyword}': '{option_info['text']}'")
+                        try:
+                            option_info['element'].click(timeout=5000)
+                            print(f"  ✅ Clicked {description}: '{option_info['text']}'")
+                            time.sleep(2)  # Wait for any text input to appear
+                            
+                            # Check for text input field after selecting the option
+                            print(f"  🔍 Looking for text input after selecting {description}...")
+                            text_input_selectors = [
+                                "input[type='text']:visible",
+                                "textarea:visible", 
+                                "input[placeholder*='details']:visible",
+                                "input[placeholder*='information']:visible",
+                                "textarea[placeholder*='details']:visible",
+                                "textarea[placeholder*='information']:visible",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible"
+                            ]
+                            
+                            text_input_found = False
+                            for text_selector in text_input_selectors:
+                                try:
+                                    text_inputs = page.locator(text_selector).all()
+                                    for text_input in text_inputs:
+                                        if text_input.is_visible():
+                                            current_value = text_input.input_value()
+                                            if not current_value or len(current_value.strip()) == 0:
+                                                text_input.fill("Account closure request")
+                                                print(f"  ✅ Entered 'Account closure request' in text input for {description}")
+                                                text_input_found = True
+                                                time.sleep(1)
+                                                break
+                                    if text_input_found:
+                                        break
+                                except:
+                                    continue
+                            
+                            if not text_input_found:
+                                print(f"  ℹ️ No text input found after selecting {description}")
+                            
+                            option_found = True
+                            break
+                        except Exception as e:
+                            print(f"  ⚠️ Could not click option: {str(e)}")
+                            continue
+                
+                if option_found:
+                    break
+            
+            if not option_found:
+                print(f"  ❌ Could not find clickable option for {description}")
+                print(f"  🔍 Available options were:")
+                for opt in available_options:
+                    print(f"    - '{opt['text']}'")
+        
+        # Take screenshot after close account options selection
+        page.screenshot(path="dsr/screenshots/close_account_options_selected.png")
+        print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
+        
+        print("✅ Close account sub-options handling completed")
     
     def handle_acknowledgments(self, page: Page):
         """Handle acknowledgment button and captcha"""

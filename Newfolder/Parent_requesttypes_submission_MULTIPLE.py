@@ -64,7 +64,7 @@ class TestPrivacyPortal:
             
             print("✅ All parent form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get('First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
@@ -78,8 +78,8 @@ class TestPrivacyPortal:
                 'Last Name of parent/guardian': 'Doe',
                 'Primary Email Address': 'john.doe@mailinator.com',
                 'Email of Child (Data Subject)': 'child@mailinator.com',
-                'First_Name': 'Jane',
-                'Last_Name': 'Doe',
+                'First Name': 'Jane',
+                'Last Name': 'Doe',
                 'birthDate': '11/1/2008',
                 'phone': '5712345567',
                 'country': 'US',
@@ -378,7 +378,7 @@ class TestPrivacyPortal:
         for selector in first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First_Name', 'Jane')))
+                    page.fill(selector, str(self.form_data.get('First Name', 'ChildFirst')))
                     print(f"✅ Child first name filled with selector: {selector}")
                     time.sleep(1)
                     break
@@ -397,7 +397,7 @@ class TestPrivacyPortal:
         for selector in last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Last_Name', 'Doe')))
+                    page.fill(selector, str(self.form_data.get('Last Name', 'ChildLast')))
                     print(f"✅ Child last name filled with selector: {selector}")
                     time.sleep(1)
                     break

@@ -37,52 +37,52 @@ class TestPrivacyPortal:
         self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
-        """Load ALL form data from Parent_form_data.xlsx file for multiple parent records"""
-        print("📂 Loading ALL parent form data from file...")
+        """Load ALL form data from Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
+        print("📂 Loading ALL educator form data from file...")
         
-        # Use the Parent_form_data.xlsx file specifically
-        excel_file = "dsr/data/Parent_form_data.xlsx"
+        # Use the Educatoronbehalfofstudent_form_data.xlsx file specifically
+        excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
         
         try:
             if os.path.exists(excel_file):
-                print(f"📊 Attempting to read parent data from {excel_file}")
+                print(f"📊 Attempting to read educator data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ Parent Excel file loaded successfully!")
+                    print("✅ Educator Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    raise FileNotFoundError(f"Could not load Parent_form_data.xlsx: {excel_error}")
+                    raise FileNotFoundError(f"Could not load Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError(f"Parent_form_data.xlsx file not found at: {excel_file}")
+                raise FileNotFoundError(f"Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the Parent_form_data.xlsx file")
+                raise ValueError("No data found in the Educatoronbehalfofstudent_form_data.xlsx file")
             
-            print(f"📊 Found {len(df)} parent records in the file")
+            print(f"📊 Found {len(df)} educator records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All parent form data loaded successfully:")
+            print("✅ All educator form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get(' First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading parent form data: {str(e)}")
-            print("📝 Using default fallback data for parent requests...")
-            # Fallback to default parent data - return as list
+            print(f"❌ Error loading educator form data: {str(e)}")
+            print("📝 Using default fallback data for educator requests...")
+            # Fallback to default educator data - return as list
             return [{
-                'who_making_request': 'Parent on behalf of child',
-                ' First_Name_of parent_guardian': 'John',
-                'Last Name of parent/guardian': 'Doe',
-                'Primary Email Address': 'john.doe@mailinator.com',
-                'Email of Child (Data Subject)': 'child@mailinator.com',
+                'Who is making this request': 'Authorized Agent on behalf of someone else',
+                'Agent First Name': 'John',
+                'Agent Last Name': 'Educator',
+                'Agent Email Address': 'john.educator@mailinator.com',
                 'First Name': 'Jane',
-                'Last Name': 'Doe',
-                'birthDate': '11/1/2008',
-                'phone': '5712345567',
+                'Last Name': 'Student',
+                'Email of Child (Data Subject)': 'student@mailinator.com',
+                'Date of Birth': '11/1/2008',
+                'Phone Number': '5712345567',
                 'country': 'US',
                 'stateOrProvince': 'New York',
                 'postalCode': '14111',
@@ -90,9 +90,8 @@ class TestPrivacyPortal:
                 'streetAddress': '507 Central Avenue',
                 'studentSchoolName': 'South Lakes High School',
                 'studentGraduationYear': '2026',
-                'educatorSchoolAffiliation': 'N/A',
-                'Request_type': 'Request to delete my data',
-                'additional_details': 'Please delete all student data associated with this account.'
+                'educatorSchoolAffiliation': 'South Lakes High School',
+                'Request_type': 'Request to delete my data'
             }]
         
     def test_privacy_form_submission(self):
@@ -121,8 +120,9 @@ class TestPrivacyPortal:
                     
                     # Display current record info
                     print(f"👤 Current Record Details:")
-                    print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
-                    print(f"   Email: {record_data.get('Email Address', 'N/A')}")
+                    print(f"   Agent: {record_data.get('Agent First Name', 'N/A')} {record_data.get('Agent Last Name', 'N/A')}")
+                    print(f"   Agent Email: {record_data.get('Agent Email Address', 'N/A')}")
+                    print(f"   Student: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
                     print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
                     
@@ -136,13 +136,13 @@ class TestPrivacyPortal:
                         time.sleep(2)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING PARENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING EDUCATOR/AGENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
                         try:
                             self.fill_subject_information(page)
                             self.fill_contact_information(page)
                             self.fill_additional_details(page)
                             self.select_request_type(page)
-                            self.handle_delete_request_additional_details(page)  # New method for parent delete details
+                            self.handle_delete_request_additional_details(page)  # New method for educator delete details
                             self.handle_delete_data_suboptions(page)
                             self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
@@ -193,181 +193,212 @@ class TestPrivacyPortal:
                 browser.close()
     
     def fill_subject_information(self, page: Page):
-        """Fill subject information section for PARENT requests"""
-        print("Filling subject information for PARENT request...")
+        """Fill subject information section for EDUCATOR/AGENT requests"""
+        print("Filling subject information for EDUCATOR/AGENT request...")
         
-        # FIRST: Click "Parent on behalf of child" button
-        print("🔘 Looking for 'Parent on behalf of child' button...")
-        parent_selectors = [
-            "button:has-text('Parent on behalf of child')",
-            "button:has-text('parent on behalf of child')", 
-            "button:has-text('Parent')",
-            "button:has-text('parent')",
-            "input[value='Parent on behalf of child']",
-            "input[value='parent on behalf of child']",
-            "input[value='Parent']",
-            "input[value='parent']",
-            "input[type='radio'][value*='parent']",
-            "input[type='radio'][value*='Parent']",
-            "label:has-text('Parent on behalf of child')",
-            "label:has-text('parent on behalf of child')",
-            "label:has-text('Parent')",
-            "label:has-text('parent')",
-            "button[data-testid*='parent']",
-            ".parent-btn",
-            "#parent",
-            "span:has-text('Parent on behalf of child')",
-            "span:has-text('Parent')",
-            "div:has-text('Parent on behalf of child')",
-            "div:has-text('Parent')",
-            "[data-value='parent']",
-            "[data-value='Parent']",
-            "[role='button']:has-text('Parent')"
+        # FIRST: Click "Authorized Agent on behalf of someone else" button
+        print("🔘 Looking for 'Authorized Agent on behalf of someone else' button...")
+        agent_selectors = [
+            "button:has-text('Authorized Agent on behalf of someone else')",
+            "button:has-text('authorized agent on behalf of someone else')", 
+            "button:has-text('Authorized Agent')",
+            "button:has-text('authorized agent')",
+            "button:has-text('Agent')",
+            "button:has-text('agent')",
+            "input[value='Authorized Agent on behalf of someone else']",
+            "input[value='authorized agent on behalf of someone else']",
+            "input[value='Authorized Agent']",
+            "input[value='authorized agent']",
+            "input[value='Agent']",
+            "input[value='agent']",
+            "input[type='radio'][value*='agent']",
+            "input[type='radio'][value*='Agent']",
+            "input[type='radio'][value*='authorized']",
+            "input[type='radio'][value*='Authorized']",
+            "label:has-text('Authorized Agent on behalf of someone else')",
+            "label:has-text('authorized agent on behalf of someone else')",
+            "label:has-text('Authorized Agent')",
+            "label:has-text('authorized agent')",
+            "label:has-text('Agent')",
+            "label:has-text('agent')",
+            "button[data-testid*='agent']",
+            ".agent-btn",
+            "#agent",
+            "span:has-text('Authorized Agent on behalf of someone else')",
+            "span:has-text('Authorized Agent')",
+            "span:has-text('Agent')",
+            "div:has-text('Authorized Agent on behalf of someone else')",
+            "div:has-text('Authorized Agent')",
+            "div:has-text('Agent')",
+            "[data-value='agent']",
+            "[data-value='Agent']",
+            "[data-value='authorized']",
+            "[data-value='Authorized']",
+            "[role='button']:has-text('Agent')",
+            "[role='button']:has-text('Authorized')"
         ]
         
-        parent_clicked = False
-        for selector in parent_selectors:
+        agent_clicked = False
+        for selector in agent_selectors:
             try:
                 if page.locator(selector).first.is_visible():
                     page.click(selector)
-                    print(f"✅ Clicked 'Parent on behalf of child' button with selector: {selector}")
-                    time.sleep(3)  # Longer pause to let form update for parent fields
-                    parent_clicked = True
+                    print(f"✅ Clicked 'Authorized Agent on behalf of someone else' button with selector: {selector}")
+                    time.sleep(3)  # Longer pause to let form update for agent fields
+                    agent_clicked = True
                     break
             except Exception as e:
-                print(f"⚠️ Could not click 'Parent' button with selector {selector}: {str(e)}")
+                print(f"⚠️ Could not click 'Agent' button with selector {selector}: {str(e)}")
                 continue
         
-        if not parent_clicked:
-            print("⚠️ 'Parent on behalf of child' button not found - continuing anyway...")
+        if not agent_clicked:
+            print("⚠️ 'Authorized Agent on behalf of someone else' button not found - continuing anyway...")
         
-        # Pause after clicking Parent to let form update with parent fields
-        print("⏸️ Brief pause after 'Parent' selection to load parent fields...")
+        # Pause after clicking Agent to let form update with agent fields
+        print("⏸️ Brief pause after 'Agent' selection to load agent fields...")
         time.sleep(3)
         
-        # PARENT FIELDS: Fill parent/guardian information
-        print("👨‍👩‍👧‍👦 Filling parent/guardian information...")
+        # AGENT FIELDS: Fill agent/educator information
+        print("👨‍🏫 Filling agent/educator information...")
         
-        # Parent First Name
-        parent_first_name_selectors = [
-            # Look for fields specifically labeled for parent/guardian first name
-            "input[aria-label*='First Name of parent/guardian']",
-            "input[placeholder*='First Name of parent/guardian']",
-            "label:has-text('First Name of parent/guardian') + input",
-            "label:has-text('First Name of parent/guardian') ~ input",
-            "*:has-text('First Name of parent/guardian') + input",
-            "*:has-text('First Name of parent/guardian') ~ input",
-            # Generic parent selectors
-            "input[name*='parent'][name*='first']",
-            "input[name*='guardian'][name*='first']",
-            "input[placeholder*='Parent'][placeholder*='First']",
-            "input[placeholder*='Guardian'][placeholder*='First']",
-            "input[placeholder*='parent'][placeholder*='first']",
-            "input[placeholder*='guardian'][placeholder*='first']",
-            "input[aria-label*='Parent'][aria-label*='First']",
-            "input[aria-label*='Guardian'][aria-label*='First']",
-            "input[id*='parent'][id*='first']",
-            "input[id*='guardian'][id*='first']",
-            "input[data-testid*='parent'][data-testid*='first']"
+        # Agent First Name
+        agent_first_name_selectors = [
+            # Look for fields specifically labeled for agent first name
+            "input[aria-label*='Agent First Name']",
+            "input[placeholder*='Agent First Name']",
+            "input[aria-label*='First Name of Agent']",
+            "input[placeholder*='First Name of Agent']",
+            "label:has-text('Agent First Name') + input",
+            "label:has-text('Agent First Name') ~ input",
+            "label:has-text('First Name of Agent') + input",
+            "label:has-text('First Name of Agent') ~ input",
+            "*:has-text('Agent First Name') + input",
+            "*:has-text('Agent First Name') ~ input",
+            "*:has-text('First Name of Agent') + input",
+            "*:has-text('First Name of Agent') ~ input",
+            # Generic agent selectors
+            "input[name*='agent'][name*='first']",
+            "input[name*='educator'][name*='first']",
+            "input[placeholder*='Agent'][placeholder*='First']",
+            "input[placeholder*='Educator'][placeholder*='First']",
+            "input[placeholder*='agent'][placeholder*='first']",
+            "input[placeholder*='educator'][placeholder*='first']",
+            "input[aria-label*='Agent'][aria-label*='First']",
+            "input[aria-label*='Educator'][aria-label*='First']",
+            "input[id*='agent'][id*='first']",
+            "input[id*='educator'][id*='first']",
+            "input[data-testid*='agent'][data-testid*='first']",
+            "input[data-testid*='educator'][data-testid*='first']"
         ]
-        parent_first_filled = False
-        for selector in parent_first_name_selectors:
+        agent_first_filled = False
+        for selector in agent_first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get(' First_Name_of parent_guardian', 'Parentone')))
-                    print(f"✅ Parent first name filled: '{self.form_data.get(' First_Name_of parent_guardian', 'Parentone')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Agent First Name', 'Educator')))
+                    print(f"✅ Agent first name filled: '{self.form_data.get('Agent First Name', 'Educator')}' with selector: {selector}")
                     time.sleep(1)
-                    parent_first_filled = True
+                    agent_first_filled = True
                     break
             except:
                 continue
         
-        if not parent_first_filled:
-            print("⚠️ Parent first name field not found")
+        if not agent_first_filled:
+            print("⚠️ Agent first name field not found")
         
-        # Parent Last Name
-        parent_last_name_selectors = [
-            # Look for fields specifically labeled for parent/guardian last name
-            "input[aria-label*='Last Name of parent/guardian']",
-            "input[placeholder*='Last Name of parent/guardian']",
-            "label:has-text('Last Name of parent/guardian') + input",
-            "label:has-text('Last Name of parent/guardian') ~ input", 
-            "*:has-text('Last Name of parent/guardian') + input",
-            "*:has-text('Last Name of parent/guardian') ~ input",
-            # Generic parent selectors
-            "input[name*='parent'][name*='last']",
-            "input[name*='guardian'][name*='last']",
-            "input[placeholder*='Parent'][placeholder*='Last']",
-            "input[placeholder*='Guardian'][placeholder*='Last']",
-            "input[placeholder*='parent'][placeholder*='last']",
-            "input[placeholder*='guardian'][placeholder*='last']",
-            "input[aria-label*='Parent'][aria-label*='Last']",
-            "input[aria-label*='Guardian'][aria-label*='Last']",
-            "input[id*='parent'][id*='last']",
-            "input[id*='guardian'][id*='last']",
-            "input[data-testid*='parent'][data-testid*='last']"
+        # Agent Last Name
+        agent_last_name_selectors = [
+            # Look for fields specifically labeled for agent last name
+            "input[aria-label*='Agent Last Name']",
+            "input[placeholder*='Agent Last Name']",
+            "input[aria-label*='Last Name of Agent']",
+            "input[placeholder*='Last Name of Agent']",
+            "label:has-text('Agent Last Name') + input",
+            "label:has-text('Agent Last Name') ~ input",
+            "label:has-text('Last Name of Agent') + input",
+            "label:has-text('Last Name of Agent') ~ input", 
+            "*:has-text('Agent Last Name') + input",
+            "*:has-text('Agent Last Name') ~ input",
+            "*:has-text('Last Name of Agent') + input",
+            "*:has-text('Last Name of Agent') ~ input",
+            # Generic agent selectors
+            "input[name*='agent'][name*='last']",
+            "input[name*='educator'][name*='last']",
+            "input[placeholder*='Agent'][placeholder*='Last']",
+            "input[placeholder*='Educator'][placeholder*='Last']",
+            "input[placeholder*='agent'][placeholder*='last']",
+            "input[placeholder*='educator'][placeholder*='last']",
+            "input[aria-label*='Agent'][aria-label*='Last']",
+            "input[aria-label*='Educator'][aria-label*='Last']",
+            "input[id*='agent'][id*='last']",
+            "input[id*='educator'][id*='last']",
+            "input[data-testid*='agent'][data-testid*='last']",
+            "input[data-testid*='educator'][data-testid*='last']"
         ]
-        parent_last_filled = False
-        for selector in parent_last_name_selectors:
+        agent_last_filled = False
+        for selector in agent_last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')))
-                    print(f"✅ Parent last name filled: '{self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Agent Last Name', 'AgentbehalfofStu')))
+                    print(f"✅ Agent last name filled: '{self.form_data.get('Agent Last Name', 'AgentbehalfofStu')}' with selector: {selector}")
                     time.sleep(1)
-                    parent_last_filled = True
+                    agent_last_filled = True
                     break
             except:
                 continue
         
-        if not parent_last_filled:
-            print("⚠️ Parent last name field not found")
+        if not agent_last_filled:
+            print("⚠️ Agent last name field not found")
         
-        # Parent Email Address (Primary Email Address)
-        parent_email_selectors = [
-            # Look for fields specifically labeled as Primary Email Address
-            "input[aria-label*='Primary Email Address']",
-            "input[placeholder*='Primary Email Address']",
-            "label:has-text('Primary Email Address') + input",
-            "label:has-text('Primary Email Address') ~ input",
-            "*:has-text('Primary Email Address') + input",
-            "*:has-text('Primary Email Address') ~ input",
-            # Generic parent email selectors
-            "input[name*='parent'][type='email']",
-            "input[name*='guardian'][type='email']", 
-            "input[name*='parent'][name*='email']",
-            "input[name*='guardian'][name*='email']",
-            "input[placeholder*='Parent'][placeholder*='Email']",
-            "input[placeholder*='Guardian'][placeholder*='Email']",
-            "input[placeholder*='parent'][placeholder*='email']",
-            "input[placeholder*='guardian'][placeholder*='email']",
-            "input[placeholder*='Primary Email']",
-            "input[placeholder*='primary email']",
-            "input[aria-label*='Parent'][aria-label*='Email']",
-            "input[aria-label*='Guardian'][aria-label*='Email']",
-            "input[aria-label*='Primary Email']",
-            "input[id*='parent'][id*='email']",
-            "input[id*='guardian'][id*='email']",
-            "input[data-testid*='parent'][data-testid*='email']"
+        # Agent Email Address
+        agent_email_selectors = [
+            # Look for fields specifically labeled as Agent Email Address
+            "input[aria-label*='Agent Email Address']",
+            "input[placeholder*='Agent Email Address']",
+            "input[aria-label*='Email Address of Agent']",
+            "input[placeholder*='Email Address of Agent']",
+            "label:has-text('Agent Email Address') + input",
+            "label:has-text('Agent Email Address') ~ input",
+            "label:has-text('Email Address of Agent') + input",
+            "label:has-text('Email Address of Agent') ~ input",
+            "*:has-text('Agent Email Address') + input",
+            "*:has-text('Agent Email Address') ~ input",
+            "*:has-text('Email Address of Agent') + input",
+            "*:has-text('Email Address of Agent') ~ input",
+            # Generic agent email selectors
+            "input[name*='agent'][type='email']",
+            "input[name*='educator'][type='email']", 
+            "input[name*='agent'][name*='email']",
+            "input[name*='educator'][name*='email']",
+            "input[placeholder*='Agent'][placeholder*='Email']",
+            "input[placeholder*='Educator'][placeholder*='Email']",
+            "input[placeholder*='agent'][placeholder*='email']",
+            "input[placeholder*='educator'][placeholder*='email']",
+            "input[aria-label*='Agent'][aria-label*='Email']",
+            "input[aria-label*='Educator'][aria-label*='Email']",
+            "input[id*='agent'][id*='email']",
+            "input[id*='educator'][id*='email']",
+            "input[data-testid*='agent'][data-testid*='email']",
+            "input[data-testid*='educator'][data-testid*='email']"
         ]
-        parent_email_filled = False
-        for selector in parent_email_selectors:
+        agent_email_filled = False
+        for selector in agent_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Primary Email Address', 'palmone@mailinator.com')))
-                    print(f"✅ Parent email filled: '{self.form_data.get('Primary Email Address', 'palmone@mailinator.com')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Agent Email Address', 'educator@mailinator.com')))
+                    print(f"✅ Agent email filled: '{self.form_data.get('Agent Email Address', 'educator@mailinator.com')}' with selector: {selector}")
                     time.sleep(1)
-                    parent_email_filled = True
+                    agent_email_filled = True
                     break
             except:
                 continue
         
-        if not parent_email_filled:
-            print("⚠️ Parent email field not found")
+        if not agent_email_filled:
+            print("⚠️ Agent email field not found") 
         
-        # CHILD FIELDS: Fill child information (same as before but for the child)
-        print("👶 Filling child information...")
+        # STUDENT FIELDS: Fill student information (the person the agent is representing)
+        print("👨‍🎓 Filling student information...")
         
-        # Child First Name - enhanced selectors
+        # Student First Name - enhanced selectors
         first_name_selectors = [
             "input[name='firstName']",
             "input[name='first_name']", 
@@ -379,8 +410,8 @@ class TestPrivacyPortal:
         for selector in first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First Name', 'ChildFirst')))
-                    print(f"✅ Child first name filled with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('First Name', 'StudentFirst')))
+                    print(f"✅ Student first name filled with selector: {selector}")
                     time.sleep(1)
                     break
             except:
@@ -492,7 +523,7 @@ class TestPrivacyPortal:
         for selector in phone_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('phone', '5712345567')))
+                    page.fill(selector, str(self.form_data.get('Phone Number', '5712345567')))
                     print(f"✅ Phone filled with selector: {selector}")
                     time.sleep(1)
                     break
@@ -518,7 +549,7 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2008'))
+                    birth_date_raw = str(self.form_data.get('Date of Birth', '11/1/2008'))
                     date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:

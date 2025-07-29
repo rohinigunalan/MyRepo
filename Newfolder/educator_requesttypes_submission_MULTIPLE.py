@@ -353,7 +353,8 @@ class TestPrivacyPortal:
         if not agent_last_filled:
             print("⚠️ Agent last name field not found")
         
-        # Agent Email Address
+        # Agent Email Address 
+        print("📧 Filling agent email address...")
         agent_email_selectors = [
             # Look for fields specifically labeled as Agent Email Address
             "input[aria-label*='Agent Email Address']",
@@ -385,11 +386,14 @@ class TestPrivacyPortal:
             "input[data-testid*='educator'][data-testid*='email']"
         ]
         agent_email_filled = False
+        agent_email_value = str(self.form_data.get('Agent Email Address', 'educator@mailinator.com'))
+        print(f"📧 Agent email from Excel: '{agent_email_value}'")
+        
         for selector in agent_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Agent Email Address', 'educator@mailinator.com')))
-                    print(f"✅ Agent email filled: '{self.form_data.get('Agent Email Address', 'educator@mailinator.com')}' with selector: {selector}")
+                    page.fill(selector, agent_email_value)
+                    print(f"✅ Agent email filled: '{agent_email_value}' with selector: {selector}")
                     time.sleep(1)
                     agent_email_filled = True
                     break
@@ -477,16 +481,20 @@ class TestPrivacyPortal:
             try:
                 # Get all visible input fields and check their labels/placeholders
                 all_inputs = page.locator("input[type='text']:visible").all()
+                print(f"Found {len(all_inputs)} text input fields on the form:")
                 for i, input_field in enumerate(all_inputs):
                     try:
                         aria_label = input_field.get_attribute('aria-label') or ''
                         placeholder = input_field.get_attribute('placeholder') or ''
                         field_id = input_field.get_attribute('id') or ''
+                        field_name = input_field.get_attribute('name') or ''
                         
                         # Check if this might be a company-related field
-                        field_text = f"{aria_label} {placeholder} {field_id}".lower()
-                        if any(keyword in field_text for keyword in ['company', 'organization', 'agent', 'n/a', 'applicable']):
-                            print(f"  Potential company field {i+1}: aria-label='{aria_label}', placeholder='{placeholder}', id='{field_id}'")
+                        field_text = f"{aria_label} {placeholder} {field_id} {field_name}".lower()
+                        if any(keyword in field_text for keyword in ['company', 'organization', 'agent', 'n/a', 'applicable', 'authorized']):
+                            print(f"  🎯 Potential company field {i+1}: aria-label='{aria_label}', placeholder='{placeholder}', id='{field_id}', name='{field_name}'")
+                        else:
+                            print(f"  📝 Other field {i+1}: aria-label='{aria_label}', placeholder='{placeholder}', id='{field_id}', name='{field_name}'")
                     except:
                         continue
             except Exception as debug_error:
@@ -568,10 +576,7 @@ class TestPrivacyPortal:
             "input[id*='subject'][id*='email']",
             "input[id*='student'][id*='email']",
             "input[data-testid*='child'][data-testid*='email']",
-            "input[data-testid*='student'][data-testid*='email']",
-            # More generic email selectors (we'll validate context)
-            "input[type='email']:not([aria-label*='Agent']):not([placeholder*='Agent']):not([name*='agent'])",
-            "input[type='email']:not([aria-label*='Parent']):not([placeholder*='Parent']):not([name*='parent'])"
+            "input[data-testid*='student'][data-testid*='email']"
         ]
         
         child_email_filled = False

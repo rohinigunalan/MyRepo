@@ -599,7 +599,8 @@ class TestPrivacyPortal:
         ]
         
         child_email_filled = False
-        child_email_value = str(self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com'))
+        child_email_value = str(self.form_data.get('Primary Email address', 
+                               self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
         print(f"📧 Child email from Excel: '{child_email_value}'")
         
         for selector in child_email_selectors:

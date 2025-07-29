@@ -10,7 +10,8 @@ class TestPrivacyPortal:
     def setup_method(self):
         """Setup method called before each test"""
         self.url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
-        self.form_data = self.load_form_data()
+        self.all_form_data = self.load_form_data()  # Load ALL records
+        self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
         """Load ALL form data from Excel or CSV file for multiple records"""

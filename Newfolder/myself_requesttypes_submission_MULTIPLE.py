@@ -1367,6 +1367,12 @@ class TestPrivacyPortal:
             'remove my data': ['delete', 'removal', 'erase', 'remove'],
             'erase my data': ['delete', 'removal', 'erase', 'remove'],
             
+            # Parent/CC information specific (exact match priority)
+            'remove my parent\'s cc information': ['cc information', 'parent', 'credit card'],
+            'remove my parents cc information': ['cc information', 'parent', 'credit card'],
+            'remove parent cc information': ['cc information', 'parent', 'credit card'],
+            'remove my parent\'s credit card information': ['cc information', 'parent', 'credit card'],
+            
             # Copy data variants  
             'request a copy of my data': ['copy', 'access', 'download', 'portability'],
             'copy of my data': ['copy', 'access', 'download', 'portability'],
@@ -1388,36 +1394,57 @@ class TestPrivacyPortal:
             # Object to processing variants
             'object to processing': ['object', 'opt out', 'withdraw consent'],
             'opt out': ['object', 'opt out', 'withdraw consent'],
+            'opt out of search': ['opt out', 'search', 'withdraw consent'],
             'withdraw consent': ['object', 'opt out', 'withdraw consent']
         }
         
-        # Determine search keywords based on the request type
+        # STEP 1: First try EXACT TEXT MATCHING (priority)
         search_keywords = []
         request_type_lower = request_type_from_excel.lower()
+        exact_match_found = False
         
+        # Check for exact phrase matches first
         for key, keywords in request_type_mappings.items():
             if key in request_type_lower:
                 search_keywords = keywords
+                exact_match_found = True
+                print(f"✅ Found exact mapping for '{request_type_from_excel}' -> keywords: {keywords}")
                 break
         
-        # If no specific mapping found, try to extract keywords from the request type itself
+        # STEP 2: If no exact mapping found, try KEYWORD-BASED MATCHING (fallback)
         if not search_keywords:
-            if 'delete' in request_type_lower or 'remove' in request_type_lower or 'erase' in request_type_lower:
+            print(f"⚠️ No exact mapping found for '{request_type_from_excel}', trying keyword-based matching...")
+            
+            # Special handling for specific cases that might be mismatched
+            if 'cc information' in request_type_lower or 'credit card' in request_type_lower:
+                # This might be a specific request type, let's try to find exact match first
+                search_keywords = ['cc information', 'credit card', 'parent', 'remove']
+                print(f"🎯 Detected CC/credit card request, using specific keywords: {search_keywords}")
+            elif 'parent' in request_type_lower and 'information' in request_type_lower:
+                # Parent information removal - might be its own category
+                search_keywords = ['parent', 'information', 'remove', 'cc']
+                print(f"🎯 Detected parent information request, using specific keywords: {search_keywords}")
+            elif 'delete' in request_type_lower or 'remove' in request_type_lower or 'erase' in request_type_lower:
                 search_keywords = ['delete', 'removal', 'erase', 'remove']
+                print(f"🔍 Using delete/remove keywords: {search_keywords}")
             elif 'copy' in request_type_lower or 'access' in request_type_lower or 'download' in request_type_lower:
                 search_keywords = ['copy', 'access', 'download', 'portability']
+                print(f"🔍 Using copy/access keywords: {search_keywords}")
             elif 'correct' in request_type_lower or 'update' in request_type_lower or 'modify' in request_type_lower:
                 search_keywords = ['correct', 'rectify', 'update', 'modify']
+                print(f"🔍 Using correct/update keywords: {search_keywords}")
             elif 'restrict' in request_type_lower or 'limit' in request_type_lower:
                 search_keywords = ['restrict', 'limit', 'stop processing']
+                print(f"🔍 Using restrict/limit keywords: {search_keywords}")
             elif 'object' in request_type_lower or 'opt out' in request_type_lower:
                 search_keywords = ['object', 'opt out', 'withdraw consent']
+                print(f"🔍 Using object/opt-out keywords: {search_keywords}")
             else:
                 # Default to copy if nothing matches
                 search_keywords = ['copy', 'access', 'download', 'portability']
                 print(f"⚠️ No specific mapping found for '{request_type_from_excel}', defaulting to copy/access keywords")
         
-        print(f"🔍 Using search keywords: {search_keywords}")
+        print(f"🔍 Final search keywords: {search_keywords}")
         
         # First, debug: find all available radio buttons and their labels
         print("🔍 DEBUG: Finding all available request type options...")
@@ -1502,50 +1529,90 @@ class TestPrivacyPortal:
                 print(f"⚠️ Error checking option: {str(e)}")
                 continue
         
-        # If still not found, try text-based selectors with our search keywords
+        # If still not found, try text-based selectors with EXACT MATCHING first
         if not request_type_selected:
             print("🔄 Trying text-based selectors...")
             
-            for keyword in search_keywords:
-                if request_type_selected:
-                    break
-                    
-                # Create dynamic selectors based on keywords
-                text_selectors = [
-                    f"label:has-text('{keyword}')",
-                    f"span:has-text('{keyword}')",
-                    f"div:has-text('{keyword}')",
-                    f"button:has-text('{keyword}')",
-                    f"[aria-label*='{keyword}']",
-                    f"[data-value*='{keyword}']",
-                    f"[value*='{keyword}']"
-                ]
-                
-                for selector in text_selectors:
-                    try:
-                        elements = page.locator(selector).all()
-                        for element in elements:
-                            if element.is_visible():
-                                text = ""
-                                try:
-                                    text = element.inner_text() or element.text_content() or ""
-                                except:
-                                    pass
-                                
-                                # Check if this looks like our target option
-                                if keyword.lower() in text.lower():
-                                    print(f"🔍 Found text-based option - text: '{text}' (keyword: '{keyword}')")
-                                    element.click(timeout=5000)
-                                    print(f"✅ Selected request type using text selector: '{text}'")
-                                    request_type_selected = True
-                                    time.sleep(2)
-                                    break
+            # STEP 1: Try exact matching with the original Excel text first
+            print(f"🎯 STEP 1: Trying exact match for: '{request_type_from_excel}'")
+            exact_match_selectors = [
+                f"label:has-text('{request_type_from_excel}')",
+                f"span:has-text('{request_type_from_excel}')", 
+                f"div:has-text('{request_type_from_excel}')",
+                f"button:has-text('{request_type_from_excel}')",
+                f"[aria-label*='{request_type_from_excel}']"
+            ]
+            
+            for selector in exact_match_selectors:
+                try:
+                    elements = page.locator(selector).all()
+                    for element in elements:
+                        if element.is_visible():
+                            text = ""
+                            try:
+                                text = element.inner_text() or element.text_content() or ""
+                            except:
+                                pass
                             
-                        if request_type_selected:
-                            break
-                    except Exception as e:
-                        print(f"⚠️ Could not use selector {selector}: {str(e)}")
-                        continue
+                            # Check for exact or very close match
+                            if request_type_from_excel.lower() in text.lower() or text.lower() in request_type_from_excel.lower():
+                                print(f"🎯 Found EXACT MATCH - text: '{text}'")
+                                element.click(timeout=5000)
+                                print(f"✅ Selected request type using EXACT MATCH: '{text}'")
+                                request_type_selected = True
+                                time.sleep(2)
+                                break
+                        
+                    if request_type_selected:
+                        break
+                except Exception as e:
+                    print(f"⚠️ Could not use exact match selector {selector}: {str(e)}")
+                    continue
+            
+            # STEP 2: If no exact match, try keyword-based matching  
+            if not request_type_selected:
+                print(f"🔍 STEP 2: No exact match found, trying keyword-based matching...")
+                
+                for keyword in search_keywords:
+                    if request_type_selected:
+                        break
+                        
+                    # Create dynamic selectors based on keywords
+                    text_selectors = [
+                        f"label:has-text('{keyword}')",
+                        f"span:has-text('{keyword}')",
+                        f"div:has-text('{keyword}')",
+                        f"button:has-text('{keyword}')",
+                        f"[aria-label*='{keyword}']",
+                        f"[data-value*='{keyword}']",
+                        f"[value*='{keyword}']"
+                    ]
+                    
+                    for selector in text_selectors:
+                        try:
+                            elements = page.locator(selector).all()
+                            for element in elements:
+                                if element.is_visible():
+                                    text = ""
+                                    try:
+                                        text = element.inner_text() or element.text_content() or ""
+                                    except:
+                                        pass
+                                    
+                                    # Check if this looks like our target option
+                                    if keyword.lower() in text.lower():
+                                        print(f"🔍 Found text-based option - text: '{text}' (keyword: '{keyword}')")
+                                        element.click(timeout=5000)
+                                        print(f"✅ Selected request type using text selector: '{text}'")
+                                        request_type_selected = True
+                                        time.sleep(2)
+                                        break
+                                
+                            if request_type_selected:
+                                break
+                        except Exception as e:
+                            print(f"⚠️ Could not use selector {selector}: {str(e)}")
+                            continue
         
         # Final fallback - try to click anything that seems related to our original Excel text
         if not request_type_selected:

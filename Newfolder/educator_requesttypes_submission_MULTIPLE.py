@@ -65,7 +65,8 @@ class TestPrivacyPortal:
             
             print("✅ All educator form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                agent_company = record.get('Authorized Agent Company Name', 'N/A')
+                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
@@ -75,6 +76,7 @@ class TestPrivacyPortal:
             # Fallback to default educator data - return as list
             return [{
                 'Who is making this request': 'Authorized Agent on behalf of someone else',
+                'Authorized Agent Company Name': 'Sample School District',
                 'Agent First Name': 'John',
                 'Agent Last Name': 'Educator',
                 'Agent Email Address': 'john.educator@mailinator.com',
@@ -122,6 +124,7 @@ class TestPrivacyPortal:
                     print(f"👤 Current Record Details:")
                     print(f"   Agent: {record_data.get('Agent First Name', 'N/A')} {record_data.get('Agent Last Name', 'N/A')}")
                     print(f"   Agent Email: {record_data.get('Agent Email Address', 'N/A')}")
+                    print(f"   Agent Company: {record_data.get('Authorized Agent Company Name', 'N/A')}")
                     print(f"   Student: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
                     print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
@@ -393,7 +396,67 @@ class TestPrivacyPortal:
                 continue
         
         if not agent_email_filled:
-            print("⚠️ Agent email field not found") 
+            print("⚠️ Agent email field not found")
+        
+        # Agent Company Name (NEW FIELD)
+        print("🏢 Filling agent company name...")
+        agent_company_selectors = [
+            # Look for fields specifically labeled for agent company name
+            "input[aria-label*='Agent Company Name']",
+            "input[placeholder*='Agent Company Name']",
+            "input[aria-label*='Company Name of Agent']",
+            "input[placeholder*='Company Name of Agent']",
+            "input[aria-label*='Authorized Agent Company Name']",
+            "input[placeholder*='Authorized Agent Company Name']",
+            "label:has-text('Agent Company Name') + input",
+            "label:has-text('Agent Company Name') ~ input",
+            "label:has-text('Company Name of Agent') + input",
+            "label:has-text('Company Name of Agent') ~ input",
+            "label:has-text('Authorized Agent Company Name') + input",
+            "label:has-text('Authorized Agent Company Name') ~ input",
+            "*:has-text('Agent Company Name') + input",
+            "*:has-text('Agent Company Name') ~ input",
+            "*:has-text('Company Name of Agent') + input",
+            "*:has-text('Company Name of Agent') ~ input",
+            "*:has-text('Authorized Agent Company Name') + input",
+            "*:has-text('Authorized Agent Company Name') ~ input",
+            # Generic agent company selectors
+            "input[name*='agent'][name*='company']",
+            "input[name*='educator'][name*='company']",
+            "input[name*='agent'][name*='organization']",
+            "input[name*='educator'][name*='organization']",
+            "input[placeholder*='Agent'][placeholder*='Company']",
+            "input[placeholder*='Educator'][placeholder*='Company']",
+            "input[placeholder*='agent'][placeholder*='company']",
+            "input[placeholder*='educator'][placeholder*='company']",
+            "input[aria-label*='Agent'][aria-label*='Company']",
+            "input[aria-label*='Educator'][aria-label*='Company']",
+            "input[id*='agent'][id*='company']",
+            "input[id*='educator'][id*='company']",
+            "input[data-testid*='agent'][data-testid*='company']",
+            "input[data-testid*='educator'][data-testid*='company']"
+        ]
+        
+        agent_company_filled = False
+        company_name = str(self.form_data.get('Authorized Agent Company Name', 'N/A'))
+        
+        # Only fill if company name is not "N/A" 
+        if company_name and company_name.strip().upper() != 'N/A':
+            for selector in agent_company_selectors:
+                try:
+                    if page.locator(selector).first.is_visible():
+                        page.fill(selector, company_name)
+                        print(f"✅ Agent company name filled: '{company_name}' with selector: {selector}")
+                        time.sleep(1)
+                        agent_company_filled = True
+                        break
+                except:
+                    continue
+            
+            if not agent_company_filled:
+                print(f"⚠️ Agent company name field not found (value: '{company_name}')")
+        else:
+            print(f"ℹ️ Agent company name is 'N/A' - skipping field (value: '{company_name}')")
         
         # STUDENT FIELDS: Fill student information (the person the agent is representing)
         print("👨‍🎓 Filling student information...")

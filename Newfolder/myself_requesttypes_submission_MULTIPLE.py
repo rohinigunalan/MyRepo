@@ -1,3 +1,18 @@
+#!/usr/bin/env python3
+"""
+🚨 IMPORTANT SETUP NOTE:
+This script should ALWAYS be run using the virtual environment (.venv) which has all required packages installed:
+- Playwright (with browser binaries)
+- Pandas 
+- Openpyxl
+- Pytest
+
+TO RUN THIS SCRIPT:
+Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest myself_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
+
+The .venv contains all necessary dependencies and is properly configured for this automation.
+"""
+
 import pytest
 from playwright.sync_api import sync_playwright, Page, expect
 import time

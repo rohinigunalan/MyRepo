@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """
-🚨 IMPORTANT SETUP NOTE:
+🚨 IMPORTANT SETUP NOTE - PARENT REQUEST AUTOMATION:
+This script automates PARENT requests using Parent_form_data.xlsx file with the following fields:
+- Who is making this request: Parent on behalf of child
+- Parent/Guardian First Name
+- Parent/Guardian Last Name  
+- Parent/Guardian Email
+- Additional details for delete requests
+
 This script should ALWAYS be run using the virtual environment (.venv) which has all required packages installed:
 - Playwright (with browser binaries)
 - Pandas 
@@ -8,7 +15,7 @@ This script should ALWAYS be run using the virtual environment (.venv) which has
 - Pytest
 
 TO RUN THIS SCRIPT:
-Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest myself_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
+Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest Parent_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
 
 The .venv contains all necessary dependencies and is properly configured for this automation.
 """

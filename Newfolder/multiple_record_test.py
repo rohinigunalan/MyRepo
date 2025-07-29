@@ -79,7 +79,12 @@ class TestPrivacyPortal:
                         self.select_request_type(page)
                         self.handle_delete_data_suboptions(page)
                         self.handle_acknowledgments(page)
-                        self.submit_form(page)
+                        
+                        # Take screenshot BEFORE submission (after all fields are filled)
+                        page.screenshot(path=f"dsr/screenshots/before_submission_record_{index + 1}.png")
+                        print(f"📸 Screenshot saved: before_submission_record_{index + 1}.png")
+                        
+                        self.submit_form(page, index + 1)  # Pass record number for after-submission screenshot
                     except Exception as e:
                         print(f"⚠️ Error processing record {index + 1}: {str(e)}")
                         page.screenshot(path=f"dsr/screenshots/error_record_{index + 1}.png")
@@ -459,8 +464,8 @@ class TestPrivacyPortal:
         
         print("✅ Acknowledgments handled")
 
-    def submit_form(self, page: Page):
-        """Submit the form"""
+    def submit_form(self, page: Page, record_number: int):
+        """Submit the form and take screenshot after submission"""
         print("Submitting form...")
         
         # Look for submit button
@@ -482,6 +487,10 @@ class TestPrivacyPortal:
                     page.click(selector)
                     print(f"✅ Clicked submit button with selector: {selector}")
                     time.sleep(5)  # Wait for submission
+                    
+                    # Take screenshot AFTER submission
+                    page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
+                    print(f"📸 Screenshot saved: after_submission_record_{record_number}.png")
                     return
             except:
                 continue

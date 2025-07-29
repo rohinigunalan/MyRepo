@@ -137,23 +137,106 @@ class TestPrivacyPortal:
                         print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
                         try:
                             self.fill_subject_information(page)
-                            self.fill_contact_information(page)
-                            self.fill_additional_details(page)
-                            self.select_request_type(page)
-                            self.handle_delete_data_suboptions(page)
-                            self.handle_close_account_suboptions(page)
-                            self.handle_acknowledgments(page)
-                            
-                            # Take screenshot BEFORE submission (after all fields are filled)
-                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
-                            print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
-                            
-                            # Submit the form
-                            self.submit_form(page, record_index + 1)
-                            
                         except Exception as e:
-                            print(f"⚠️ Error in form processing: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                            print(f"⚠️ Error in subject information: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_subject_info_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after subject info
+                        page.screenshot(path=f"dsr/screenshots/after_subject_info_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
+                        
+                        # Pause after subject info
+                        print("⏸️ PAUSE: Subject information filled. Continuing in 3 seconds...")
+                        time.sleep(3)
+                        
+                        try:
+                            self.fill_contact_information(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in contact information: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_contact_info_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after contact info
+                        page.screenshot(path=f"dsr/screenshots/after_contact_info_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
+                        
+                        # Pause after contact info to observe dropdowns
+                        print("⏸️ PAUSE: Contact information filled. Continuing in 3 seconds...")
+                        time.sleep(3)
+                        
+                        try:
+                            self.fill_additional_details(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in additional details: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_additional_details_record_{record_index + 1}.png")
+                        
+                        # Pause after additional details
+                        print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        try:
+                            self.select_request_type(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in request type selection: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_request_type_record_{record_index + 1}.png")
+                        
+                        # Pause after request type selection
+                        print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Handle delete data sub-options if applicable
+                        try:
+                            self.handle_delete_data_suboptions(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in delete data sub-options: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_delete_options_record_{record_index + 1}.png")
+                        
+                        # Pause after delete options
+                        print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Handle close account sub-options if applicable
+                        try:
+                            self.handle_close_account_suboptions(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in close account sub-options: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_close_options_record_{record_index + 1}.png")
+                        
+                        # Pause after close account options
+                        print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        try:
+                            self.handle_acknowledgments(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in acknowledgments: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_acknowledgments_record_{record_index + 1}.png")
+                        
+                        # Pause after acknowledgments
+                        print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Take a screenshot after filling all fields
+                        page.screenshot(path=f"dsr/screenshots/form_filled_complete_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
+                        
+                        # Take a screenshot before submission (backup)
+                        page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                        
+                        # Pause before submission to review completed form
+                        print(f"⏸️ PAUSE: Form completely filled for record {record_index + 1}! Submitting in 3 seconds...")
+                        time.sleep(3)
+                        
+                        # Submit the form
+                        try:
+                            self.submit_form(page)
+                        except Exception as e:
+                            print(f"⚠️ Error during form submission: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_submission_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after submission
+                        page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
                         
                         # Pause after submission to see results
                         print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
@@ -2642,7 +2725,7 @@ class TestPrivacyPortal:
         
         print("✅ Acknowledgments and verification completed")
     
-    def submit_form(self, page: Page, record_number: int):
+    def submit_form(self, page: Page):
         """Submit the form"""
         print("🚀 Attempting to submit form...")
         
@@ -2731,9 +2814,9 @@ class TestPrivacyPortal:
                 print("⚠️ Submission may still be processing...")
                 time.sleep(5)
             
-            # Take screenshot AFTER submission
-            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
-            print(f"📸 Screenshot saved: after_submission_record_{record_number}.png")
+            # Take screenshot after submission
+            page.screenshot(path="dsr/screenshots/after_submission.png")
+            print("📸 Screenshot saved: screenshots/after_submission.png")
             
             # Check for success message or confirmation
             success_indicators = [

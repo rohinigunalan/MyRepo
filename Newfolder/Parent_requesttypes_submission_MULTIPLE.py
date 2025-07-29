@@ -64,7 +64,7 @@ class TestPrivacyPortal:
             
             print("✅ All parent form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('parent_first_name', 'N/A')} {record.get('parent_last_name', 'N/A')} - Child: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get('First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
@@ -74,10 +74,10 @@ class TestPrivacyPortal:
             # Fallback to default parent data - return as list
             return [{
                 'who_making_request': 'Parent on behalf of child',
-                'parent_first_name': 'John',
-                'parent_last_name': 'Doe',
-                'parent_email': 'john.doe@mailinator.com',
-                'Email Address': 'child@mailinator.com',
+                'First_Name_of parent_guardian': 'John',
+                'Last Name of parent/guardian': 'Doe',
+                'Primary Email Address': 'john.doe@mailinator.com',
+                'Email of Child (Data Subject)': 'child@mailinator.com',
                 'First_Name': 'Jane',
                 'Last_Name': 'Doe',
                 'birthDate': '11/1/2008',
@@ -249,6 +249,14 @@ class TestPrivacyPortal:
         
         # Parent First Name
         parent_first_name_selectors = [
+            # Look for fields specifically labeled for parent/guardian first name
+            "input[aria-label*='First Name of parent/guardian']",
+            "input[placeholder*='First Name of parent/guardian']",
+            "label:has-text('First Name of parent/guardian') + input",
+            "label:has-text('First Name of parent/guardian') ~ input",
+            "*:has-text('First Name of parent/guardian') + input",
+            "*:has-text('First Name of parent/guardian') ~ input",
+            # Generic parent selectors
             "input[name*='parent'][name*='first']",
             "input[name*='guardian'][name*='first']",
             "input[placeholder*='Parent'][placeholder*='First']",
@@ -265,8 +273,8 @@ class TestPrivacyPortal:
         for selector in parent_first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('parent_first_name', 'John')))
-                    print(f"✅ Parent first name filled with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('First_Name_of parent_guardian', 'Parentone')))
+                    print(f"✅ Parent first name filled: '{self.form_data.get('First_Name_of parent_guardian', 'Parentone')}' with selector: {selector}")
                     time.sleep(1)
                     parent_first_filled = True
                     break
@@ -278,6 +286,14 @@ class TestPrivacyPortal:
         
         # Parent Last Name
         parent_last_name_selectors = [
+            # Look for fields specifically labeled for parent/guardian last name
+            "input[aria-label*='Last Name of parent/guardian']",
+            "input[placeholder*='Last Name of parent/guardian']",
+            "label:has-text('Last Name of parent/guardian') + input",
+            "label:has-text('Last Name of parent/guardian') ~ input", 
+            "*:has-text('Last Name of parent/guardian') + input",
+            "*:has-text('Last Name of parent/guardian') ~ input",
+            # Generic parent selectors
             "input[name*='parent'][name*='last']",
             "input[name*='guardian'][name*='last']",
             "input[placeholder*='Parent'][placeholder*='Last']",
@@ -294,8 +310,8 @@ class TestPrivacyPortal:
         for selector in parent_last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('parent_last_name', 'Doe')))
-                    print(f"✅ Parent last name filled with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')))
+                    print(f"✅ Parent last name filled: '{self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')}' with selector: {selector}")
                     time.sleep(1)
                     parent_last_filled = True
                     break
@@ -305,8 +321,16 @@ class TestPrivacyPortal:
         if not parent_last_filled:
             print("⚠️ Parent last name field not found")
         
-        # Parent Email Address
+        # Parent Email Address (Primary Email Address)
         parent_email_selectors = [
+            # Look for fields specifically labeled as Primary Email Address
+            "input[aria-label*='Primary Email Address']",
+            "input[placeholder*='Primary Email Address']",
+            "label:has-text('Primary Email Address') + input",
+            "label:has-text('Primary Email Address') ~ input",
+            "*:has-text('Primary Email Address') + input",
+            "*:has-text('Primary Email Address') ~ input",
+            # Generic parent email selectors
             "input[name*='parent'][type='email']",
             "input[name*='guardian'][type='email']", 
             "input[name*='parent'][name*='email']",
@@ -315,8 +339,11 @@ class TestPrivacyPortal:
             "input[placeholder*='Guardian'][placeholder*='Email']",
             "input[placeholder*='parent'][placeholder*='email']",
             "input[placeholder*='guardian'][placeholder*='email']",
+            "input[placeholder*='Primary Email']",
+            "input[placeholder*='primary email']",
             "input[aria-label*='Parent'][aria-label*='Email']",
             "input[aria-label*='Guardian'][aria-label*='Email']",
+            "input[aria-label*='Primary Email']",
             "input[id*='parent'][id*='email']",
             "input[id*='guardian'][id*='email']",
             "input[data-testid*='parent'][data-testid*='email']"
@@ -325,8 +352,8 @@ class TestPrivacyPortal:
         for selector in parent_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('parent_email', 'john.doe@mailinator.com')))
-                    print(f"✅ Parent email filled with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Primary Email Address', 'palmone@mailinator.com')))
+                    print(f"✅ Parent email filled: '{self.form_data.get('Primary Email Address', 'palmone@mailinator.com')}' with selector: {selector}")
                     time.sleep(1)
                     parent_email_filled = True
                     break
@@ -377,24 +404,79 @@ class TestPrivacyPortal:
             except:
                 continue
             
-        # Child Email Address - enhanced selectors
-        email_selectors = [
-            "input[type='email']",
-            "input[name='email']",
-            "input[id*='email']",
-            "input[placeholder*='email']",
-            "input[placeholder*='Email']",
-            "input[data-testid*='email']"
+        # Child Email Address (Email of Child/Data Subject)
+        child_email_selectors = [
+            # Exact match from screenshot
+            "input[aria-label*='Email of Child (Data Subject)']",
+            "input[placeholder*='Email of Child (Data Subject)']",
+            "label:has-text('Email of Child (Data Subject)') + input",
+            "label:has-text('Email of Child (Data Subject)') ~ input",
+            "*:has-text('Email of Child (Data Subject)') + input",
+            "*:has-text('Email of Child (Data Subject)') ~ input",
+            # Alternative variations
+            "input[aria-label*='Email of Child']",
+            "input[placeholder*='Email of Child']",
+            "input[aria-label*='Child Email']", 
+            "input[placeholder*='Child Email']",
+            "input[aria-label*='Data Subject Email']",
+            "input[placeholder*='Data Subject Email']",
+            "label:has-text('Email of Child') + input",
+            "label:has-text('Child Email') + input",
+            "*:has-text('Email of Child') + input",
+            "*:has-text('Child Email') + input",
+            "*:has-text('Data Subject') + input[type='email']",
+            # Generic selectors that might contain child/data subject context
+            "input[name*='child'][type='email']",
+            "input[name*='subject'][type='email']",
+            "input[name*='student'][type='email']",
+            "input[id*='child'][id*='email']",
+            "input[id*='subject'][id*='email']",
+            "input[id*='student'][id*='email']",
+            "input[data-testid*='child'][data-testid*='email']"
         ]
-        for selector in email_selectors:
+        
+        child_email_filled = False
+        for selector in child_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Email Address', 'child@mailinator.com')))
-                    print(f"✅ Child email filled with selector: {selector}")
-                    time.sleep(1)
-                    break
+                    # Check if this field is actually for child and not parent by examining context
+                    field_element = page.locator(selector).first
+                    field_label = ""
+                    try:
+                        # Try to get aria-label or placeholder to determine context
+                        field_label = field_element.get_attribute('aria-label') or ""
+                        if not field_label:
+                            field_label = field_element.get_attribute('placeholder') or ""
+                        if not field_label:
+                            # Try to find associated label
+                            field_id = field_element.get_attribute('id')
+                            if field_id:
+                                label_element = page.locator(f"label[for='{field_id}']").first
+                                if label_element.is_visible():
+                                    field_label = label_element.text_content() or ""
+                    except:
+                        pass
+                    
+                    # Check if this is definitely a child/student field and not parent
+                    field_label_lower = field_label.lower()
+                    is_child_field = any(keyword in field_label_lower for keyword in ['child', 'student', 'data subject', 'subject'])
+                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian', 'primary email'])
+                    
+                    if is_child_field or not is_parent_field:
+                        page.fill(selector, str(self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
+                        print(f"✅ Child email filled: '{self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')}' with selector: {selector}")
+                        print(f"   Field context: {field_label}")
+                        time.sleep(1)
+                        child_email_filled = True
+                        break
+                    else:
+                        print(f"⚠️ Skipping email field (appears to be for parent): {selector}")
+                        continue
             except:
                 continue
+        
+        if not child_email_filled:
+            print("⚠️ Child email field not found")
             
         # Phone Number - enhanced selectors
         phone_selectors = [

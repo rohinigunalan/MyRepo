@@ -78,11 +78,13 @@ class TestPrivacyPortal:
             }]
         
     def test_privacy_form_submission(self):
-        """Test filling and submitting the privacy portal form"""
-        print("🚨 IMPORTANT NOTE: This script will automate most of the form filling,")
+        """Test filling and submitting the privacy portal form for ALL records"""
+        print("🚨 IMPORTANT NOTE: This script will automate form filling for ALL records in Excel,")
         print("   but you may need to manually solve reCAPTCHA challenges if they appear.")
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
+        
+        print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
         
         with sync_playwright() as p:
             # Launch browser
@@ -90,135 +92,151 @@ class TestPrivacyPortal:
             page = browser.new_page()
             
             try:
-                # Navigate to the privacy portal
-                print(f"Navigating to: {self.url}")
-                page.goto(self.url)
-                
-                # Wait for page to load
-                page.wait_for_load_state("networkidle")
-                time.sleep(2)
-                
-                # DEBUG: List all form fields to understand the structure
-                print("\n🔍 DEBUGGING: Listing all form fields...")
-                all_inputs = page.locator("input, select, textarea").all()
-                for i, element in enumerate(all_inputs):
+                # Process each record
+                for record_index, record_data in enumerate(self.all_form_data):
+                    print(f"\n{'='*80}")
+                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"{'='*80}")
+                    
+                    # Set current record data
+                    self.form_data = record_data
+                    
+                    # Display current record info
+                    print(f"👤 Current Record Details:")
+                    print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
+                    print(f"   Email: {record_data.get('Email Address', 'N/A')}")
+                    print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
+                    print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
+                    
                     try:
-                        tag_name = element.evaluate("el => el.tagName")
-                        name = element.get_attribute("name") or "no-name"
-                        id_attr = element.get_attribute("id") or "no-id"
-                        placeholder = element.get_attribute("placeholder") or "no-placeholder"
-                        type_attr = element.get_attribute("type") or "no-type"
-                        visible = element.is_visible()
-                        print(f"Field {i+1}: {tag_name} - name='{name}', id='{id_attr}', placeholder='{placeholder}', type='{type_attr}', visible={visible}")
+                        # Navigate to the privacy portal for each record
+                        print(f"\n🌐 Navigating to form for record {record_index + 1}...")
+                        page.goto(self.url)
+                        
+                        # Wait for page to load
+                        page.wait_for_load_state("networkidle")
+                        time.sleep(2)
+
+                        # Fill out the form based on the current record's data
+                        print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        try:
+                            self.fill_subject_information(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in subject information: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_subject_info_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after subject info
+                        page.screenshot(path=f"dsr/screenshots/after_subject_info_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
+                        
+                        # Pause after subject info
+                        print("⏸️ PAUSE: Subject information filled. Continuing in 3 seconds...")
+                        time.sleep(3)
+                        
+                        try:
+                            self.fill_contact_information(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in contact information: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_contact_info_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after contact info
+                        page.screenshot(path=f"dsr/screenshots/after_contact_info_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
+                        
+                        # Pause after contact info to observe dropdowns
+                        print("⏸️ PAUSE: Contact information filled. Continuing in 3 seconds...")
+                        time.sleep(3)
+                        
+                        try:
+                            self.fill_additional_details(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in additional details: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_additional_details_record_{record_index + 1}.png")
+                        
+                        # Pause after additional details
+                        print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        try:
+                            self.select_request_type(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in request type selection: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_request_type_record_{record_index + 1}.png")
+                        
+                        # Pause after request type selection
+                        print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Handle delete data sub-options if applicable
+                        try:
+                            self.handle_delete_data_suboptions(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in delete data sub-options: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_delete_options_record_{record_index + 1}.png")
+                        
+                        # Pause after delete options
+                        print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        try:
+                            self.handle_acknowledgments(page)
+                        except Exception as e:
+                            print(f"⚠️ Error in acknowledgments: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_acknowledgments_record_{record_index + 1}.png")
+                        
+                        # Pause after acknowledgments
+                        print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
+                        time.sleep(2)
+                        
+                        # Take a screenshot after filling all fields
+                        page.screenshot(path=f"dsr/screenshots/form_filled_complete_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
+                        
+                        # Take a screenshot before submission (backup)
+                        page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                        
+                        # Pause before submission to review completed form
+                        print(f"⏸️ PAUSE: Form completely filled for record {record_index + 1}! Submitting in 3 seconds...")
+                        time.sleep(3)
+                        
+                        # Submit the form
+                        try:
+                            self.submit_form(page)
+                        except Exception as e:
+                            print(f"⚠️ Error during form submission: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_submission_record_{record_index + 1}.png")
+                        
+                        # Take screenshot after submission
+                        page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_index + 1}.png")
+                        print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
+                        
+                        # Pause after submission to see results
+                        print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
+                        time.sleep(3)
+                        
+                        print(f"✅ RECORD {record_index + 1} AUTOMATION COMPLETED SUCCESSFULLY!")
+                        
                     except Exception as e:
-                        print(f"Field {i+1}: Could not get attributes - {str(e)}")
-                print("🔍 END FIELD LISTING\n")
+                        print(f"❌ Error processing record {record_index + 1}: {str(e)}")
+                        # Take screenshot on error
+                        page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                        print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        # Continue with next record
+                        
+                    # Pause between records (except after the last one)
+                    if record_index < len(self.all_form_data) - 1:
+                        print(f"\n⏸️ PAUSING 5 SECONDS BEFORE PROCESSING NEXT RECORD...")
+                        time.sleep(5)
                 
-                # Pause to review form structure
-                print("⏸️ PAUSE: Review the form structure above. Continuing in 5 seconds...")
-                time.sleep(5)
-                
-                # Fill out the form based on the data from your JSON
-                print("\n🎯 STARTING FORM FILLING PROCESS...")
-                try:
-                    self.fill_subject_information(page)
-                except Exception as e:
-                    print(f"⚠️ Error in subject information: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_subject_info.png")
-                
-                # Take screenshot after subject info
-                page.screenshot(path="dsr/screenshots/after_subject_info.png")
-                print("📸 Screenshot saved after subject information")
-                
-                # Pause after subject info
-                print("⏸️ PAUSE: Subject information filled. Continuing in 4 seconds...")
-                time.sleep(4)
-                
-                try:
-                    self.fill_contact_information(page)
-                except Exception as e:
-                    print(f"⚠️ Error in contact information: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_contact_info.png")
-                
-                # Take screenshot after contact info
-                page.screenshot(path="dsr/screenshots/after_contact_info.png")
-                print("📸 Screenshot saved after contact information")
-                
-                # Pause after contact info to observe dropdowns
-                print("⏸️ PAUSE: Contact information filled (including country/state). Continuing in 5 seconds...")
-                time.sleep(5)
-                
-                try:
-                    self.fill_additional_details(page)
-                except Exception as e:
-                    print(f"⚠️ Error in additional details: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_additional_details.png")
-                
-                # Pause after additional details
-                print("⏸️ PAUSE: Additional details filled. Continuing in 3 seconds...")
-                time.sleep(3)
-                
-                try:
-                    self.select_request_type(page)
-                except Exception as e:
-                    print(f"⚠️ Error in request type selection: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_request_type.png")
-                
-                # Pause after request type selection
-                print("⏸️ PAUSE: Request type selected. Continuing in 3 seconds...")
-                time.sleep(3)
-                
-                # Handle delete data sub-options if applicable
-                try:
-                    self.handle_delete_data_suboptions(page)
-                except Exception as e:
-                    print(f"⚠️ Error in delete data sub-options: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_delete_options.png")
-                
-                # Pause after delete options
-                print("⏸️ PAUSE: Delete options processed. Continuing in 3 seconds...")
-                time.sleep(3)
-                
-                try:
-                    self.handle_acknowledgments(page)
-                except Exception as e:
-                    print(f"⚠️ Error in acknowledgments: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_acknowledgments.png")
-                
-                # Pause after acknowledgments
-                print("⏸️ PAUSE: Acknowledgments completed. Continuing in 3 seconds...")
-                time.sleep(3)
-                
-                # Take a screenshot after filling all fields
-                page.screenshot(path="dsr/screenshots/form_filled_complete.png")
-                print("📸 Screenshot saved: screenshots/form_filled_complete.png")
-                
-                # Take a screenshot before submission (backup)
-                page.screenshot(path="dsr/screenshots/before_submission.png")
-                print("📸 Screenshot saved: screenshots/before_submission.png")
-                
-                # Pause before submission to review completed form
-                print("⏸️ PAUSE: Form completely filled! Review the form before submission. Submitting in 7 seconds...")
-                time.sleep(7)
-                
-                # Submit the form (now enabled for testing)
-                try:
-                    self.submit_form(page)
-                except Exception as e:
-                    print(f"⚠️ Error during form submission: {str(e)}")
-                    page.screenshot(path="dsr/screenshots/error_submission.png")
-                
-                # Pause after submission to see results
-                print("⏸️ PAUSE: Form submission attempted. Observe results for 8 seconds...")
-                time.sleep(8)
-                
-                print("✅ Form automation completed successfully!")
+                print(f"\n🎉 ALL {len(self.all_form_data)} RECORDS PROCESSED SUCCESSFULLY!")
+                print("✅ Multiple record form automation completed!")
                 
             except Exception as e:
-                # Take screenshot on error
-                page.screenshot(path="dsr/screenshots/error_screenshot.png")
-                print(f"❌ Error occurred: {str(e)}")
-                print("📸 Error screenshot saved: screenshots/error_screenshot.png")
+                # Take screenshot on major error
+                page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                print(f"❌ Major error occurred: {str(e)}")
+                print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
                 raise
                 
             finally:

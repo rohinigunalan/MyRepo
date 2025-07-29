@@ -24,7 +24,7 @@ class TestPrivacyPortal:
             if os.path.exists(excel_file):
                 print(f"📊 Attempting to read data from {excel_file}")
                 try:
-                    df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
+                    df = pd.read_excel(excel_file, engine='openpyxl')
                     print("✅ Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")

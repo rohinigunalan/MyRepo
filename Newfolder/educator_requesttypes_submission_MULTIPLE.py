@@ -170,9 +170,13 @@ class TestPrivacyPortal:
                         
                     except Exception as e:
                         print(f"❌ Error processing record {record_index + 1}: {str(e)}")
-                        # Take screenshot on error
-                        page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
-                        print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        # Try to take screenshot on error if page is still available
+                        try:
+                            if page and not page.is_closed():
+                                page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                                print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        except:
+                            print("⚠️ Could not take error screenshot (page may be closed)")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
@@ -184,10 +188,14 @@ class TestPrivacyPortal:
                 print("✅ Multiple record form automation completed!")
                 
             except Exception as e:
-                # Take screenshot on major error
-                page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                # Try to take screenshot on major error if page is still available
+                try:
+                    if page and not page.is_closed():
+                        page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                        print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
+                except:
+                    print("⚠️ Could not take major error screenshot (page may be closed)")
                 print(f"❌ Major error occurred: {str(e)}")
-                print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
                 raise
                 
             finally:

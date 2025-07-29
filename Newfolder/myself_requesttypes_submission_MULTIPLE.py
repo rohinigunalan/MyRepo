@@ -13,8 +13,8 @@ class TestPrivacyPortal:
         self.form_data = self.load_form_data()
     
     def load_form_data(self):
-        """Load form data from Excel or CSV file"""
-        print("📂 Loading form data from file...")
+        """Load ALL form data from Excel or CSV file for multiple records"""
+        print("📂 Loading ALL form data from file...")
         
         # Try to load from Excel first, then CSV
         excel_file = "dsr/data/form_data.xlsx"
@@ -41,24 +41,25 @@ class TestPrivacyPortal:
             else:
                 raise FileNotFoundError("No form_data.xlsx or form_data.csv file found")
             
-            # Get the first row of data
+            # Get ALL rows of data instead of just the first
             if len(df) == 0:
                 raise ValueError("No data found in the file")
             
-            # Convert first row to dictionary
-            data = df.iloc[0].to_dict()
+            print(f"📊 Found {len(df)} records in the file")
+            # Return ALL records as a list of dictionaries
+            all_records = df.to_dict(orient='records')
             
-            print("✅ Form data loaded successfully:")
-            for key, value in data.items():
-                print(f"  {key}: {value}")
+            print("✅ All form data loaded successfully:")
+            for i, record in enumerate(all_records):
+                print(f"  Record {i+1}: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - {record.get('Request_type', 'N/A')}")
             
-            return data
+            return all_records
             
         except Exception as e:
             print(f"❌ Error loading form data: {str(e)}")
             print("📝 Using default fallback data...")
-            # Fallback to default data
-            return {
+            # Fallback to default data - return as list
+            return [{
                 'Email Address': 'palmny1@mailinator.com',
                 'First_Name': 'RobNY',
                 'Last_Name': 'EdisonNY',
@@ -73,7 +74,7 @@ class TestPrivacyPortal:
                 'studentGraduationYear': '2020',
                 'educatorSchoolAffiliation': 'N/A',
                 'Request_type': 'Request a copy of my data'
-            }
+            }]
         
     def test_privacy_form_submission(self):
         """Test filling and submitting the privacy portal form"""

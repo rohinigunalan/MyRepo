@@ -1395,7 +1395,16 @@ class TestPrivacyPortal:
             'object to processing': ['object', 'opt out', 'withdraw consent'],
             'opt out': ['object', 'opt out', 'withdraw consent'],
             'opt out of search': ['opt out', 'search', 'withdraw consent'],
-            'withdraw consent': ['object', 'opt out', 'withdraw consent']
+            'withdraw consent': ['object', 'opt out', 'withdraw consent'],
+            
+            # Close/deactivate account variants
+            'close/deactivate/cancel my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'close my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'deactivate my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'cancel my college board account': ['close', 'deactivate', 'cancel', 'account'],
+            'close account': ['close', 'deactivate', 'cancel', 'account'],
+            'deactivate account': ['close', 'deactivate', 'cancel', 'account'],
+            'cancel account': ['close', 'deactivate', 'cancel', 'account']
         }
         
         # STEP 1: First try EXACT TEXT MATCHING (priority)

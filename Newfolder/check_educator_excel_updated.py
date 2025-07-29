@@ -31,6 +31,7 @@ def examine_updated_excel():
                 print(f"     Agent First Name: '{row.get('Agent First Name', 'N/A')}'")
                 print(f"     Agent Last Name: '{row.get('Agent Last Name', 'N/A')}'")
                 print(f"     Agent Email Address: '{row.get('Agent Email Address', 'N/A')}'")
+                print(f"     Email of Child (Data Subject): '{row.get('Email of Child (Data Subject)', 'N/A')}'")
                 print(f"     Student First Name: '{row.get('First Name', 'N/A')}'")
                 print(f"     Student Last Name: '{row.get('Last Name', 'N/A')}'")
                 print(f"     Request Type: '{row.get('Request_type', 'N/A')}'")

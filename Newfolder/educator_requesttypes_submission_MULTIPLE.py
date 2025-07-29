@@ -3,6 +3,7 @@
 🚨 IMPORTANT SETUP NOTE - EDUCATOR/AGENT REQUEST AUTOMATION:
 This script automates EDUCATOR/AGENT requests using Educatoronbehalfofstudent_form_data.xlsx file with the following fields:
 - Who is making this request: Authorized Agent on behalf of someone else
+- Authorized Agent Company Name (insert N/A if not applicable)
 - Agent First Name
 - Agent Last Name  
 - Agent Email Address
@@ -401,6 +402,20 @@ class TestPrivacyPortal:
         # Agent Company Name (NEW FIELD)
         print("🏢 Filling agent company name...")
         agent_company_selectors = [
+            # Look for fields with the exact form label "Authorized Agent Company Name (insert N/A if not applicable)"
+            "input[aria-label*='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "input[placeholder*='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
+            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
+            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
+            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
+            # Partial matches for the field
+            "input[aria-label*='insert N/A if not applicable']",
+            "input[placeholder*='insert N/A if not applicable']",
+            "label:has-text('insert N/A if not applicable') + input",
+            "label:has-text('insert N/A if not applicable') ~ input",
+            "*:has-text('insert N/A if not applicable') + input",
+            "*:has-text('insert N/A if not applicable') ~ input",
             # Look for fields specifically labeled for agent company name
             "input[aria-label*='Agent Company Name']",
             "input[placeholder*='Agent Company Name']",
@@ -440,23 +455,42 @@ class TestPrivacyPortal:
         agent_company_filled = False
         company_name = str(self.form_data.get('Authorized Agent Company Name', 'N/A'))
         
-        # Only fill if company name is not "N/A" 
-        if company_name and company_name.strip().upper() != 'N/A':
-            for selector in agent_company_selectors:
-                try:
-                    if page.locator(selector).first.is_visible():
-                        page.fill(selector, company_name)
-                        print(f"✅ Agent company name filled: '{company_name}' with selector: {selector}")
-                        time.sleep(1)
-                        agent_company_filled = True
-                        break
-                except:
-                    continue
-            
-            if not agent_company_filled:
-                print(f"⚠️ Agent company name field not found (value: '{company_name}')")
-        else:
-            print(f"ℹ️ Agent company name is 'N/A' - skipping field (value: '{company_name}')")
+        # Fill company name field - use "N/A" when Excel has "N/A", or use actual company name
+        print(f"🏢 Company name from Excel: '{company_name}'")
+        
+        # Always try to fill the field (whether it's "N/A" or a real company name)
+        for selector in agent_company_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, company_name)
+                    print(f"✅ Agent company name filled: '{company_name}' with selector: {selector}")
+                    time.sleep(1)
+                    agent_company_filled = True
+                    break
+            except:
+                continue
+        
+        if not agent_company_filled:
+            print(f"⚠️ Agent company name field not found (value: '{company_name}')")
+            # Let's add some debugging to see what fields are actually available
+            print("🔍 DEBUG: Looking for any input fields that might be the company field...")
+            try:
+                # Get all visible input fields and check their labels/placeholders
+                all_inputs = page.locator("input[type='text']:visible").all()
+                for i, input_field in enumerate(all_inputs):
+                    try:
+                        aria_label = input_field.get_attribute('aria-label') or ''
+                        placeholder = input_field.get_attribute('placeholder') or ''
+                        field_id = input_field.get_attribute('id') or ''
+                        
+                        # Check if this might be a company-related field
+                        field_text = f"{aria_label} {placeholder} {field_id}".lower()
+                        if any(keyword in field_text for keyword in ['company', 'organization', 'agent', 'n/a', 'applicable']):
+                            print(f"  Potential company field {i+1}: aria-label='{aria_label}', placeholder='{placeholder}', id='{field_id}'")
+                    except:
+                        continue
+            except Exception as debug_error:
+                print(f"⚠️ Debug error: {debug_error}")
         
         # STUDENT FIELDS: Fill student information (the person the agent is representing)
         print("👨‍🎓 Filling student information...")
@@ -500,8 +534,9 @@ class TestPrivacyPortal:
                 continue
             
         # Child Email Address (Email of Child/Data Subject)
+        print("📧 Filling child/student email address...")
         child_email_selectors = [
-            # Exact match from screenshot
+            # Exact match from form label variations
             "input[aria-label*='Email of Child (Data Subject)']",
             "input[placeholder*='Email of Child (Data Subject)']",
             "label:has-text('Email of Child (Data Subject)') + input",
@@ -515,10 +550,15 @@ class TestPrivacyPortal:
             "input[placeholder*='Child Email']",
             "input[aria-label*='Data Subject Email']",
             "input[placeholder*='Data Subject Email']",
+            "input[aria-label*='Student Email']",
+            "input[placeholder*='Student Email']",
             "label:has-text('Email of Child') + input",
             "label:has-text('Child Email') + input",
+            "label:has-text('Student Email') + input",
+            "label:has-text('Data Subject Email') + input",
             "*:has-text('Email of Child') + input",
             "*:has-text('Child Email') + input",
+            "*:has-text('Student Email') + input",
             "*:has-text('Data Subject') + input[type='email']",
             # Generic selectors that might contain child/data subject context
             "input[name*='child'][type='email']",
@@ -527,10 +567,17 @@ class TestPrivacyPortal:
             "input[id*='child'][id*='email']",
             "input[id*='subject'][id*='email']",
             "input[id*='student'][id*='email']",
-            "input[data-testid*='child'][data-testid*='email']"
+            "input[data-testid*='child'][data-testid*='email']",
+            "input[data-testid*='student'][data-testid*='email']",
+            # More generic email selectors (we'll validate context)
+            "input[type='email']:not([aria-label*='Agent']):not([placeholder*='Agent']):not([name*='agent'])",
+            "input[type='email']:not([aria-label*='Parent']):not([placeholder*='Parent']):not([name*='parent'])"
         ]
         
         child_email_filled = False
+        child_email_value = str(self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com'))
+        print(f"📧 Child email from Excel: '{child_email_value}'")
+        
         for selector in child_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
@@ -552,26 +599,45 @@ class TestPrivacyPortal:
                     except:
                         pass
                     
-                    # Check if this is definitely a child/student field and not parent
+                    # Check if this is definitely a child/student field and not parent/agent
                     field_label_lower = field_label.lower()
                     is_child_field = any(keyword in field_label_lower for keyword in ['child', 'student', 'data subject', 'subject'])
+                    is_agent_field = any(keyword in field_label_lower for keyword in ['agent', 'educator', 'teacher'])
                     is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian', 'primary email'])
                     
-                    if is_child_field or not is_parent_field:
-                        page.fill(selector, str(self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
-                        print(f"✅ Child email filled: '{self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')}' with selector: {selector}")
+                    # Skip agent and parent fields, prefer child fields
+                    if is_agent_field or is_parent_field:
+                        print(f"⚠️ Skipping email field (appears to be for agent/parent): {selector} - {field_label}")
+                        continue
+                    elif is_child_field or not (is_agent_field or is_parent_field):
+                        page.fill(selector, child_email_value)
+                        print(f"✅ Child email filled: '{child_email_value}' with selector: {selector}")
                         print(f"   Field context: {field_label}")
                         time.sleep(1)
                         child_email_filled = True
                         break
-                    else:
-                        print(f"⚠️ Skipping email field (appears to be for parent): {selector}")
-                        continue
             except:
                 continue
         
         if not child_email_filled:
             print("⚠️ Child email field not found")
+            # Let's add some debugging to see what email fields are actually available
+            print("🔍 DEBUG: Looking for any email fields that might be the child email field...")
+            try:
+                # Get all visible email input fields and check their labels/placeholders
+                all_email_inputs = page.locator("input[type='email']:visible").all()
+                for i, input_field in enumerate(all_email_inputs):
+                    try:
+                        aria_label = input_field.get_attribute('aria-label') or ''
+                        placeholder = input_field.get_attribute('placeholder') or ''
+                        field_id = input_field.get_attribute('id') or ''
+                        field_name = input_field.get_attribute('name') or ''
+                        
+                        print(f"  Email field {i+1}: aria-label='{aria_label}', placeholder='{placeholder}', id='{field_id}', name='{field_name}'")
+                    except:
+                        continue
+            except Exception as debug_error:
+                print(f"⚠️ Debug error: {debug_error}")
             
         # Phone Number - enhanced selectors
         phone_selectors = [

@@ -25,7 +25,7 @@ def test_single_educator_record():
         print(f"   Agent: {first_record.get('Agent First Name', 'N/A')} {first_record.get('Agent Last Name', 'N/A')}")
         print(f"   Company: {first_record.get('Authorized Agent Company Name', 'N/A')}")
         print(f"   Agent Email: {first_record.get('Agent Email Address', 'N/A')}")
-        print(f"   Child Email: {first_record.get('Email of Child (Data Subject)', 'N/A')}")
+        print(f"   Child Email: {first_record.get('Primary Email address', 'N/A')}")
         
     except Exception as e:
         print(f"❌ Error loading Excel: {str(e)}")
@@ -38,7 +38,7 @@ def test_single_educator_record():
         
         try:
             print("\n🌐 Navigating to form...")
-            page.goto("https://prod.privacy-portal.college-board.org/privacy/dsr", wait_until="networkidle", timeout=30000)
+            page.goto("https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0", wait_until="networkidle", timeout=30000)
             
             print("🔘 Clicking 'Authorized Agent on behalf of someone else'...")
             page.click("span:has-text('Authorized Agent on behalf of someone else')")
@@ -87,7 +87,7 @@ def test_single_educator_record():
             
             # Test Primary Email Field (Child Email)
             print("\n👶 Testing Primary Email Field (Child Email)...")
-            child_email = str(first_record.get('Email of Child (Data Subject)', 'child@mailinator.com'))
+            child_email = str(first_record.get('Primary Email address', 'child@mailinator.com'))
             print(f"👶 Child email from Excel: '{child_email}'")
             
             try:

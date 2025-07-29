@@ -322,12 +322,10 @@ class TestPrivacyPortal:
         print("✅ Additional details section completed")
 
     def select_request_type(self, page: Page):
-        """Select request type"""
+        """Select request type and handle close account sub-options if needed"""
         print("Selecting request type...")
-        
         request_type = str(self.form_data.get('Request_type', 'Request a copy of my data'))
         print(f"🎯 Looking for request type: {request_type}")
-        
         # Try different selectors for request type
         selectors = [
             f"button:has-text('{request_type}')",
@@ -337,18 +335,97 @@ class TestPrivacyPortal:
             "input[value*='copy']",
             "label:has-text('copy')"
         ]
-        
+        selected = False
         for selector in selectors:
             try:
                 if page.locator(selector).first.is_visible():
                     page.click(selector)
                     print(f"✅ Selected request type with selector: {selector}")
                     time.sleep(2)
-                    return
+                    selected = True
+                    break
             except:
                 continue
-        
-        print("⚠️ Could not find request type selector")
+        if not selected:
+            print("⚠️ Could not find request type selector")
+
+        # Handle close account sub-options if this is a close/deactivate/cancel request
+        close_keywords = ["close", "deactivate", "cancel"]
+        if any(kw in request_type.lower() for kw in close_keywords):
+            print("\n🚪 Handling close account sub-options...")
+            # Wait for the sub-options to appear
+            time.sleep(2)
+            # Read from Excel columns (case-insensitive)
+            close_student = str(self.form_data.get('close_student', '')).strip()
+            close_educator = str(self.form_data.get('close_educator', '')).strip()
+            print(f"📊 Close account options from Excel:")
+            print(f"  🎓 Student account: '{close_student}'")
+            print(f"  👨‍🏫 Educator account: '{close_educator}'")
+            # Selection logic
+            def should_select_option(excel_value):
+                if excel_value is None:
+                    return False
+                excel_str = str(excel_value).strip().lower()
+                if excel_str in ["nan", "", "none", "no", "false", "0", "n"]:
+                    return False
+                if excel_str in ["yes", "true", "1", "y"]:
+                    return True
+                if any(keyword in excel_str for keyword in ["account", "student", "educator"]):
+                    return True
+                return len(excel_str) > 0
+            student_should_select = should_select_option(close_student)
+            educator_should_select = should_select_option(close_educator)
+            print(f"📋 Selection logic based on Excel data:")
+            print(f"  🎓 Student account: {'SELECT' if student_should_select else 'SKIP'} (Excel: '{close_student}')")
+            print(f"  👨‍🏫 Educator account: {'SELECT' if educator_should_select else 'SKIP'} (Excel: '{close_educator}')")
+            print(f"📊 Total options to select: {sum([student_should_select, educator_should_select])}")
+            # Try to select the checkboxes/buttons for the sub-options
+            if student_should_select:
+                try:
+                    # Try various selectors for student account
+                    student_selectors = [
+                        "label:has-text('Student account')",
+                        "button:has-text('Student account')",
+                        "input[value*='student']",
+                        "[aria-label*='Student']",
+                        "text=Student account (if any)",
+                        "text=Student account"
+                    ]
+                    for sel in student_selectors:
+                        try:
+                            if page.locator(sel).first.is_visible():
+                                page.click(sel)
+                                print(f"✅ Selected student account option with selector: {sel}")
+                                time.sleep(1)
+                                break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"⚠️ Could not select student account option: {e}")
+            if educator_should_select:
+                try:
+                    educator_selectors = [
+                        "label:has-text('Educator account')",
+                        "button:has-text('Educator account')",
+                        "input[value*='educator']",
+                        "[aria-label*='Educator']",
+                        "text=Educator account (if any)",
+                        "text=Educator data (if any)",
+                        "text=Educator account"
+                    ]
+                    for sel in educator_selectors:
+                        try:
+                            if page.locator(sel).first.is_visible():
+                                page.click(sel)
+                                print(f"✅ Selected educator account option with selector: {sel}")
+                                time.sleep(1)
+                                break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"⚠️ Could not select educator account option: {e}")
+            if not (student_should_select or educator_should_select):
+                print("⚠️ No close account options to select based on Excel data!")
 
     def handle_delete_data_suboptions(self, page: Page):
         """Handle delete data sub-options if they appear"""

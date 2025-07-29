@@ -353,10 +353,13 @@ class TestPrivacyPortal:
         if not agent_last_filled:
             print("⚠️ Agent last name field not found")
         
-        # Agent Email Address 
+        # Agent Email Address (This is a TEXT field, not email type!)
         print("📧 Filling agent email address...")
         agent_email_selectors = [
-            # Look for fields specifically labeled as Agent Email Address
+            # The exact field we found on the form
+            "input[aria-label='Agent Email Address']",
+            "input[id='formField123DSARElement']",
+            # Fallback selectors
             "input[aria-label*='Agent Email Address']",
             "input[placeholder*='Agent Email Address']",
             "input[aria-label*='Email Address of Agent']",
@@ -369,11 +372,13 @@ class TestPrivacyPortal:
             "*:has-text('Agent Email Address') ~ input",
             "*:has-text('Email Address of Agent') + input",
             "*:has-text('Email Address of Agent') ~ input",
-            # Generic agent email selectors
+            # Generic agent email selectors - INCLUDE TEXT FIELDS!
             "input[name*='agent'][type='email']",
             "input[name*='educator'][type='email']", 
             "input[name*='agent'][name*='email']",
             "input[name*='educator'][name*='email']",
+            "input[name*='agent'][type='text']",  # Agent email might be text type
+            "input[name*='educator'][type='text']",
             "input[placeholder*='Agent'][placeholder*='Email']",
             "input[placeholder*='Educator'][placeholder*='Email']",
             "input[placeholder*='agent'][placeholder*='email']",
@@ -403,10 +408,13 @@ class TestPrivacyPortal:
         if not agent_email_filled:
             print("⚠️ Agent email field not found")
         
-        # Agent Company Name (NEW FIELD)
+        # Agent Company Name - Found the exact field!
         print("🏢 Filling agent company name...")
         agent_company_selectors = [
-            # Look for fields with the exact form label "Authorized Agent Company Name (insert N/A if not applicable)"
+            # The exact field we found on the form
+            "input[aria-label='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "input[id='formField120DSARElement']",
+            # Fallback selectors
             "input[aria-label*='Authorized Agent Company Name (insert N/A if not applicable)']",
             "input[placeholder*='Authorized Agent Company Name (insert N/A if not applicable)']",
             "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
@@ -541,9 +549,12 @@ class TestPrivacyPortal:
             except:
                 continue
             
-        # Child Email Address (Email of Child/Data Subject)
+        # Child Email Address (Email of Child/Data Subject) - This might be the Primary Email Address field
         print("📧 Filling child/student email address...")
         child_email_selectors = [
+            # Primary Email Address field we found (might be for child)
+            "input[aria-label='Primary Email Address']",
+            "input[id='emailDSARElement']",
             # Exact match from form label variations
             "input[aria-label*='Email of Child (Data Subject)']",
             "input[placeholder*='Email of Child (Data Subject)']",

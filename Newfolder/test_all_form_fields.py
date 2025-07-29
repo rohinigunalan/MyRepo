@@ -10,15 +10,8 @@ from playwright.sync_api import sync_playwright, Page
 def test_all_form_fields():
     """Test to see all form fields after agent selection"""
     
-    # Load Excel data
-    excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
-    df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-    first_record = df.iloc[0].to_dict()
-    
-    print(f"🔍 Testing all form fields for first record:")
-    print(f"   Agent Email from Excel: '{first_record.get('Agent Email Address', 'N/A')}'")
-    print(f"   Child Email from Excel: '{first_record.get('Email of Child (Data Subject)', 'N/A')}'")
-    print(f"   Company Name from Excel: '{first_record.get('Authorized Agent Company Name', 'N/A')}'")
+    print(f"🔍 Testing all form fields after agent selection...")
+    print(f"   This will show all available email fields and text fields")
     
     url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
     

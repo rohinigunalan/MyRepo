@@ -36,58 +36,51 @@ class TestPrivacyPortal:
         self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
-        """Load ALL form data from Excel or CSV file for multiple records"""
-        print("📂 Loading ALL form data from file...")
+        """Load ALL form data from Parent_form_data.xlsx file for multiple parent records"""
+        print("📂 Loading ALL parent form data from file...")
         
-        # Try to load from Excel first, then CSV
-        excel_file = "dsr/data/form_data_updated_20250729_015139.xlsx"
-        excel_file_backup = "dsr/data/form_data.xlsx"
-        csv_file = "form_data.csv"
+        # Use the Parent_form_data.xlsx file specifically
+        excel_file = "dsr/data/Parent_form_data.xlsx"
         
         try:
             if os.path.exists(excel_file):
-                print(f"📊 Attempting to read data from {excel_file}")
+                print(f"📊 Attempting to read parent data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ Excel file loaded successfully!")
+                    print("✅ Parent Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    print("🔄 Trying CSV file as fallback...")
-                    if os.path.exists(csv_file):
-                        df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                        print("✅ CSV file loaded successfully!")
-                    else:
-                        raise FileNotFoundError("Neither Excel nor CSV file could be loaded")
-            elif os.path.exists(csv_file):
-                print(f"📊 Reading data from {csv_file}")
-                df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                print("✅ CSV file loaded successfully!")
+                    raise FileNotFoundError(f"Could not load Parent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError("No form_data.xlsx or form_data.csv file found")
+                raise FileNotFoundError(f"Parent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the file")
+                raise ValueError("No data found in the Parent_form_data.xlsx file")
             
-            print(f"📊 Found {len(df)} records in the file")
+            print(f"📊 Found {len(df)} parent records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All form data loaded successfully:")
+            print("✅ All parent form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get('parent_first_name', 'N/A')} {record.get('parent_last_name', 'N/A')} - Child: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading form data: {str(e)}")
-            print("📝 Using default fallback data...")
-            # Fallback to default data - return as list
+            print(f"❌ Error loading parent form data: {str(e)}")
+            print("📝 Using default fallback data for parent requests...")
+            # Fallback to default parent data - return as list
             return [{
-                'Email Address': 'palmny1@mailinator.com',
-                'First_Name': 'RobNY',
-                'Last_Name': 'EdisonNY',
-                'birthDate': '11/1/2003',
+                'who_making_request': 'Parent on behalf of child',
+                'parent_first_name': 'John',
+                'parent_last_name': 'Doe',
+                'parent_email': 'john.doe@mailinator.com',
+                'Email Address': 'child@mailinator.com',
+                'First_Name': 'Jane',
+                'Last_Name': 'Doe',
+                'birthDate': '11/1/2008',
                 'phone': '5712345567',
                 'country': 'US',
                 'stateOrProvince': 'New York',
@@ -95,9 +88,10 @@ class TestPrivacyPortal:
                 'city': 'North Collins',
                 'streetAddress': '507 Central Avenue',
                 'studentSchoolName': 'South Lakes High School',
-                'studentGraduationYear': '2020',
+                'studentGraduationYear': '2026',
                 'educatorSchoolAffiliation': 'N/A',
-                'Request_type': 'Request a copy of my data'
+                'Request_type': 'Request to delete my data',
+                'additional_details': 'Please delete all student data associated with this account.'
             }]
         
     def test_privacy_form_submission(self):
@@ -141,109 +135,27 @@ class TestPrivacyPortal:
                         time.sleep(2)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING PARENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
                         try:
                             self.fill_subject_information(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in subject information: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_subject_info_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after subject info
-                        page.screenshot(path=f"dsr/screenshots/after_subject_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
-                        
-                        # Pause after subject info
-                        print("⏸️ PAUSE: Subject information filled. Continuing in 3 seconds...")
-                        time.sleep(3)
-                        
-                        try:
                             self.fill_contact_information(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in contact information: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_contact_info_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after contact info
-                        page.screenshot(path=f"dsr/screenshots/after_contact_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
-                        
-                        # Pause after contact info to observe dropdowns
-                        print("⏸️ PAUSE: Contact information filled. Continuing in 3 seconds...")
-                        time.sleep(3)
-                        
-                        try:
                             self.fill_additional_details(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in additional details: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_additional_details_record_{record_index + 1}.png")
-                        
-                        # Pause after additional details
-                        print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        try:
                             self.select_request_type(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in request type selection: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_request_type_record_{record_index + 1}.png")
-                        
-                        # Pause after request type selection
-                        print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Handle delete data sub-options if applicable
-                        try:
+                            self.handle_delete_request_additional_details(page)  # New method for parent delete details
                             self.handle_delete_data_suboptions(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in delete data sub-options: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_delete_options_record_{record_index + 1}.png")
-                        
-                        # Pause after delete options
-                        print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Handle close account sub-options if applicable
-                        try:
                             self.handle_close_account_suboptions(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in close account sub-options: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_close_options_record_{record_index + 1}.png")
-                        
-                        # Pause after close account options
-                        print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        try:
                             self.handle_acknowledgments(page)
+                            
+                            # Take screenshot BEFORE submission (after all fields are filled)
+                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                            print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                            
+                            # Submit the form
+                            self.submit_form(page, record_index + 1)
+                            
                         except Exception as e:
-                            print(f"⚠️ Error in acknowledgments: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_acknowledgments_record_{record_index + 1}.png")
-                        
-                        # Pause after acknowledgments
-                        print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Take a screenshot after filling all fields
-                        page.screenshot(path=f"dsr/screenshots/form_filled_complete_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
-                        
-                        # Take a screenshot before submission (backup)
-                        page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
-                        
-                        # Pause before submission to review completed form
-                        print(f"⏸️ PAUSE: Form completely filled for record {record_index + 1}! Submitting in 3 seconds...")
-                        time.sleep(3)
-                        
-                        # Submit the form
-                        try:
-                            self.submit_form(page)
-                        except Exception as e:
-                            print(f"⚠️ Error during form submission: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_submission_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after submission
-                        page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
+                            print(f"⚠️ Error in parent form processing: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
                         
                         # Pause after submission to see results
                         print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
@@ -280,50 +192,154 @@ class TestPrivacyPortal:
                 browser.close()
     
     def fill_subject_information(self, page: Page):
-        """Fill subject information section"""
-        print("Filling subject information...")
+        """Fill subject information section for PARENT requests"""
+        print("Filling subject information for PARENT request...")
         
-        # FIRST: Click "Myself" button if it exists
-        print("🔘 Looking for 'Myself' button...")
-        myself_selectors = [
-            "button:has-text('Myself')",
-            "button:has-text('myself')",
-            "input[value='Myself']",
-            "input[value='myself']",
-            "input[type='radio'][value*='myself']",
-            "input[type='radio'][value*='Myself']",
-            "label:has-text('Myself')",
-            "label:has-text('myself')",
-            "button[data-testid*='myself']",
-            ".myself-btn",
-            "#myself",
-            "span:has-text('Myself')",
-            "div:has-text('Myself')",
-            "[data-value='myself']",
-            "[data-value='Myself']"
+        # FIRST: Click "Parent on behalf of child" button
+        print("🔘 Looking for 'Parent on behalf of child' button...")
+        parent_selectors = [
+            "button:has-text('Parent on behalf of child')",
+            "button:has-text('parent on behalf of child')", 
+            "button:has-text('Parent')",
+            "button:has-text('parent')",
+            "input[value='Parent on behalf of child']",
+            "input[value='parent on behalf of child']",
+            "input[value='Parent']",
+            "input[value='parent']",
+            "input[type='radio'][value*='parent']",
+            "input[type='radio'][value*='Parent']",
+            "label:has-text('Parent on behalf of child')",
+            "label:has-text('parent on behalf of child')",
+            "label:has-text('Parent')",
+            "label:has-text('parent')",
+            "button[data-testid*='parent']",
+            ".parent-btn",
+            "#parent",
+            "span:has-text('Parent on behalf of child')",
+            "span:has-text('Parent')",
+            "div:has-text('Parent on behalf of child')",
+            "div:has-text('Parent')",
+            "[data-value='parent']",
+            "[data-value='Parent']",
+            "[role='button']:has-text('Parent')"
         ]
         
-        myself_clicked = False
-        for selector in myself_selectors:
+        parent_clicked = False
+        for selector in parent_selectors:
             try:
                 if page.locator(selector).first.is_visible():
                     page.click(selector)
-                    print(f"✅ Clicked 'Myself' button with selector: {selector}")
-                    time.sleep(2)  # Longer pause to see form update
-                    myself_clicked = True
+                    print(f"✅ Clicked 'Parent on behalf of child' button with selector: {selector}")
+                    time.sleep(3)  # Longer pause to let form update for parent fields
+                    parent_clicked = True
                     break
             except Exception as e:
-                print(f"⚠️ Could not click 'Myself' button with selector {selector}: {str(e)}")
+                print(f"⚠️ Could not click 'Parent' button with selector {selector}: {str(e)}")
                 continue
         
-        if not myself_clicked:
-            print("⚠️ 'Myself' button not found - continuing anyway...")
+        if not parent_clicked:
+            print("⚠️ 'Parent on behalf of child' button not found - continuing anyway...")
         
-        # Pause after clicking Myself to let form update
-        print("⏸️ Brief pause after 'Myself' selection...")
-        time.sleep(2)
+        # Pause after clicking Parent to let form update with parent fields
+        print("⏸️ Brief pause after 'Parent' selection to load parent fields...")
+        time.sleep(3)
         
-        # First Name - enhanced selectors
+        # PARENT FIELDS: Fill parent/guardian information
+        print("👨‍👩‍👧‍👦 Filling parent/guardian information...")
+        
+        # Parent First Name
+        parent_first_name_selectors = [
+            "input[name*='parent'][name*='first']",
+            "input[name*='guardian'][name*='first']",
+            "input[placeholder*='Parent'][placeholder*='First']",
+            "input[placeholder*='Guardian'][placeholder*='First']",
+            "input[placeholder*='parent'][placeholder*='first']",
+            "input[placeholder*='guardian'][placeholder*='first']",
+            "input[aria-label*='Parent'][aria-label*='First']",
+            "input[aria-label*='Guardian'][aria-label*='First']",
+            "input[id*='parent'][id*='first']",
+            "input[id*='guardian'][id*='first']",
+            "input[data-testid*='parent'][data-testid*='first']"
+        ]
+        parent_first_filled = False
+        for selector in parent_first_name_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('parent_first_name', 'John')))
+                    print(f"✅ Parent first name filled with selector: {selector}")
+                    time.sleep(1)
+                    parent_first_filled = True
+                    break
+            except:
+                continue
+        
+        if not parent_first_filled:
+            print("⚠️ Parent first name field not found")
+        
+        # Parent Last Name
+        parent_last_name_selectors = [
+            "input[name*='parent'][name*='last']",
+            "input[name*='guardian'][name*='last']",
+            "input[placeholder*='Parent'][placeholder*='Last']",
+            "input[placeholder*='Guardian'][placeholder*='Last']",
+            "input[placeholder*='parent'][placeholder*='last']",
+            "input[placeholder*='guardian'][placeholder*='last']",
+            "input[aria-label*='Parent'][aria-label*='Last']",
+            "input[aria-label*='Guardian'][aria-label*='Last']",
+            "input[id*='parent'][id*='last']",
+            "input[id*='guardian'][id*='last']",
+            "input[data-testid*='parent'][data-testid*='last']"
+        ]
+        parent_last_filled = False
+        for selector in parent_last_name_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('parent_last_name', 'Doe')))
+                    print(f"✅ Parent last name filled with selector: {selector}")
+                    time.sleep(1)
+                    parent_last_filled = True
+                    break
+            except:
+                continue
+        
+        if not parent_last_filled:
+            print("⚠️ Parent last name field not found")
+        
+        # Parent Email Address
+        parent_email_selectors = [
+            "input[name*='parent'][type='email']",
+            "input[name*='guardian'][type='email']", 
+            "input[name*='parent'][name*='email']",
+            "input[name*='guardian'][name*='email']",
+            "input[placeholder*='Parent'][placeholder*='Email']",
+            "input[placeholder*='Guardian'][placeholder*='Email']",
+            "input[placeholder*='parent'][placeholder*='email']",
+            "input[placeholder*='guardian'][placeholder*='email']",
+            "input[aria-label*='Parent'][aria-label*='Email']",
+            "input[aria-label*='Guardian'][aria-label*='Email']",
+            "input[id*='parent'][id*='email']",
+            "input[id*='guardian'][id*='email']",
+            "input[data-testid*='parent'][data-testid*='email']"
+        ]
+        parent_email_filled = False
+        for selector in parent_email_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('parent_email', 'john.doe@mailinator.com')))
+                    print(f"✅ Parent email filled with selector: {selector}")
+                    time.sleep(1)
+                    parent_email_filled = True
+                    break
+            except:
+                continue
+        
+        if not parent_email_filled:
+            print("⚠️ Parent email field not found")
+        
+        # CHILD FIELDS: Fill child information (same as before but for the child)
+        print("👶 Filling child information...")
+        
+        # Child First Name - enhanced selectors
         first_name_selectors = [
             "input[name='firstName']",
             "input[name='first_name']", 
@@ -335,14 +351,14 @@ class TestPrivacyPortal:
         for selector in first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First_Name', 'RobNY')))
-                    print(f"✅ First name filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    page.fill(selector, str(self.form_data.get('First_Name', 'Jane')))
+                    print(f"✅ Child first name filled with selector: {selector}")
+                    time.sleep(1)
                     break
             except:
                 continue
                 
-        # Last Name - enhanced selectors
+        # Child Last Name - enhanced selectors
         last_name_selectors = [
             "input[name='lastName']",
             "input[name='last_name']",
@@ -354,14 +370,14 @@ class TestPrivacyPortal:
         for selector in last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Last_Name', 'EdisonNY')))
-                    print(f"✅ Last name filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    page.fill(selector, str(self.form_data.get('Last_Name', 'Doe')))
+                    print(f"✅ Child last name filled with selector: {selector}")
+                    time.sleep(1)
                     break
             except:
                 continue
             
-        # Email Address - enhanced selectors
+        # Child Email Address - enhanced selectors
         email_selectors = [
             "input[type='email']",
             "input[name='email']",
@@ -373,9 +389,9 @@ class TestPrivacyPortal:
         for selector in email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Email Address', 'palmny1@mailinator.com')))
-                    print(f"✅ Email filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    page.fill(selector, str(self.form_data.get('Email Address', 'child@mailinator.com')))
+                    print(f"✅ Child email filled with selector: {selector}")
+                    time.sleep(1)
                     break
             except:
                 continue
@@ -395,7 +411,7 @@ class TestPrivacyPortal:
                 if page.locator(selector).first.is_visible():
                     page.fill(selector, str(self.form_data.get('phone', '5712345567')))
                     print(f"✅ Phone filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    time.sleep(1)
                     break
             except:
                 continue
@@ -419,8 +435,8 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2003'))
-                    date_formats = [birth_date_raw, "11/01/2003", "11/1/2003", "2003-11-01", "01/11/2003", "01-11-2003"]
+                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2008'))
+                    date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)
@@ -1383,6 +1399,101 @@ class TestPrivacyPortal:
             pass
         
         print("✅ Additional details section completed")
+    
+    def handle_delete_request_additional_details(self, page: Page):
+        """Handle additional details field that appears specifically for delete requests"""
+        print("📝 Handling delete request additional details...")
+        
+        # Check if this is a delete request
+        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+        if 'delete' not in request_type_from_excel:
+            print("ℹ️ Not a delete request, skipping additional details")
+            return
+        
+        # Wait for the additional details field to appear after selecting delete request type
+        time.sleep(3)
+        
+        # Look for the additional details prompt
+        details_indicators = [
+            "text=If necessary, please add additional details",
+            "text=If you have no details to add, write N/A",
+            "text=additional details",
+            "text=Additional details",
+            "text=Please provide additional information",
+            "text=If necessary, please add"
+        ]
+        
+        details_section_found = False
+        for indicator in details_indicators:
+            try:
+                if page.locator(indicator).first.is_visible():
+                    print(f"✅ Found additional details section: {indicator}")
+                    details_section_found = True
+                    break
+            except:
+                continue
+        
+        if not details_section_found:
+            print("ℹ️ Additional details section not found - may not be required")
+            return
+        
+        # Look for the textarea or input field for additional details
+        print("🔍 Looking for additional details input field...")
+        additional_details_selectors = [
+            "textarea[name*='additional']",
+            "textarea[name*='details']",
+            "textarea[name*='comment']",
+            "textarea[name*='message']",
+            "textarea[placeholder*='additional']",
+            "textarea[placeholder*='details']",
+            "textarea[placeholder*='N/A']",
+            "textarea[placeholder*='add additional details']",
+            "textarea[aria-label*='additional']",
+            "textarea[aria-label*='details']",
+            "input[name*='additional']",
+            "input[name*='details']",
+            "input[placeholder*='additional']",
+            "input[placeholder*='details']",
+            "input[placeholder*='N/A']",
+            "textarea"  # Last resort - any textarea
+        ]
+        
+        details_filled = False
+        additional_details_text = str(self.form_data.get('additional_details', 'N/A')).strip()
+        
+        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none']:
+            additional_details_text = 'N/A'
+        
+        print(f"📝 Additional details text from Excel: '{additional_details_text}'")
+        
+        for selector in additional_details_selectors:
+            try:
+                elements = page.locator(selector).all()
+                for element in elements:
+                    if element.is_visible():
+                        placeholder = element.get_attribute("placeholder") or ""
+                        name = element.get_attribute("name") or ""
+                        
+                        print(f"🔍 Found details field - name: '{name}', placeholder: '{placeholder}'")
+                        
+                        # Clear any existing content and fill with our data
+                        element.fill("")
+                        time.sleep(0.5)
+                        element.fill(additional_details_text)
+                        print(f"✅ Additional details filled: '{additional_details_text}' using selector: {selector}")
+                        details_filled = True
+                        break
+                if details_filled:
+                    break
+            except:
+                continue
+        
+        if not details_filled:
+            print("⚠️ Additional details field not found")
+        else:
+            print(f"✅ Successfully filled additional details with: '{additional_details_text}'")
+        
+        time.sleep(2)  # Brief pause after filling details
     
     def select_request_type(self, page: Page):
         """Select request type dynamically based on Excel data"""
@@ -2732,9 +2843,9 @@ class TestPrivacyPortal:
         
         print("✅ Acknowledgments and verification completed")
     
-    def submit_form(self, page: Page):
-        """Submit the form"""
-        print("🚀 Attempting to submit form...")
+    def submit_form(self, page: Page, record_number: int):
+        """Submit the form and take screenshot after submission"""
+        print("🚀 Attempting to submit parent form...")
         
         # Look for submit button with enhanced selectors
         submit_selectors = [
@@ -2810,10 +2921,10 @@ class TestPrivacyPortal:
                     continue
         
         if form_submitted:
-            print("✅ Form submission initiated!")
+            print("✅ Parent form submission initiated!")
             
             # Wait for submission to complete
-            print("⏳ Waiting for form submission to complete...")
+            print("⏳ Waiting for parent form submission to complete...")
             try:
                 page.wait_for_load_state("networkidle", timeout=15000)
                 time.sleep(3)
@@ -2821,9 +2932,9 @@ class TestPrivacyPortal:
                 print("⚠️ Submission may still be processing...")
                 time.sleep(5)
             
-            # Take screenshot after submission
-            page.screenshot(path="dsr/screenshots/after_submission.png")
-            print("📸 Screenshot saved: screenshots/after_submission.png")
+            # Take screenshot AFTER submission
+            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
+            print(f"📸 Screenshot saved: after_submission_record_{record_number}.png")
             
             # Check for success message or confirmation
             success_indicators = [

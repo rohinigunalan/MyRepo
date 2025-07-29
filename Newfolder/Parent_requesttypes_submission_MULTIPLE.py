@@ -64,7 +64,7 @@ class TestPrivacyPortal:
             
             print("✅ All parent form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get(' First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
@@ -74,7 +74,7 @@ class TestPrivacyPortal:
             # Fallback to default parent data - return as list
             return [{
                 'who_making_request': 'Parent on behalf of child',
-                'First_Name_of parent_guardian': 'John',
+                ' First_Name_of parent_guardian': 'John',
                 'Last Name of parent/guardian': 'Doe',
                 'Primary Email Address': 'john.doe@mailinator.com',
                 'Email of Child (Data Subject)': 'child@mailinator.com',
@@ -273,8 +273,8 @@ class TestPrivacyPortal:
         for selector in parent_first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First_Name_of parent_guardian', 'Parentone')))
-                    print(f"✅ Parent first name filled: '{self.form_data.get('First_Name_of parent_guardian', 'Parentone')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get(' First_Name_of parent_guardian', 'Parentone')))
+                    print(f"✅ Parent first name filled: '{self.form_data.get(' First_Name_of parent_guardian', 'Parentone')}' with selector: {selector}")
                     time.sleep(1)
                     parent_first_filled = True
                     break

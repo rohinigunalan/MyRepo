@@ -627,13 +627,17 @@ class TestPrivacyPortal:
                     field_label_lower = field_label.lower()
                     is_child_field = any(keyword in field_label_lower for keyword in ['child', 'student', 'data subject', 'subject'])
                     is_agent_field = any(keyword in field_label_lower for keyword in ['agent', 'educator', 'teacher'])
-                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian', 'primary email'])
+                    # NOTE: In agent forms, "Primary Email Address" is actually for the child, not parent
+                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian']) and 'primary email' not in field_label_lower
                     
-                    # Skip agent and parent fields, prefer child fields
-                    if is_agent_field or is_parent_field:
-                        print(f"⚠️ Skipping email field (appears to be for agent/parent): {selector} - {field_label}")
+                    # Skip agent fields, but allow primary email and child fields
+                    if is_agent_field and 'primary' not in field_label_lower:
+                        print(f"⚠️ Skipping email field (appears to be for agent): {selector} - {field_label}")
                         continue
-                    elif is_child_field or not (is_agent_field or is_parent_field):
+                    elif is_parent_field:
+                        print(f"⚠️ Skipping email field (appears to be for parent): {selector} - {field_label}")
+                        continue
+                    elif is_child_field or 'primary email' in field_label_lower or not (is_agent_field or is_parent_field):
                         page.fill(selector, child_email_value)
                         print(f"✅ Child email filled: '{child_email_value}' with selector: {selector}")
                         print(f"   Field context: {field_label}")

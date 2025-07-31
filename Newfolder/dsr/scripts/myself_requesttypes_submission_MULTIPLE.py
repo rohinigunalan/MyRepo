@@ -18,6 +18,8 @@ from playwright.sync_api import sync_playwright, Page, expect
 import time
 import pandas as pd
 import os
+import sys
+from datetime import datetime
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -33,7 +35,7 @@ class TestPrivacyPortal:
         print("📂 Loading ALL form data from file...")
         
         # Try to load from Excel first, then CSV
-        excel_file = "dsr/data/form_data_updated_20250729_015139.xlsx"
+        excel_file = "dsr/data/Myself_form_data_updated.xlsx"
         excel_file_backup = "dsr/data/form_data.xlsx"
         csv_file = "form_data.csv"
         
@@ -2935,3 +2937,45 @@ if __name__ == "__main__":
     test = TestPrivacyPortal()
     test.setup_method()
     test.test_privacy_form_submission()
+    
+    # Automatically generate Data Reading Success Report after automation
+    print("\n" + "="*80)
+    print("🎯 AUTOMATION COMPLETED! Generating Data Reading Success Report...")
+    print("="*80)
+    
+    try:
+        # Add the parent directory to the path to import report generator
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sys.path.append(parent_dir)
+        
+        # Try to import and run the report generator
+        try:
+            from create_myself_reading_success_report import create_myself_reading_success_report
+            
+            # Generate timestamp for report
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            print(f"📊 Creating Myself Data Reading Success Report...")
+            print(f"🕒 Timestamp: {timestamp}")
+            
+            # Run report generation
+            create_myself_reading_success_report()
+            
+            print(f"🎉 SUCCESS! Myself Data Reading Success Report generated:")
+            print(f"📁 Report File: dsr/screenshots/Myself_Data_Reading_Success_Report_{timestamp}.xlsx")
+            print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            
+        except ImportError as e:
+            print(f"⚠️ Could not import report generator: {e}")
+            print("📝 Please ensure create_myself_reading_success_report.py exists in the parent directory")
+        except Exception as e:
+            print(f"⚠️ Error generating report: {e}")
+            print("📝 Report generation failed, but form automation completed successfully")
+    
+    except Exception as e:
+        print(f"⚠️ Error in report generation setup: {e}")
+    
+    print("\n✅ ALL TASKS COMPLETED!")
+    print("📊 Check the dsr/screenshots/ folder for:")
+    print("   • Form submission screenshots")
+    print("   • Data Reading Success Report (Excel file)")
+    print("   • Automation logs and results")

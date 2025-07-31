@@ -2945,7 +2945,7 @@ if __name__ == "__main__":
     
     try:
         # Add the parent directory to the path to import report generator
-        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         sys.path.append(parent_dir)
         
         # Try to import and run the report generator

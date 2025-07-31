@@ -27,6 +27,16 @@ from playwright.sync_api import sync_playwright, Page, expect
 import time
 import pandas as pd
 import os
+import sys
+from datetime import datetime
+
+# Add the parent directory to sys.path to import the report generator
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from create_educator_reading_success_report import create_educator_reading_success_report
+except ImportError:
+    print("⚠️ Warning: Could not import create_educator_reading_success_report function")
+    create_educator_reading_success_report = None
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -3325,3 +3335,28 @@ if __name__ == "__main__":
     test = TestPrivacyPortal()
     test.setup_method()
     test.test_privacy_form_submission()
+    
+    # Automatically generate Data Reading Success Report after completion
+    print("\n" + "="*80)
+    print("🎯 AUTOMATION COMPLETED! Generating Data Reading Success Report...")
+    print("="*80)
+    
+    if create_educator_reading_success_report:
+        try:
+            report_file = create_educator_reading_success_report()
+            if report_file:
+                print(f"\n🎉 SUCCESS! Educator Data Reading Success Report generated:")
+                print(f"📁 Report File: {report_file}")
+                print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                print("❌ Failed to generate report")
+        except Exception as e:
+            print(f"❌ Error generating report: {str(e)}")
+    else:
+        print("⚠️ Report generator not available - skipping report generation")
+    
+    print("\n✅ ALL TASKS COMPLETED!")
+    print("📊 Check the dsr/screenshots/ folder for:")
+    print("   • Form submission screenshots")
+    print("   • Data Reading Success Report (Excel file)")
+    print("   • Automation logs and results")

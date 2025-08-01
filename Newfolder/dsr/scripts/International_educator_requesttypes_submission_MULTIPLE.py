@@ -82,33 +82,42 @@ class TestPrivacyPortal:
             print("✅ All international educator form data loaded successfully:")
             for i, record in enumerate(all_records):
                 agent_company = record.get('Authorized Agent Company Name', 'N/A')
-                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
+                country = record.get('country', 'N/A')
+                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Country: {country} - Request: {record.get('Request_type', 'N/A')}")
+            
+            # Debug: Show the column structure of the first record
+            if all_records:
+                print("\n🔍 DEBUG: Column structure from Excel file:")
+                sample_record = all_records[0]
+                for key, value in sample_record.items():
+                    print(f"   '{key}': '{value}'")
+                print()
             
             return all_records
             
         except Exception as e:
             print(f"❌ Error loading international educator form data: {str(e)}")
             print("📝 Using default fallback data for international educator requests...")
-            # Fallback to default educator data - return as list
+            # Fallback to default educator data - return as list with INTERNATIONAL data
             return [{
                 'Who is making this request': 'Authorized Agent on behalf of someone else',
-                'Authorized Agent Company Name': 'Sample School District',
+                'Authorized Agent Company Name': 'International School District',
                 'Agent First Name': 'John',
-                'Agent Last Name': 'Educator',
+                'Agent Last Name': 'InternationalEducator',
                 'Agent Email Address': 'john.educator@mailinator.com',
                 'First Name': 'Jane',
-                'Last Name': 'Student',
+                'Last Name': 'InternationalStudent',
                 'Email of Child (Data Subject)': 'student@mailinator.com',
                 'Date of Birth': '11/1/2008',
                 'Phone Number': '5712345567',
-                'country': 'US',
-                'stateOrProvince': 'New York',
-                'postalCode': '14111',
-                'city': 'North Collins',
-                'streetAddress': '507 Central Avenue',
-                'studentSchoolName': 'South Lakes High School',
+                'country': 'India',  # International country, not US
+                # NO stateOrProvince field for international requests
+                'postalCode': '110001',
+                'city': 'New Delhi',
+                'streetAddress': '123 International Avenue',
+                'studentSchoolName': 'International High School',
                 'studentGraduationYear': '2026',
-                'educatorSchoolAffiliation': 'South Lakes High School',
+                'educatorSchoolAffiliation': 'International High School',
                 'Request_type': 'Request to delete my data'
             }]
         
@@ -162,8 +171,20 @@ class TestPrivacyPortal:
                             self.select_request_type(page)
                             self.handle_delete_request_additional_details(page)  # Handle delete details BEFORE general details
                             self.fill_additional_details(page)
-                            self.handle_delete_data_suboptions(page)
-                            self.handle_close_account_suboptions(page)
+                            
+                            # Handle request-specific sub-options based on the actual request type
+                            request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+                            print(f"🔍 Determining sub-options to handle for request type: '{request_type_from_excel}'")
+                            
+                            if 'delete' in request_type_from_excel:
+                                print("🗑️ DELETE request detected - handling delete sub-options")
+                                self.handle_delete_data_suboptions(page)
+                            elif any(keyword in request_type_from_excel for keyword in ['close', 'deactivate', 'cancel']):
+                                print("🚪 CLOSE request detected - handling close sub-options")
+                                self.handle_close_account_suboptions(page)
+                            else:
+                                print("ℹ️ Other request type - skipping specific sub-options")
+                                
                             self.handle_acknowledgments(page)
                             
                             # Take screenshot BEFORE submission (after all fields are filled)
@@ -1000,8 +1021,13 @@ class TestPrivacyPortal:
         country_from_excel = str(self.form_data.get('country', 'India'))
         is_us_address = country_from_excel.upper() in ['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']
         
-        if is_us_address:
-            print(f"🇺🇸 US address detected ('{country_from_excel}'), will attempt to fill state field...")
+        # IMPORTANT: Check if stateOrProvince column exists in the data
+        has_state_data = 'stateOrProvince' in self.form_data and self.form_data.get('stateOrProvince', '').strip()
+        
+        print(f"🌍 Country: '{country_from_excel}', Is US: {is_us_address}, Has state data: {has_state_data}")
+        
+        if is_us_address and has_state_data:
+            print(f"🇺🇸 US address detected with state data ('{country_from_excel}'), will attempt to fill state field...")
             # Use the existing state logic for US addresses
             state_filled = False
             try:
@@ -1066,10 +1092,21 @@ class TestPrivacyPortal:
                 print("⚠️ Could not fill US state field - continuing anyway...")
                 
         else:
-            print(f"🌏 International address detected ('{country_from_excel}'), skipping state field...")
-            print("✅ No state field needed for international addresses")
+            print(f"🌏 International address detected ('{country_from_excel}') or no state data available...")
+            print("✅ Skipping state field for international request - this is correct for international forms")
+            
+            # Check if there's actually a state field on the form that we need to handle
+            try:
+                state_field_exists = page.locator("select[name*='state'], input[name*='state'], [aria-label*='state']").first.is_visible(timeout=2000)
+                if state_field_exists:
+                    print("⚠️ State field detected on form despite being international - this may need manual attention")
+                else:
+                    print("✅ No state field found - perfect for international form")
+            except:
+                print("✅ No state field found - perfect for international form")
             
             # Wait a moment for form to stabilize after country selection
+            time.sleep(2)
         
         print("✅ Contact information section completed")
     
@@ -1353,9 +1390,10 @@ class TestPrivacyPortal:
         ]
         
         details_filled = False
-        additional_details_text = str(self.form_data.get('additional_details', 'N/A')).strip()
+        additional_details_text = str(self.form_data.get('additional_details', '')).strip()
         
-        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none']:
+        # Use N/A for empty additional details (simple and clean)
+        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none', 'n/a']:
             additional_details_text = 'N/A'
         
         print(f"📝 Additional details text from Excel: '{additional_details_text}'")
@@ -1369,21 +1407,40 @@ class TestPrivacyPortal:
                         name = element.get_attribute("name") or ""
                         element_id = element.get_attribute("id") or ""
                         element_type = element.get_attribute("type") or ""
+                        aria_label = element.get_attribute("aria-label") or ""
                         
-                        # Extra safety check - skip if this looks like a phone field
-                        if any(phone_indicator in (placeholder + name + element_id).lower() for phone_indicator in ["phone", "telephone", "tel"]):
-                            print(f"⚠️ Skipping phone-related field - name: '{name}', placeholder: '{placeholder}', id: '{element_id}'")
+                        # Combine all attributes for comprehensive checking
+                        all_attributes = f"{placeholder} {name} {element_id} {element_type} {aria_label}".lower()
+                        
+                        # VERY strict phone field detection - reject if ANY phone-related word appears
+                        phone_indicators = ["phone", "telephone", "tel", "mobile", "cell", "number"]
+                        if any(indicator in all_attributes for indicator in phone_indicators):
+                            print(f"⚠️ REJECTING phone-related field - name: '{name}', placeholder: '{placeholder}', id: '{element_id}', type: '{element_type}', aria-label: '{aria_label}'")
                             continue
                             
                         # Also skip if it's a telephone input type
-                        if element_type in ["tel", "phone"]:
-                            print(f"⚠️ Skipping telephone input type - type: '{element_type}'")
+                        if element_type in ["tel", "phone", "number"]:
+                            print(f"⚠️ REJECTING telephone input type - type: '{element_type}'")
                             continue
                         
-                        print(f"🔍 Found details field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}'")
+                        # Prefer fields that specifically mention additional details
+                        priority_keywords = ["additional", "details", "provide", "necessary"]
+                        has_priority = any(keyword in all_attributes for keyword in priority_keywords)
+                        
+                        print(f"🔍 Evaluating field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}', has_priority: {has_priority}")
+                        
+                        # If this looks like a general description field but we haven't found a priority field yet, skip it
+                        general_keywords = ["description", "comment", "message"]
+                        is_general = any(keyword in all_attributes for keyword in general_keywords)
+                        
+                        if is_general and not has_priority:
+                            print(f"⏭️ Skipping general field - waiting for priority field")
+                            continue
+                        
+                        print(f"✅ SELECTED field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}'")
                         
                         # Clear any existing content and fill with our data
-                        element.fill("")
+                        element.clear()
                         time.sleep(0.5)
                         element.fill(additional_details_text)
                         print(f"✅ Additional details filled: '{additional_details_text}' using selector: {selector}")
@@ -1391,7 +1448,8 @@ class TestPrivacyPortal:
                         break
                 if details_filled:
                     break
-            except:
+            except Exception as e:
+                print(f"⚠️ Error with selector {selector}: {str(e)}")
                 continue
         
         if not details_filled:

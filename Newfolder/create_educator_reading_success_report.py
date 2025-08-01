@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 def create_educator_reading_success_report():
-    """Create a report of successfully read data from Educatoronbehalfofstudent_form_data.xlsx"""
+    """Create a report of successfully read data from educator Excel files (domestic or international)"""
     
     # Create timestamp for filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -11,8 +11,27 @@ def create_educator_reading_success_report():
     print("📊 Creating Educator Data Reading Success Report...")
     print(f"🕒 Timestamp: {timestamp}")
     
-    # Load the original Excel file (same way the educator script does)
-    excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
+    # Check for both domestic and international Excel files
+    domestic_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
+    international_file = "dsr/data/International_Educatoronbehalfofstudent_form_data.xlsx"
+    
+    excel_file = None
+    file_type = ""
+    
+    # Priority: Check for international file first, then domestic
+    if os.path.exists(international_file):
+        excel_file = international_file
+        file_type = "International"
+        print(f"📂 Found International educator file: {excel_file}")
+    elif os.path.exists(domestic_file):
+        excel_file = domestic_file
+        file_type = "Domestic"
+        print(f"📂 Found Domestic educator file: {excel_file}")
+    else:
+        print(f"❌ Neither Excel file found:")
+        print(f"   - Domestic: {domestic_file}")
+        print(f"   - International: {international_file}")
+        return None
     
     try:
         if os.path.exists(excel_file):

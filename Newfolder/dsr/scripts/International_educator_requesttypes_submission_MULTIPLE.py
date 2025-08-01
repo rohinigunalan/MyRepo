@@ -52,7 +52,12 @@ class TestPrivacyPortal:
         print("📂 Loading ALL international educator form data from file...")
         
         # Use the International_Educatoronbehalfofstudent_form_data.xlsx file specifically
-        excel_file = "dsr/data/International_Educatoronbehalfofstudent_form_data.xlsx"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)  # Go up one level from scripts/ to dsr/
+        data_dir = os.path.join(parent_dir, 'data')
+        excel_file = os.path.join(data_dir, 'International_Educatoronbehalfofstudent_form_data.xlsx')
+        
+        print(f"🔍 Looking for international educator Excel file at: {excel_file}")
         
         try:
             if os.path.exists(excel_file):
@@ -802,17 +807,33 @@ class TestPrivacyPortal:
         country_from_excel = str(self.form_data.get('country', 'India'))
         print(f"🌏 Country from Excel: '{country_from_excel}'")
         
+        # Map common abbreviations to full country names to avoid dropdown selection issues
+        country_mapping = {
+            'US': ['United States', 'United States of America', 'USA', 'US'],
+            'USA': ['United States', 'United States of America', 'USA', 'US'],
+            'India': ['India'],
+            'Canada': ['Canada'],
+            'Macao': ['Macao', 'Macau', 'Macao SAR China', 'Macau SAR China'],
+            'Egypt': ['Egypt']
+        }
+        
+        # Get possible country names to try
+        country_options_to_try = country_mapping.get(country_from_excel, [country_from_excel, country_from_excel.title(), country_from_excel.upper()])
+        print(f"🎯 Will try these country options: {country_options_to_try}")
+        
         try:
             # Try multiple selectors for country field - including input fields with dropdowns
             country_selectors = [
+                "input[id*='country']",  # Start with input fields first as they're more common
+                "input[name*='country']",
+                "input[placeholder*='Country']",
+                "input[placeholder*='country']",
+                "input[aria-label*='Country']",
+                "input[aria-label*='country']",
                 "select[name*='country']",
                 "select[id*='country']", 
                 "select[id*='Country']",
                 "select[class*='country']",
-                "input[name*='country']",
-                "input[id*='country']",
-                "input[placeholder*='Country']",
-                "input[placeholder*='country']",
                 "[data-testid*='country']"
             ]
             
@@ -822,90 +843,123 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         print(f"🔍 Found country field with selector: {country_selector}")
                         
-                        # STEP 1: Click the field to open dropdown (works for both select and input with dropdown)
+                        # STEP 1: Click the field to open dropdown 
                         try:
                             element.click(timeout=5000)
                             print("🖱️ Clicked country field to open dropdown")
-                            time.sleep(2)  # Wait for dropdown to fully open
+                            time.sleep(3)  # Wait longer for dropdown to fully open
                             
-                            # STEP 2: Look for dropdown options that match the Excel country
-                            # Create dynamic selectors based on the actual country from Excel
-                            # Use EXACT matching to avoid partial matches like "India" -> "British Indian Ocean Territory"
-                            country_option_selectors = [
-                                # Exact text match - most important for avoiding partial matches
-                                f"option:text-is('{country_from_excel}')",
-                                f"li:text-is('{country_from_excel}')", 
-                                f"div[role='option']:text-is('{country_from_excel}')",
-                                # Fallback exact selectors
-                                f"option[value='{country_from_excel}']",
-                                f"li[data-value='{country_from_excel}']",
-                                f"[role='option'][data-value='{country_from_excel}']",
-                                # Only if exact doesn't work, try contains but be more specific
-                                f"option:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
-                                f"li:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
-                                f"div:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
-                                # Generic fallbacks
-                                f"[role='option']:has-text('{country_from_excel}')",
-                                f".dropdown-option:has-text('{country_from_excel}')",
-                                f".option:has-text('{country_from_excel}')",
-                                f"[data-value='{country_from_excel}']",
-                                f"[data-value*='{country_from_excel}']"
-                            ]
+                            # STEP 2: Try each country option until one works
+                            option_selected = False
                             
-                            print(f"🔍 Looking for EXACT match for '{country_from_excel}' option in dropdown...")
-                            option_clicked = False
-                            
-                            for option_selector in country_option_selectors:
-                                try:
-                                    option_element = page.locator(option_selector).first
-                                    if option_element.is_visible():
-                                        option_element.click(timeout=3000)
-                                        print(f"✅ Clicked '{country_from_excel}' option with selector: {option_selector}")
-                                        country_filled = True
-                                        option_clicked = True
-                                        break
-                                except Exception as e:
-                                    print(f"⚠️ Could not click option with {option_selector}: {str(e)}")
-                                    continue
-                            
-                            # STEP 3: If clicking individual options didn't work, try select_option on select elements
-                            if not option_clicked and country_selector.startswith("select"):
-                                print("🔄 Trying select_option method...")
-                                # Try different variations of the country name
-                                country_variations = [country_from_excel, country_from_excel.upper(), country_from_excel.lower(), country_from_excel.title()]
-                                for country_variation in country_variations:
+                            for country_option in country_options_to_try:
+                                if option_selected:
+                                    break
+                                    
+                                print(f"🔍 Looking for country option: '{country_option}'")
+                                
+                                # Try multiple ways to select the country option
+                                option_selectors = [
+                                    # Exact text matches (most reliable)
+                                    f"li:text-is('{country_option}')",
+                                    f"option:text-is('{country_option}')",
+                                    f"div:text-is('{country_option}')",
+                                    f"span:text-is('{country_option}')",
+                                    # Role-based exact matches
+                                    f"[role='option']:text-is('{country_option}')",
+                                    f"[role='listitem']:text-is('{country_option}')",
+                                    # Value-based matches
+                                    f"option[value='{country_option}']",
+                                    f"li[data-value='{country_option}']",
+                                    f"[data-value='{country_option}']",
+                                    # Contains text but exclude territories (for partial matches)
+                                    f"li:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
+                                    f"option:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
+                                    f"div:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
+                                    f"[role='option']:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))"
+                                ]
+                                
+                                for option_selector in option_selectors:
                                     try:
-                                        page.select_option(country_selector, value=country_variation, timeout=3000)
-                                        print(f"✅ Country selected using select_option with value: {country_variation}")
+                                        option_element = page.locator(option_selector).first
+                                        if option_element.is_visible():
+                                            option_element.click(timeout=3000)
+                                            print(f"✅ Clicked '{country_option}' option with selector: {option_selector}")
+                                            option_selected = True
+                                            country_filled = True
+                                            break
+                                    except Exception as e:
+                                        continue
+                            
+                            # STEP 3: If clicking options didn't work, try typing and selecting
+                            if not option_selected:
+                                print(f"🔄 Trying to type '{country_options_to_try[0]}' directly...")
+                                try:
+                                    # Clear and type the country name
+                                    element.fill("")
+                                    time.sleep(0.5)
+                                    element.fill(country_options_to_try[0])
+                                    time.sleep(1)
+                                    
+                                    # Try different ways to confirm the selection
+                                    try:
+                                        element.press("Enter")
+                                        print(f"✅ Typed and pressed Enter for: {country_options_to_try[0]}")
+                                        country_filled = True
+                                    except:
+                                        try:
+                                            element.press("Tab")
+                                            print(f"✅ Typed and pressed Tab for: {country_options_to_try[0]}")
+                                            country_filled = True
+                                        except:
+                                            try:
+                                                # Try clicking away to confirm
+                                                page.click("body")
+                                                print(f"✅ Typed and clicked away for: {country_options_to_try[0]}")
+                                                country_filled = True
+                                            except:
+                                                print(f"⚠️ Could not confirm typed country")
+                                except Exception as e:
+                                    print(f"⚠️ Could not type country: {str(e)}")
+                            
+                            # STEP 4: If it's a select element, try select_option
+                            if not country_filled and country_selector.startswith("select"):
+                                print("🔄 Trying select_option method for select element...")
+                                for country_option in country_options_to_try:
+                                    try:
+                                        page.select_option(country_selector, value=country_option, timeout=3000)
+                                        print(f"✅ Country selected using select_option with value: {country_option}")
                                         country_filled = True
                                         break
                                     except:
                                         try:
-                                            page.select_option(country_selector, label=country_variation, timeout=3000)
-                                            print(f"✅ Country selected using select_option with label: {country_variation}")
+                                            page.select_option(country_selector, label=country_option, timeout=3000)
+                                            print(f"✅ Country selected using select_option with label: {country_option}")
                                             country_filled = True
                                             break
                                         except:
                                             continue
-                            
-                            # STEP 4: If it's an input field, try typing the actual country
-                            if not country_filled and not country_selector.startswith("select"):
-                                try:
-                                    element.fill(country_from_excel, timeout=3000)
-                                    print(f"✅ Country typed into input field: {country_from_excel}")
-                                    country_filled = True
-                                    # Press Enter to confirm selection
-                                    element.press("Enter")
-                                    print("⌨️ Pressed Enter to confirm country selection")
-                                except:
-                                    print(f"⚠️ Could not type '{country_from_excel}' in country input field")
-                                    
+                                            
                         except Exception as e:
-                            print(f"⚠️ Could not click country field: {str(e)}")
+                            print(f"⚠️ Could not interact with country field: {str(e)}")
                         
+                        # STEP 5: Verify the selection if successful
                         if country_filled:
-                            time.sleep(3)  # Longer pause after successful selection
-                            break
+                            time.sleep(2)
+                            try:
+                                current_value = element.input_value() or ""
+                                print(f"🔍 Country field current value: '{current_value}'")
+                                if current_value and any(opt.lower() in current_value.lower() for opt in country_options_to_try):
+                                    print(f"✅ Country selection verified: '{current_value}'")
+                                else:
+                                    print(f"⚠️ Country selection may not have worked. Expected one of {country_options_to_try}, got '{current_value}'")
+                                    # Don't consider it filled if verification failed
+                                    country_filled = False
+                                    continue
+                            except:
+                                print("ℹ️ Could not verify country selection (field might not support input_value)")
+                            
+                            break  # Exit the selector loop if we successfully filled
                             
                 except Exception as e:
                     print(f"⚠️ Error with country selector {country_selector}: {str(e)}")
@@ -917,8 +971,11 @@ class TestPrivacyPortal:
         if not country_filled:
             print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
             # Take a screenshot to see current state
-            page.screenshot(path="dsr/screenshots/country_field_issue.png")
-            print("📸 Screenshot saved: screenshots/country_field_issue.png")
+            try:
+                page.screenshot(path="dsr/screenshots/country_field_issue.png")
+                print("📸 Screenshot saved: screenshots/country_field_issue.png")
+            except:
+                pass
 
         # State/Province handling for international requests
         print("🌍 Checking if state field is needed for international request...")

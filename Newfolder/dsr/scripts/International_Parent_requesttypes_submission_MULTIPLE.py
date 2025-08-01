@@ -622,6 +622,10 @@ class TestPrivacyPortal:
         print("🌍 Attempting to fill country field...")
         country_filled = False
         
+        # Get country from Excel data
+        country_from_excel = str(self.form_data.get('country', 'United States')).strip()
+        print(f"🌍 Country from Excel: '{country_from_excel}'")
+        
         try:
             # Try multiple selectors for country field - including input fields with dropdowns
             country_selectors = [
@@ -649,35 +653,48 @@ class TestPrivacyPortal:
                             time.sleep(2)  # Wait for dropdown to fully open
                             
                             # STEP 2: Look for dropdown options that appear after clicking
-                            # Try multiple ways to find and click "United States" option
-                            us_option_selectors = [
-                                # Standard option selectors
-                                "option:has-text('United States')",
-                                "option[value='US']",
-                                "option[value='USA']", 
-                                "option[value='United States']",
-                                # List item selectors (for custom dropdowns)
-                                "li:has-text('United States')",
-                                "li[data-value='US']",
-                                "li[data-value='USA']",
-                                # Div-based dropdown options
-                                "div:has-text('United States')",
-                                "[role='option']:has-text('United States')",
-                                # More specific selectors
-                                ".dropdown-option:has-text('United States')",
-                                ".option:has-text('United States')",
-                                "[data-value='United States']"
+                            # Try multiple ways to find and click the country option from Excel data
+                            country_option_selectors = [
+                                # Try exact match from Excel first
+                                f"option:has-text('{country_from_excel}')",
+                                f"li:has-text('{country_from_excel}')",
+                                f"div:has-text('{country_from_excel}')",
+                                f"[role='option']:has-text('{country_from_excel}')",
+                                f".dropdown-option:has-text('{country_from_excel}')",
+                                f".option:has-text('{country_from_excel}')",
+                                f"[data-value='{country_from_excel}']",
+                                # Try common country code variations for the Excel country
+                                f"option[value='{country_from_excel.upper()}']",
+                                f"li[data-value='{country_from_excel.upper()}']"
                             ]
                             
-                            print("🔍 Looking for 'United States' option in dropdown...")
+                            # Add specific mappings for common countries
+                            if country_from_excel.lower() == 'india':
+                                country_option_selectors.extend([
+                                    "option[value='IN']",
+                                    "option[value='IND']", 
+                                    "li[data-value='IN']",
+                                    "li[data-value='IND']"
+                                ])
+                            elif country_from_excel.lower() in ['us', 'usa', 'united states']:
+                                country_option_selectors.extend([
+                                    "option:has-text('United States')",
+                                    "option[value='US']",
+                                    "option[value='USA']",
+                                    "li:has-text('United States')",
+                                    "li[data-value='US']",
+                                    "li[data-value='USA']"
+                                ])
+                            
+                            print(f"🔍 Looking for '{country_from_excel}' option in dropdown...")
                             option_clicked = False
                             
-                            for option_selector in us_option_selectors:
+                            for option_selector in country_option_selectors:
                                 try:
                                     option_element = page.locator(option_selector).first
                                     if option_element.is_visible():
                                         option_element.click(timeout=3000)
-                                        print(f"✅ Clicked 'United States' option with selector: {option_selector}")
+                                        print(f"✅ Clicked '{country_from_excel}' option with selector: {option_selector}")
                                         country_filled = True
                                         option_clicked = True
                                         break
@@ -688,7 +705,13 @@ class TestPrivacyPortal:
                             # STEP 3: If clicking individual options didn't work, try select_option on select elements
                             if not option_clicked and country_selector.startswith("select"):
                                 print("🔄 Trying select_option method...")
-                                country_options = ["US", "USA", "United States", "United States of America"]
+                                # Build country options based on Excel data
+                                country_options = [country_from_excel]
+                                if country_from_excel.lower() == 'india':
+                                    country_options.extend(["IN", "IND", "India"])
+                                elif country_from_excel.lower() in ['us', 'usa', 'united states']:
+                                    country_options.extend(["US", "USA", "United States", "United States of America"])
+                                
                                 for option_value in country_options:
                                     try:
                                         page.select_option(country_selector, value=option_value, timeout=3000)
@@ -707,8 +730,8 @@ class TestPrivacyPortal:
                             # STEP 4: If it's an input field, try typing
                             if not country_filled and not country_selector.startswith("select"):
                                 try:
-                                    element.fill("United States", timeout=3000)
-                                    print("✅ Country typed into input field: United States")
+                                    element.fill(country_from_excel, timeout=3000)
+                                    print(f"✅ Country typed into input field: {country_from_excel}")
                                     country_filled = True
                                     # Press Enter to confirm selection
                                     element.press("Enter")
@@ -736,9 +759,10 @@ class TestPrivacyPortal:
             page.screenshot(path="dsr/screenshots/country_field_issue.png")
             print("📸 Screenshot saved: screenshots/country_field_issue.png")
 
-        # State SECOND - Enhanced click logic for state dropdown
-        print("🗽 Attempting to fill state field...")
-        state_filled = False
+        # State field handling skipped - no state column in International Parent Excel file
+        print("🗽 State field handling skipped - no state column in International Parent Excel file")
+        
+        print("✅ Contact information section completed (Note: No state field in Excel data)")
         
         try:
             # Wait longer after country selection for state field to become available

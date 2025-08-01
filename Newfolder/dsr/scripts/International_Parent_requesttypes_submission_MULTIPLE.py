@@ -736,21 +736,12 @@ class TestPrivacyPortal:
                             # STEP 2: Look for dropdown options that appear after clicking
                             # Try multiple ways to find and click the country option from Excel data
                             country_option_selectors = [
-                                # Try exact match from Excel first - use exact text matching
-                                f"option[text()='{country_from_excel}']",
-                                f"li[text()='{country_from_excel}']", 
-                                f"div[text()='{country_from_excel}']",
-                                f"[role='option'][text()='{country_from_excel}']",
-                                # Try has-text with exact match for short country names
-                                f"option:text('{country_from_excel}')",
-                                f"li:text('{country_from_excel}')",
-                                f"div:text('{country_from_excel}')",
-                                f"[role='option']:text('{country_from_excel}')",
-                                # Fallback to has-text (less precise)
+                                # Try exact text matching with has-text for exact match
+                                f"[role='option']:has-text('{country_from_excel}')",
                                 f"option:has-text('{country_from_excel}')",
                                 f"li:has-text('{country_from_excel}')",
                                 f"div:has-text('{country_from_excel}')",
-                                f"[role='option']:has-text('{country_from_excel}')",
+                                # Try fallback has-text selectors
                                 f".dropdown-option:has-text('{country_from_excel}')",
                                 f".option:has-text('{country_from_excel}')",
                                 f"[data-value='{country_from_excel}']",

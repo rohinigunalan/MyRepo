@@ -1592,22 +1592,8 @@ class TestPrivacyPortal:
         print(f"🎯 Request type from Excel: '{request_type_from_excel}'")
         
         # Map Excel request types to form options
-                                            label_text = line
-                                            break
-                        except:
-                            pass
-                        
-                        option_info = {
-                            'index': i+1,
-                            'element': radio,
-                            'id': radio_id,
-                            'value': radio_value,
-                            'name': radio_name,
-                            'label': label_text
-                        }
-                        available_options.append(option_info)
-                        print(f"  Option {i+1}: value='{radio_value}', name='{radio_name}', label='{label_text}'")
-                except Exception as e:
+        print("✅ Request type selection completed")
+        time.sleep(2)
                     print(f"  Option {i+1}: Error reading - {str(e)}")
                     continue
                     

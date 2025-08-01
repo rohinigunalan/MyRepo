@@ -1587,26 +1587,49 @@ class TestPrivacyPortal:
         
         print(f"🔍 Final search keywords: {search_keywords}")
         
-        print("� Selecting request type based on Excel data...")
-        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
-        print(f"🎯 Request type from Excel: '{request_type_from_excel}'")
+        # Find all available radio button options on the form
+        print("🔍 Finding available request type options on form...")
+        available_options = []
         
-        # Map Excel request types to form options
-                                            label_text = line
-                                            break
+        try:
+            # Look for radio button elements
+            radio_elements = page.locator("input[type='radio']").all()
+            print(f"🔍 Found {len(radio_elements)} radio elements")
+            
+            for i, radio in enumerate(radio_elements):
+                try:
+                    if radio.is_visible():
+                        value = radio.get_attribute("value") or ""
+                        name = radio.get_attribute("name") or ""
+                        element_id = radio.get_attribute("id") or ""
+                        
+                        # Try to find associated label text
+                        label_text = ""
+                        try:
+                            # Try multiple ways to find the label
+                            if element_id:
+                                label_element = page.locator(f"label[for='{element_id}']").first
+                                if label_element.is_visible():
+                                    label_text = label_element.inner_text() or label_element.text_content() or ""
+                            
+                            # If no label found by ID, try to find parent container text
+                            if not label_text:
+                                parent = radio.locator("..").first
+                                if parent.is_visible():
+                                    label_text = parent.inner_text() or parent.text_content() or ""
                         except:
                             pass
                         
-                        option_info = {
-                            'index': i+1,
-                            'element': radio,
-                            'id': radio_id,
-                            'value': radio_value,
-                            'name': radio_name,
-                            'label': label_text
-                        }
-                        available_options.append(option_info)
-                        print(f"  Option {i+1}: value='{radio_value}', name='{radio_name}', label='{label_text}'")
+                        if value or label_text:
+                            option = {
+                                'element': radio,
+                                'value': value,
+                                'label': label_text,
+                                'name': name
+                            }
+                            available_options.append(option)
+                            print(f"  Option {i+1}: '{label_text}' (value: '{value}')")
+                        
                 except Exception as e:
                     print(f"  Option {i+1}: Error reading - {str(e)}")
                     continue
@@ -2010,16 +2033,16 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
-                                "textarea[placeholder*='details']:visible",
-                                "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible",
-                                ".text-input:visible",
-                                "[data-testid*='text']:visible",
-                                "[aria-label*='text']:visible"
+                                "input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])", 
+                                "input[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([type='tel']):not([type='phone']):not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):visible",
+                                ".text-input:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "[data-testid*='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "[aria-label*='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])"
                             ]
                             
                             text_input_found = False
@@ -2028,12 +2051,32 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Double-check this is not a phone field
+                                            element_attrs = {
+                                                'placeholder': text_input.get_attribute('placeholder') or '',
+                                                'name': text_input.get_attribute('name') or '',
+                                                'id': text_input.get_attribute('id') or '',
+                                                'type': text_input.get_attribute('type') or '',
+                                                'aria-label': text_input.get_attribute('aria-label') or ''
+                                            }
+                                            
+                                            # Skip if ANY attribute contains phone-related keywords
+                                            phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                            is_phone_field = any(
+                                                any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                                for attr_value in element_attrs.values() if attr_value
+                                            )
+                                            
+                                            if is_phone_field:
+                                                print(f"  🚫 Skipping phone field: {element_attrs}")
+                                                continue
+                                            
                                             # Check if this is a new text input (not pre-filled)
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
                                                 # This looks like the text input for the delete option
-                                                text_input.fill("test DSR")
-                                                print(f"  ✅ Entered 'test DSR' in text input for {description}")
+                                                # Leave the text input empty as requested by user
+                                                print(f"  ✅ Found text input for {description} - leaving empty as requested")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break
@@ -2055,12 +2098,31 @@ class TestPrivacyPortal:
                                 print(f"  ✅ Force-clicked {description}: '{option_info.get('text', '')}'")
                                 time.sleep(2)
                                 
-                                # Try text input after force click too
+                                # Try text input after force click too - but exclude phone fields
                                 try:
-                                    text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                    text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel']), textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])").first
                                     if text_input.is_visible():
-                                        text_input.fill("test DSR")
-                                        print(f"  ✅ Entered 'test DSR' after force-click")
+                                        # Double-check this is not a phone field
+                                        element_attrs = {
+                                            'placeholder': text_input.get_attribute('placeholder') or '',
+                                            'name': text_input.get_attribute('name') or '',
+                                            'id': text_input.get_attribute('id') or '',
+                                            'type': text_input.get_attribute('type') or '',
+                                            'aria-label': text_input.get_attribute('aria-label') or ''
+                                        }
+                                        
+                                        # Skip if ANY attribute contains phone-related keywords
+                                        phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                        is_phone_field = any(
+                                            any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                            for attr_value in element_attrs.values() if attr_value
+                                        )
+                                        
+                                        if not is_phone_field:
+                                            # Leave the text input empty as requested by user
+                                            print(f"  ✅ Found text input after force-click - leaving empty as requested")
+                                        else:
+                                            print(f"  🚫 Skipped phone field after force-click: {element_attrs}")
                                 except:
                                     pass
                                 
@@ -2090,12 +2152,31 @@ class TestPrivacyPortal:
                             print(f"  ✅ Clicked {description} using text selector: '{pattern}'")
                             time.sleep(2)
                             
-                            # Check for text input after clicking
+                            # Check for text input after clicking - but exclude phone fields
                             try:
-                                text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel']), textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])").first
                                 if text_input.is_visible():
-                                    text_input.fill("test DSR")
-                                    print(f"  ✅ Entered 'test DSR' after clicking '{pattern}'")
+                                    # Double-check this is not a phone field
+                                    element_attrs = {
+                                        'placeholder': text_input.get_attribute('placeholder') or '',
+                                        'name': text_input.get_attribute('name') or '',
+                                        'id': text_input.get_attribute('id') or '',
+                                        'type': text_input.get_attribute('type') or '',
+                                        'aria-label': text_input.get_attribute('aria-label') or ''
+                                    }
+                                    
+                                    # Skip if ANY attribute contains phone-related keywords
+                                    phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                    is_phone_field = any(
+                                        any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                        for attr_value in element_attrs.values() if attr_value
+                                    )
+                                    
+                                    if not is_phone_field:
+                                        # Leave the text input empty as requested by user
+                                        print(f"  ✅ Found text input after clicking '{pattern}' - leaving empty as requested")
+                                    else:
+                                        print(f"  🚫 Skipped phone field after clicking '{pattern}': {element_attrs}")
                             except:
                                 pass
                             

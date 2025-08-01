@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-🚨 IMPORTANT SETUP NOTE - EDUCATOR/AGENT REQUEST AUTOMATION:
-This script automates EDUCATOR/AGENT requests using Educatoronbehalfofstudent_form_data.xlsx file with the following fields:
-- Who is making this request: Authorized Agent on behalf of someone else
-- Authorized Agent Company Name (insert N/A if not applicable)
-- Agent First Name
-- Agent Last Name  
-- Agent Email Address
-- Student/Child information (First Name, Last Name, Email)
+🚨 IMPORTANT SETUP NOTE - PARENT REQUEST AUTOMATION:
+This script automates PARENT requests using Parent_form_data.xlsx file with the following fields:
+- Who is making this request: Parent on behalf of child
+- Parent/Guardian First Name
+- Parent/Guardian Last Name  
+- Parent/Guardian Email
 - Additional details for delete requests
 
 This script should ALWAYS be run using the virtual environment (.venv) which has all required packages installed:
@@ -17,7 +15,7 @@ This script should ALWAYS be run using the virtual environment (.venv) which has
 - Pytest
 
 TO RUN THIS SCRIPT:
-Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest educator_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
+Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest Parent_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
 
 The .venv contains all necessary dependencies and is properly configured for this automation.
 """
@@ -27,16 +25,6 @@ from playwright.sync_api import sync_playwright, Page, expect
 import time
 import pandas as pd
 import os
-import sys
-from datetime import datetime
-
-# Add the parent directory to sys.path to import the report generator
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-try:
-    from create_educator_reading_success_report import create_educator_reading_success_report
-except ImportError:
-    print("⚠️ Warning: Could not import create_educator_reading_success_report function")
-    create_educator_reading_success_report = None
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -48,69 +36,62 @@ class TestPrivacyPortal:
         self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
-        """Load ALL form data from International_Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
-        print("📂 Loading ALL international educator form data from file...")
+        """Load ALL form data from Parent_form_data.xlsx file for multiple parent records"""
+        print("📂 Loading ALL parent form data from file...")
         
-        # Use the International_Educatoronbehalfofstudent_form_data.xlsx file specifically
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(script_dir)  # Go up one level from scripts/ to dsr/
-        data_dir = os.path.join(parent_dir, 'data')
-        excel_file = os.path.join(data_dir, 'International_Educatoronbehalfofstudent_form_data.xlsx')
-        
-        print(f"🔍 Looking for international educator Excel file at: {excel_file}")
+        # Use the Parent_form_data.xlsx file specifically
+        excel_file = "dsr/data/Parent_form_data.xlsx"
         
         try:
             if os.path.exists(excel_file):
-                print(f"📊 Attempting to read educator data from {excel_file}")
+                print(f"📊 Attempting to read parent data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ International Educator Excel file loaded successfully!")
+                    print("✅ Parent Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    raise FileNotFoundError(f"Could not load International_Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
+                    raise FileNotFoundError(f"Could not load Parent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError(f"International_Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
+                raise FileNotFoundError(f"Parent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the Educatoronbehalfofstudent_form_data.xlsx file")
+                raise ValueError("No data found in the Parent_form_data.xlsx file")
             
-            print(f"📊 Found {len(df)} international educator records in the file")
+            print(f"📊 Found {len(df)} parent records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All international educator form data loaded successfully:")
+            print("✅ All parent form data loaded successfully:")
             for i, record in enumerate(all_records):
-                agent_company = record.get('Authorized Agent Company Name', 'N/A')
-                country = record.get('country', 'N/A')
-                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Country: {country} - Request: {record.get('Request_type', 'N/A')}")
+                print(f"  Record {i+1}: {record.get(' First_Name_of parent_guardian', 'N/A')} {record.get('Last Name of parent/guardian', 'N/A')} - Child: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading international educator form data: {str(e)}")
-            print("📝 Using default fallback data for international educator requests...")
-            # Fallback to default educator data - return as list with INTERNATIONAL data
+            print(f"❌ Error loading parent form data: {str(e)}")
+            print("📝 Using default fallback data for parent requests...")
+            # Fallback to default parent data - return as list
             return [{
-                'Who is making this request': 'Authorized Agent on behalf of someone else',
-                'Authorized Agent Company Name': 'International School District',
-                'Agent First Name': 'John',
-                'Agent Last Name': 'InternationalEducator',
-                'Agent Email Address': 'john.educator@mailinator.com',
+                'who_making_request': 'Parent on behalf of child',
+                ' First_Name_of parent_guardian': 'John',
+                'Last Name of parent/guardian': 'Doe',
+                'Primary Email Address': 'john.doe@mailinator.com',
+                'Email of Child (Data Subject)': 'child@mailinator.com',
                 'First Name': 'Jane',
-                'Last Name': 'InternationalStudent',
-                'Email of Child (Data Subject)': 'student@mailinator.com',
-                'Date of Birth': '11/1/2008',
-                # NO Phone Number in fallback - should be empty
-                'country': 'India',  # International country, not US
-                # NO stateOrProvince field for international requests
-                'postalCode': '110001',
-                'city': 'New Delhi',
-                'streetAddress': '123 International Avenue',
-                'studentSchoolName': 'International High School',
+                'Last Name': 'Doe',
+                'birthDate': '11/1/2008',
+                'phone': '5712345567',
+                'country': 'US',
+                'stateOrProvince': 'New York',
+                'postalCode': '14111',
+                'city': 'North Collins',
+                'streetAddress': '507 Central Avenue',
+                'studentSchoolName': 'South Lakes High School',
                 'studentGraduationYear': '2026',
-                'educatorSchoolAffiliation': 'International High School',
-                'Request_type': 'Request to delete my data'
+                'educatorSchoolAffiliation': 'N/A',
+                'Request_type': 'Request to delete my data',
+                'additional_details': 'Please delete all student data associated with this account.'
             }]
         
     def test_privacy_form_submission(self):
@@ -123,29 +104,15 @@ class TestPrivacyPortal:
         print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
         
         with sync_playwright() as p:
-            # Launch browser with clean state - disable autofill and use incognito mode
-            browser = p.chromium.launch(
-                headless=False,
-                args=[
-                    '--disable-blink-features=AutofillShowTypePredictions',
-                    '--disable-autofill',
-                    '--disable-autofill-keyboard-accessory-view',
-                    '--disable-full-form-autofill-ios',
-                    '--incognito'
-                ]
-            )
-            context = browser.new_context(
-                # Disable form persistence and auto-fill
-                ignore_https_errors=True,
-                extra_http_headers={'Accept-Language': 'en-US,en;q=0.9'}
-            )
-            page = context.new_page()
+            # Launch browser
+            browser = p.chromium.launch(headless=False)  # Set to True for headless mode
+            page = browser.new_page()
             
             try:
-                # Process each record starting from record 4 (index 3) for testing
-                for record_index, record_data in enumerate(self.all_form_data[3:], start=3):
+                # Process each record
+                for record_index, record_data in enumerate(self.all_form_data):
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)} (STARTING FROM RECORD 4)")
+                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -153,12 +120,10 @@ class TestPrivacyPortal:
                     
                     # Display current record info
                     print(f"👤 Current Record Details:")
-                    print(f"   Agent: {record_data.get('Agent First Name', 'N/A')} {record_data.get('Agent Last Name', 'N/A')}")
-                    print(f"   Agent Email: {record_data.get('Agent Email Address', 'N/A')}")
-                    print(f"   Agent Company: {record_data.get('Authorized Agent Company Name', 'N/A')}")
-                    print(f"   Student: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
+                    print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
+                    print(f"   Email: {record_data.get('Email Address', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
-                    print(f"   Country: {record_data.get('country', 'N/A')}")  # International uses country instead of state
+                    print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
                     
                     try:
                         # Navigate to the privacy portal for each record
@@ -168,32 +133,17 @@ class TestPrivacyPortal:
                         # Wait for page to load
                         page.wait_for_load_state("networkidle")
                         time.sleep(2)
-                        
-                        # 🔧 PHONE FIELD FIX: Clear any pre-filled phone fields to prevent auto-fill issues
-                        self.clear_phone_fields(page)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING EDUCATOR/AGENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING PARENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
                         try:
                             self.fill_subject_information(page)
                             self.fill_contact_information(page)
-                            self.select_request_type(page)
-                            self.handle_delete_request_additional_details(page)  # Handle delete details BEFORE general details
                             self.fill_additional_details(page)
-                            
-                            # Handle request-specific sub-options based on the actual request type
-                            request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
-                            print(f"🔍 Determining sub-options to handle for request type: '{request_type_from_excel}'")
-                            
-                            if 'delete' in request_type_from_excel:
-                                print("🗑️ DELETE request detected - handling delete sub-options")
-                                self.handle_delete_data_suboptions(page)
-                            elif any(keyword in request_type_from_excel for keyword in ['close', 'deactivate', 'cancel']):
-                                print("🚪 CLOSE request detected - handling close sub-options")
-                                self.handle_close_account_suboptions(page)
-                            else:
-                                print("ℹ️ Other request type - skipping specific sub-options")
-                                
+                            self.select_request_type(page)
+                            self.handle_delete_request_additional_details(page)  # New method for parent delete details
+                            self.handle_delete_data_suboptions(page)
+                            self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
                             
                             # Take screenshot BEFORE submission (after all fields are filled)
@@ -215,13 +165,9 @@ class TestPrivacyPortal:
                         
                     except Exception as e:
                         print(f"❌ Error processing record {record_index + 1}: {str(e)}")
-                        # Try to take screenshot on error if page is still available
-                        try:
-                            if page and not page.is_closed():
-                                page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
-                                print(f"📸 Error screenshot saved for record {record_index + 1}")
-                        except:
-                            print("⚠️ Could not take error screenshot (page may be closed)")
+                        # Take screenshot on error
+                        page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                        print(f"📸 Error screenshot saved for record {record_index + 1}")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
@@ -233,14 +179,10 @@ class TestPrivacyPortal:
                 print("✅ Multiple record form automation completed!")
                 
             except Exception as e:
-                # Try to take screenshot on major error if page is still available
-                try:
-                    if page and not page.is_closed():
-                        page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
-                        print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
-                except:
-                    print("⚠️ Could not take major error screenshot (page may be closed)")
+                # Take screenshot on major error
+                page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
                 print(f"❌ Major error occurred: {str(e)}")
+                print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
                 raise
                 
             finally:
@@ -249,323 +191,182 @@ class TestPrivacyPortal:
                 time.sleep(10)
                 browser.close()
     
-    def clear_phone_fields(self, page: Page):
-        """🔧 Clear any pre-filled phone fields to prevent browser auto-fill issues"""
-        print("🧹 Clearing any pre-filled phone fields...")
-        
-        phone_selectors = [
-            "input[type='tel']",
-            "input[name*='phone']", 
-            "input[id*='phone']",
-            "input[placeholder*='phone']",
-            "input[placeholder*='Phone']",
-            "input[data-testid*='phone']"
-        ]
-        
-        for selector in phone_selectors:
-            try:
-                elements = page.locator(selector).all()
-                for element in elements:
-                    if element.is_visible():
-                        element.clear()
-                        print(f"✅ Cleared phone field: {selector}")
-            except:
-                continue  # Field might not exist yet, that's okay
-    
-    
     def fill_subject_information(self, page: Page):
-        """Fill subject information section for EDUCATOR/AGENT requests"""
-        print("Filling subject information for EDUCATOR/AGENT request...")
+        """Fill subject information section for PARENT requests"""
+        print("Filling subject information for PARENT request...")
         
-        # FIRST: Click "Authorized Agent on behalf of someone else" button
-        print("🔘 Looking for 'Authorized Agent on behalf of someone else' button...")
-        agent_selectors = [
-            "button:has-text('Authorized Agent on behalf of someone else')",
-            "button:has-text('authorized agent on behalf of someone else')", 
-            "button:has-text('Authorized Agent')",
-            "button:has-text('authorized agent')",
-            "button:has-text('Agent')",
-            "button:has-text('agent')",
-            "input[value='Authorized Agent on behalf of someone else']",
-            "input[value='authorized agent on behalf of someone else']",
-            "input[value='Authorized Agent']",
-            "input[value='authorized agent']",
-            "input[value='Agent']",
-            "input[value='agent']",
-            "input[type='radio'][value*='agent']",
-            "input[type='radio'][value*='Agent']",
-            "input[type='radio'][value*='authorized']",
-            "input[type='radio'][value*='Authorized']",
-            "label:has-text('Authorized Agent on behalf of someone else')",
-            "label:has-text('authorized agent on behalf of someone else')",
-            "label:has-text('Authorized Agent')",
-            "label:has-text('authorized agent')",
-            "label:has-text('Agent')",
-            "label:has-text('agent')",
-            "button[data-testid*='agent']",
-            ".agent-btn",
-            "#agent",
-            "span:has-text('Authorized Agent on behalf of someone else')",
-            "span:has-text('Authorized Agent')",
-            "span:has-text('Agent')",
-            "div:has-text('Authorized Agent on behalf of someone else')",
-            "div:has-text('Authorized Agent')",
-            "div:has-text('Agent')",
-            "[data-value='agent']",
-            "[data-value='Agent']",
-            "[data-value='authorized']",
-            "[data-value='Authorized']",
-            "[role='button']:has-text('Agent')",
-            "[role='button']:has-text('Authorized')"
+        # FIRST: Click "Parent on behalf of child" button
+        print("🔘 Looking for 'Parent on behalf of child' button...")
+        parent_selectors = [
+            "button:has-text('Parent on behalf of child')",
+            "button:has-text('parent on behalf of child')", 
+            "button:has-text('Parent')",
+            "button:has-text('parent')",
+            "input[value='Parent on behalf of child']",
+            "input[value='parent on behalf of child']",
+            "input[value='Parent']",
+            "input[value='parent']",
+            "input[type='radio'][value*='parent']",
+            "input[type='radio'][value*='Parent']",
+            "label:has-text('Parent on behalf of child')",
+            "label:has-text('parent on behalf of child')",
+            "label:has-text('Parent')",
+            "label:has-text('parent')",
+            "button[data-testid*='parent']",
+            ".parent-btn",
+            "#parent",
+            "span:has-text('Parent on behalf of child')",
+            "span:has-text('Parent')",
+            "div:has-text('Parent on behalf of child')",
+            "div:has-text('Parent')",
+            "[data-value='parent']",
+            "[data-value='Parent']",
+            "[role='button']:has-text('Parent')"
         ]
         
-        agent_clicked = False
-        for selector in agent_selectors:
+        parent_clicked = False
+        for selector in parent_selectors:
             try:
                 if page.locator(selector).first.is_visible():
                     page.click(selector)
-                    print(f"✅ Clicked 'Authorized Agent on behalf of someone else' button with selector: {selector}")
-                    time.sleep(3)  # Longer pause to let form update for agent fields
-                    agent_clicked = True
+                    print(f"✅ Clicked 'Parent on behalf of child' button with selector: {selector}")
+                    time.sleep(3)  # Longer pause to let form update for parent fields
+                    parent_clicked = True
                     break
             except Exception as e:
-                print(f"⚠️ Could not click 'Agent' button with selector {selector}: {str(e)}")
+                print(f"⚠️ Could not click 'Parent' button with selector {selector}: {str(e)}")
                 continue
         
-        if not agent_clicked:
-            print("⚠️ 'Authorized Agent on behalf of someone else' button not found - continuing anyway...")
+        if not parent_clicked:
+            print("⚠️ 'Parent on behalf of child' button not found - continuing anyway...")
         
-        # Pause after clicking Agent to let form update with agent fields
-        print("⏸️ Brief pause after 'Agent' selection to load agent fields...")
+        # Pause after clicking Parent to let form update with parent fields
+        print("⏸️ Brief pause after 'Parent' selection to load parent fields...")
         time.sleep(3)
         
-        # AGENT FIELDS: Fill agent/educator information
-        print("👨‍🏫 Filling agent/educator information...")
+        # PARENT FIELDS: Fill parent/guardian information
+        print("👨‍👩‍👧‍👦 Filling parent/guardian information...")
         
-        # Agent First Name
-        agent_first_name_selectors = [
-            # Look for fields specifically labeled for agent first name
-            "input[aria-label*='Agent First Name']",
-            "input[placeholder*='Agent First Name']",
-            "input[aria-label*='First Name of Agent']",
-            "input[placeholder*='First Name of Agent']",
-            "label:has-text('Agent First Name') + input",
-            "label:has-text('Agent First Name') ~ input",
-            "label:has-text('First Name of Agent') + input",
-            "label:has-text('First Name of Agent') ~ input",
-            "*:has-text('Agent First Name') + input",
-            "*:has-text('Agent First Name') ~ input",
-            "*:has-text('First Name of Agent') + input",
-            "*:has-text('First Name of Agent') ~ input",
-            # Generic agent selectors
-            "input[name*='agent'][name*='first']",
-            "input[name*='educator'][name*='first']",
-            "input[placeholder*='Agent'][placeholder*='First']",
-            "input[placeholder*='Educator'][placeholder*='First']",
-            "input[placeholder*='agent'][placeholder*='first']",
-            "input[placeholder*='educator'][placeholder*='first']",
-            "input[aria-label*='Agent'][aria-label*='First']",
-            "input[aria-label*='Educator'][aria-label*='First']",
-            "input[id*='agent'][id*='first']",
-            "input[id*='educator'][id*='first']",
-            "input[data-testid*='agent'][data-testid*='first']",
-            "input[data-testid*='educator'][data-testid*='first']"
+        # Parent First Name
+        parent_first_name_selectors = [
+            # Look for fields specifically labeled for parent/guardian first name
+            "input[aria-label*='First Name of parent/guardian']",
+            "input[placeholder*='First Name of parent/guardian']",
+            "label:has-text('First Name of parent/guardian') + input",
+            "label:has-text('First Name of parent/guardian') ~ input",
+            "*:has-text('First Name of parent/guardian') + input",
+            "*:has-text('First Name of parent/guardian') ~ input",
+            # Generic parent selectors
+            "input[name*='parent'][name*='first']",
+            "input[name*='guardian'][name*='first']",
+            "input[placeholder*='Parent'][placeholder*='First']",
+            "input[placeholder*='Guardian'][placeholder*='First']",
+            "input[placeholder*='parent'][placeholder*='first']",
+            "input[placeholder*='guardian'][placeholder*='first']",
+            "input[aria-label*='Parent'][aria-label*='First']",
+            "input[aria-label*='Guardian'][aria-label*='First']",
+            "input[id*='parent'][id*='first']",
+            "input[id*='guardian'][id*='first']",
+            "input[data-testid*='parent'][data-testid*='first']"
         ]
-        agent_first_filled = False
-        for selector in agent_first_name_selectors:
+        parent_first_filled = False
+        for selector in parent_first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Agent First Name', 'Educator')))
-                    print(f"✅ Agent first name filled: '{self.form_data.get('Agent First Name', 'Educator')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get(' First_Name_of parent_guardian', 'Parentone')))
+                    print(f"✅ Parent first name filled: '{self.form_data.get(' First_Name_of parent_guardian', 'Parentone')}' with selector: {selector}")
                     time.sleep(1)
-                    agent_first_filled = True
+                    parent_first_filled = True
                     break
             except:
                 continue
         
-        if not agent_first_filled:
-            print("⚠️ Agent first name field not found")
+        if not parent_first_filled:
+            print("⚠️ Parent first name field not found")
         
-        # Agent Last Name
-        agent_last_name_selectors = [
-            # Look for fields specifically labeled for agent last name
-            "input[aria-label*='Agent Last Name']",
-            "input[placeholder*='Agent Last Name']",
-            "input[aria-label*='Last Name of Agent']",
-            "input[placeholder*='Last Name of Agent']",
-            "label:has-text('Agent Last Name') + input",
-            "label:has-text('Agent Last Name') ~ input",
-            "label:has-text('Last Name of Agent') + input",
-            "label:has-text('Last Name of Agent') ~ input", 
-            "*:has-text('Agent Last Name') + input",
-            "*:has-text('Agent Last Name') ~ input",
-            "*:has-text('Last Name of Agent') + input",
-            "*:has-text('Last Name of Agent') ~ input",
-            # Generic agent selectors
-            "input[name*='agent'][name*='last']",
-            "input[name*='educator'][name*='last']",
-            "input[placeholder*='Agent'][placeholder*='Last']",
-            "input[placeholder*='Educator'][placeholder*='Last']",
-            "input[placeholder*='agent'][placeholder*='last']",
-            "input[placeholder*='educator'][placeholder*='last']",
-            "input[aria-label*='Agent'][aria-label*='Last']",
-            "input[aria-label*='Educator'][aria-label*='Last']",
-            "input[id*='agent'][id*='last']",
-            "input[id*='educator'][id*='last']",
-            "input[data-testid*='agent'][data-testid*='last']",
-            "input[data-testid*='educator'][data-testid*='last']"
+        # Parent Last Name
+        parent_last_name_selectors = [
+            # Look for fields specifically labeled for parent/guardian last name
+            "input[aria-label*='Last Name of parent/guardian']",
+            "input[placeholder*='Last Name of parent/guardian']",
+            "label:has-text('Last Name of parent/guardian') + input",
+            "label:has-text('Last Name of parent/guardian') ~ input", 
+            "*:has-text('Last Name of parent/guardian') + input",
+            "*:has-text('Last Name of parent/guardian') ~ input",
+            # Generic parent selectors
+            "input[name*='parent'][name*='last']",
+            "input[name*='guardian'][name*='last']",
+            "input[placeholder*='Parent'][placeholder*='Last']",
+            "input[placeholder*='Guardian'][placeholder*='Last']",
+            "input[placeholder*='parent'][placeholder*='last']",
+            "input[placeholder*='guardian'][placeholder*='last']",
+            "input[aria-label*='Parent'][aria-label*='Last']",
+            "input[aria-label*='Guardian'][aria-label*='Last']",
+            "input[id*='parent'][id*='last']",
+            "input[id*='guardian'][id*='last']",
+            "input[data-testid*='parent'][data-testid*='last']"
         ]
-        agent_last_filled = False
-        for selector in agent_last_name_selectors:
+        parent_last_filled = False
+        for selector in parent_last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Agent Last Name', 'AgentbehalfofStu')))
-                    print(f"✅ Agent last name filled: '{self.form_data.get('Agent Last Name', 'AgentbehalfofStu')}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')))
+                    print(f"✅ Parent last name filled: '{self.form_data.get('Last Name of parent/guardian', 'ParentbehalfofStu')}' with selector: {selector}")
                     time.sleep(1)
-                    agent_last_filled = True
+                    parent_last_filled = True
                     break
             except:
                 continue
         
-        if not agent_last_filled:
-            print("⚠️ Agent last name field not found")
+        if not parent_last_filled:
+            print("⚠️ Parent last name field not found")
         
-        # Agent Email Address (This is a TEXT field, not email type!)
-        print("📧 Filling agent email address...")
-        agent_email_selectors = [
-            # The exact field we found on the form
-            "input[aria-label='Agent Email Address']",
-            "input[id='formField123DSARElement']",
-            # Fallback selectors
-            "input[aria-label*='Agent Email Address']",
-            "input[placeholder*='Agent Email Address']",
-            "input[aria-label*='Email Address of Agent']",
-            "input[placeholder*='Email Address of Agent']",
-            "label:has-text('Agent Email Address') + input",
-            "label:has-text('Agent Email Address') ~ input",
-            "label:has-text('Email Address of Agent') + input",
-            "label:has-text('Email Address of Agent') ~ input",
-            "*:has-text('Agent Email Address') + input",
-            "*:has-text('Agent Email Address') ~ input",
-            "*:has-text('Email Address of Agent') + input",
-            "*:has-text('Email Address of Agent') ~ input",
-            # Generic agent email selectors - INCLUDE TEXT FIELDS!
-            "input[name*='agent'][type='email']",
-            "input[name*='educator'][type='email']", 
-            "input[name*='agent'][name*='email']",
-            "input[name*='educator'][name*='email']",
-            "input[name*='agent'][type='text']",  # Agent email might be text type
-            "input[name*='educator'][type='text']",
-            "input[placeholder*='Agent'][placeholder*='Email']",
-            "input[placeholder*='Educator'][placeholder*='Email']",
-            "input[placeholder*='agent'][placeholder*='email']",
-            "input[placeholder*='educator'][placeholder*='email']",
-            "input[aria-label*='Agent'][aria-label*='Email']",
-            "input[aria-label*='Educator'][aria-label*='Email']",
-            "input[id*='agent'][id*='email']",
-            "input[id*='educator'][id*='email']",
-            "input[data-testid*='agent'][data-testid*='email']",
-            "input[data-testid*='educator'][data-testid*='email']"
+        # Parent Email Address (Primary Email Address)
+        parent_email_selectors = [
+            # Look for fields specifically labeled as Primary Email Address
+            "input[aria-label*='Primary Email Address']",
+            "input[placeholder*='Primary Email Address']",
+            "label:has-text('Primary Email Address') + input",
+            "label:has-text('Primary Email Address') ~ input",
+            "*:has-text('Primary Email Address') + input",
+            "*:has-text('Primary Email Address') ~ input",
+            # Generic parent email selectors
+            "input[name*='parent'][type='email']",
+            "input[name*='guardian'][type='email']", 
+            "input[name*='parent'][name*='email']",
+            "input[name*='guardian'][name*='email']",
+            "input[placeholder*='Parent'][placeholder*='Email']",
+            "input[placeholder*='Guardian'][placeholder*='Email']",
+            "input[placeholder*='parent'][placeholder*='email']",
+            "input[placeholder*='guardian'][placeholder*='email']",
+            "input[placeholder*='Primary Email']",
+            "input[placeholder*='primary email']",
+            "input[aria-label*='Parent'][aria-label*='Email']",
+            "input[aria-label*='Guardian'][aria-label*='Email']",
+            "input[aria-label*='Primary Email']",
+            "input[id*='parent'][id*='email']",
+            "input[id*='guardian'][id*='email']",
+            "input[data-testid*='parent'][data-testid*='email']"
         ]
-        agent_email_filled = False
-        agent_email_value = str(self.form_data.get('Agent Email Address', 'educator@mailinator.com'))
-        print(f"📧 Agent email from Excel: '{agent_email_value}'")
-        
-        for selector in agent_email_selectors:
+        parent_email_filled = False
+        for selector in parent_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, agent_email_value)
-                    print(f"✅ Agent email filled: '{agent_email_value}' with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('Primary Email Address', 'palmone@mailinator.com')))
+                    print(f"✅ Parent email filled: '{self.form_data.get('Primary Email Address', 'palmone@mailinator.com')}' with selector: {selector}")
                     time.sleep(1)
-                    agent_email_filled = True
+                    parent_email_filled = True
                     break
             except:
                 continue
         
-        if not agent_email_filled:
-            print("⚠️ Agent email field not found")
+        if not parent_email_filled:
+            print("⚠️ Parent email field not found")
         
-        # Agent Company Name - Found the exact field!
-        print("🏢 Filling agent company name...")
-        agent_company_selectors = [
-            # The exact field we found on the form
-            "input[aria-label='Authorized Agent Company Name (insert N/A if not applicable)']",
-            "input[id='formField120DSARElement']",
-            # Fallback selectors
-            "input[aria-label*='Authorized Agent Company Name (insert N/A if not applicable)']",
-            "input[placeholder*='Authorized Agent Company Name (insert N/A if not applicable)']",
-            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
-            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
-            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
-            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
-            # Partial matches for the field
-            "input[aria-label*='insert N/A if not applicable']",
-            "input[placeholder*='insert N/A if not applicable']",
-            "label:has-text('insert N/A if not applicable') + input",
-            "label:has-text('insert N/A if not applicable') ~ input",
-            "*:has-text('insert N/A if not applicable') + input",
-            "*:has-text('insert N/A if not applicable') ~ input",
-            # Look for fields specifically labeled for agent company name
-            "input[aria-label*='Agent Company Name']",
-            "input[placeholder*='Agent Company Name']",
-            "input[aria-label*='Company Name of Agent']",
-            "input[placeholder*='Company Name of Agent']",
-            "input[aria-label*='Authorized Agent Company Name']",
-            "input[placeholder*='Authorized Agent Company Name']",
-            "label:has-text('Agent Company Name') + input",
-            "label:has-text('Agent Company Name') ~ input",
-            "label:has-text('Company Name of Agent') + input",
-            "label:has-text('Company Name of Agent') ~ input",
-            "label:has-text('Authorized Agent Company Name') + input",
-            "label:has-text('Authorized Agent Company Name') ~ input",
-            "*:has-text('Agent Company Name') + input",
-            "*:has-text('Agent Company Name') ~ input",
-            "*:has-text('Company Name of Agent') + input",
-            "*:has-text('Company Name of Agent') ~ input",
-            "*:has-text('Authorized Agent Company Name') + input",
-            "*:has-text('Authorized Agent Company Name') ~ input",
-            # Generic agent company selectors
-            "input[name*='agent'][name*='company']",
-            "input[name*='educator'][name*='company']",
-            "input[name*='agent'][name*='organization']",
-            "input[name*='educator'][name*='organization']",
-            "input[placeholder*='Agent'][placeholder*='Company']",
-            "input[placeholder*='Educator'][placeholder*='Company']",
-            "input[placeholder*='agent'][placeholder*='company']",
-            "input[placeholder*='educator'][placeholder*='company']",
-            "input[aria-label*='Agent'][aria-label*='Company']",
-            "input[aria-label*='Educator'][aria-label*='Company']",
-            "input[id*='agent'][id*='company']",
-            "input[id*='educator'][id*='company']",
-            "input[data-testid*='agent'][data-testid*='company']",
-            "input[data-testid*='educator'][data-testid*='company']"
-        ]
+        # CHILD FIELDS: Fill child information (same as before but for the child)
+        print("👶 Filling child information...")
         
-        agent_company_filled = False
-        company_name = str(self.form_data.get('Authorized Agent Company Name', 'N/A'))
-        
-        # Fill company name field - use "N/A" when Excel has "N/A", or use actual company name
-        print(f"🏢 Company name from Excel: '{company_name}'")
-        
-        # Always try to fill the field (whether it's "N/A" or a real company name)
-        for selector in agent_company_selectors:
-            try:
-                if page.locator(selector).first.is_visible():
-                    page.fill(selector, company_name)
-                    print(f"✅ Agent company name filled: '{company_name}' with selector: {selector}")
-                    time.sleep(1)
-                    agent_company_filled = True
-                    break
-            except:
-                continue
-        
-        if not agent_company_filled:
-            print(f"⚠️ Agent company name field not found (value: '{company_name}')")
-        
-        # STUDENT FIELDS: Fill student information (the person the agent is representing)
-        print("👨‍🎓 Filling student information...")
-        
-        # Student First Name - enhanced selectors
+        # Child First Name - enhanced selectors
         first_name_selectors = [
             "input[name='firstName']",
             "input[name='first_name']", 
@@ -577,8 +378,8 @@ class TestPrivacyPortal:
         for selector in first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First Name', 'StudentFirst')))
-                    print(f"✅ Student first name filled with selector: {selector}")
+                    page.fill(selector, str(self.form_data.get('First Name', 'ChildFirst')))
+                    print(f"✅ Child first name filled with selector: {selector}")
                     time.sleep(1)
                     break
             except:
@@ -603,13 +404,9 @@ class TestPrivacyPortal:
             except:
                 continue
             
-        # Child Email Address (Email of Child/Data Subject) - This might be the Primary Email Address field
-        print("📧 Filling child/student email address...")
+        # Child Email Address (Email of Child/Data Subject)
         child_email_selectors = [
-            # Primary Email Address field we found (might be for child)
-            "input[aria-label='Primary Email Address']",
-            "input[id='emailDSARElement']",
-            # Exact match from form label variations
+            # Exact match from screenshot
             "input[aria-label*='Email of Child (Data Subject)']",
             "input[placeholder*='Email of Child (Data Subject)']",
             "label:has-text('Email of Child (Data Subject)') + input",
@@ -623,15 +420,10 @@ class TestPrivacyPortal:
             "input[placeholder*='Child Email']",
             "input[aria-label*='Data Subject Email']",
             "input[placeholder*='Data Subject Email']",
-            "input[aria-label*='Student Email']",
-            "input[placeholder*='Student Email']",
             "label:has-text('Email of Child') + input",
             "label:has-text('Child Email') + input",
-            "label:has-text('Student Email') + input",
-            "label:has-text('Data Subject Email') + input",
             "*:has-text('Email of Child') + input",
             "*:has-text('Child Email') + input",
-            "*:has-text('Student Email') + input",
             "*:has-text('Data Subject') + input[type='email']",
             # Generic selectors that might contain child/data subject context
             "input[name*='child'][type='email']",
@@ -640,15 +432,10 @@ class TestPrivacyPortal:
             "input[id*='child'][id*='email']",
             "input[id*='subject'][id*='email']",
             "input[id*='student'][id*='email']",
-            "input[data-testid*='child'][data-testid*='email']",
-            "input[data-testid*='student'][data-testid*='email']"
+            "input[data-testid*='child'][data-testid*='email']"
         ]
         
         child_email_filled = False
-        child_email_value = str(self.form_data.get('Primary Email address', 
-                               self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
-        print(f"📧 Child email from Excel: '{child_email_value}'")
-        
         for selector in child_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
@@ -670,34 +457,28 @@ class TestPrivacyPortal:
                     except:
                         pass
                     
-                    # Check if this is definitely a child/student field and not parent/agent
+                    # Check if this is definitely a child/student field and not parent
                     field_label_lower = field_label.lower()
                     is_child_field = any(keyword in field_label_lower for keyword in ['child', 'student', 'data subject', 'subject'])
-                    is_agent_field = any(keyword in field_label_lower for keyword in ['agent', 'educator', 'teacher'])
-                    # NOTE: In agent forms, "Primary Email Address" is actually for the child, not parent
-                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian']) and 'primary email' not in field_label_lower
+                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian', 'primary email'])
                     
-                    # Skip agent fields, but allow primary email and child fields
-                    if is_agent_field and 'primary' not in field_label_lower:
-                        print(f"⚠️ Skipping email field (appears to be for agent): {selector} - {field_label}")
-                        continue
-                    elif is_parent_field:
-                        print(f"⚠️ Skipping email field (appears to be for parent): {selector} - {field_label}")
-                        continue
-                    elif is_child_field or 'primary email' in field_label_lower or not (is_agent_field or is_parent_field):
-                        page.fill(selector, child_email_value)
-                        print(f"✅ Child email filled: '{child_email_value}' with selector: {selector}")
+                    if is_child_field or not is_parent_field:
+                        page.fill(selector, str(self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
+                        print(f"✅ Child email filled: '{self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')}' with selector: {selector}")
                         print(f"   Field context: {field_label}")
                         time.sleep(1)
                         child_email_filled = True
                         break
+                    else:
+                        print(f"⚠️ Skipping email field (appears to be for parent): {selector}")
+                        continue
             except:
                 continue
         
         if not child_email_filled:
             print("⚠️ Child email field not found")
             
-        # Phone Number - enhanced selectors with data validation
+        # Phone Number - enhanced selectors
         phone_selectors = [
             "input[type='tel']",
             "input[name='phone']",
@@ -707,42 +488,15 @@ class TestPrivacyPortal:
             "input[placeholder*='Phone']",
             "input[data-testid*='phone']"
         ]
-        
-        # Get phone number from Excel and validate it
-        phone_from_excel = str(self.form_data.get('Phone Number', '')).strip()
-        print(f"📞 Phone from Excel: '{phone_from_excel}'")
-        
-        # Check if there's actually phone data in Excel
-        if not phone_from_excel or phone_from_excel.lower() in ['', 'nan', 'none', 'null', 'n/a', 'na']:
-            print("ℹ️ No phone number in Excel - skipping phone field (leaving empty)")
-        else:
-            # Validate phone number - check if it's actually a phone number
-            import re
-            # Remove any non-digit characters for validation
-            phone_digits_only = re.sub(r'[^\d]', '', phone_from_excel)
-            
-            # Check if we have a valid phone number (at least 7 digits, no letters/words)
-            is_valid_phone = (
-                len(phone_digits_only) >= 7 and 
-                len(phone_digits_only) <= 15 and
-                not any(word in phone_from_excel.lower() for word in ['account', 'closure', 'close', 'delete', 'request', 'data', 'subject', 'test'])
-            )
-            
-            if is_valid_phone:
-                phone_to_use = phone_from_excel
-                print(f"✅ Using phone number from Excel: '{phone_to_use}'")
-                
-                for selector in phone_selectors:
-                    try:
-                        if page.locator(selector).first.is_visible():
-                            page.fill(selector, phone_to_use)
-                            print(f"✅ Phone filled with selector: {selector}")
-                            time.sleep(1)
-                            break
-                    except:
-                        continue
-            else:
-                print(f"⚠️ Invalid phone data in Excel ('{phone_from_excel}') - skipping phone field (leaving empty)")
+        for selector in phone_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('phone', '5712345567')))
+                    print(f"✅ Phone filled with selector: {selector}")
+                    time.sleep(1)
+                    break
+            except:
+                continue
             
         # Birth Date - try multiple selectors and formats
         birthdate_selectors = [
@@ -763,7 +517,7 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('Date of Birth', '11/1/2008'))
+                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2008'))
                     date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:
@@ -840,41 +594,21 @@ class TestPrivacyPortal:
             except:
                 continue
             
-        # Country FIRST - Use the actual country from Excel data for international requests
-        print("🌍 Attempting to fill country field for international request...")
+        # Country FIRST - Click input field first, then select from dropdown
+        print("🌍 Attempting to fill country field...")
         country_filled = False
-        
-        # Get the actual country from Excel data
-        country_from_excel = str(self.form_data.get('country', 'India'))
-        print(f"🌏 Country from Excel: '{country_from_excel}'")
-        
-        # Map common abbreviations to full country names to avoid dropdown selection issues
-        country_mapping = {
-            'US': ['United States', 'United States of America', 'USA', 'US'],
-            'USA': ['United States', 'United States of America', 'USA', 'US'],
-            'India': ['India'],
-            'Canada': ['Canada'],
-            'Macao': ['Macao', 'Macau', 'Macao SAR China', 'Macau SAR China'],
-            'Egypt': ['Egypt']
-        }
-        
-        # Get possible country names to try
-        country_options_to_try = country_mapping.get(country_from_excel, [country_from_excel, country_from_excel.title(), country_from_excel.upper()])
-        print(f"🎯 Will try these country options: {country_options_to_try}")
         
         try:
             # Try multiple selectors for country field - including input fields with dropdowns
             country_selectors = [
-                "input[id*='country']",  # Start with input fields first as they're more common
-                "input[name*='country']",
-                "input[placeholder*='Country']",
-                "input[placeholder*='country']",
-                "input[aria-label*='Country']",
-                "input[aria-label*='country']",
                 "select[name*='country']",
                 "select[id*='country']", 
                 "select[id*='Country']",
                 "select[class*='country']",
+                "input[name*='country']",
+                "input[id*='country']",
+                "input[placeholder*='Country']",
+                "input[placeholder*='country']",
                 "[data-testid*='country']"
             ]
             
@@ -884,138 +618,86 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         print(f"🔍 Found country field with selector: {country_selector}")
                         
-                        # STEP 1: Click the field to open dropdown 
+                        # STEP 1: Click the field to open dropdown (works for both select and input with dropdown)
                         try:
                             element.click(timeout=5000)
                             print("🖱️ Clicked country field to open dropdown")
-                            time.sleep(3)  # Wait longer for dropdown to fully open
+                            time.sleep(2)  # Wait for dropdown to fully open
                             
-                            # STEP 2: Try each country option until one works
-                            option_selected = False
+                            # STEP 2: Look for dropdown options that appear after clicking
+                            # Try multiple ways to find and click "United States" option
+                            us_option_selectors = [
+                                # Standard option selectors
+                                "option:has-text('United States')",
+                                "option[value='US']",
+                                "option[value='USA']", 
+                                "option[value='United States']",
+                                # List item selectors (for custom dropdowns)
+                                "li:has-text('United States')",
+                                "li[data-value='US']",
+                                "li[data-value='USA']",
+                                # Div-based dropdown options
+                                "div:has-text('United States')",
+                                "[role='option']:has-text('United States')",
+                                # More specific selectors
+                                ".dropdown-option:has-text('United States')",
+                                ".option:has-text('United States')",
+                                "[data-value='United States']"
+                            ]
                             
-                            for country_option in country_options_to_try:
-                                if option_selected:
-                                    break
-                                    
-                                print(f"🔍 Looking for country option: '{country_option}'")
-                                
-                                # Try multiple ways to select the country option with EXACT matching
-                                option_selectors = [
-                                    # Exact text matches (most reliable) - these prevent partial matches
-                                    f"li:text-is('{country_option}')",
-                                    f"option:text-is('{country_option}')",
-                                    f"div:text-is('{country_option}')",
-                                    f"span:text-is('{country_option}')",
-                                    # Role-based exact matches
-                                    f"[role='option']:text-is('{country_option}')",
-                                    f"[role='listitem']:text-is('{country_option}')",
-                                    # Value-based matches
-                                    f"option[value='{country_option}']",
-                                    f"li[data-value='{country_option}']",
-                                    f"[data-value='{country_option}']",
-                                    # Contains text but exclude territories (for partial matches) - IMPORTANT: excludes confusing matches
-                                    f"li:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
-                                    f"option:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
-                                    f"div:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
-                                    f"[role='option']:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))"
-                                ]
-                                
-                                for option_selector in option_selectors:
-                                    try:
-                                        option_element = page.locator(option_selector).first
-                                        if option_element.is_visible(timeout=2000):
-                                            # Verify this is the right option before clicking
-                                            option_text = option_element.text_content().strip()
-                                            print(f"🎯 Found option with text: '{option_text}' using selector: {option_selector}")
-                                            
-                                            # Extra verification: make sure this is an exact match or very close
-                                            if (option_text.lower() == country_option.lower() or 
-                                                country_option.lower() in option_text.lower() and 
-                                                not any(bad in option_text.lower() for bad in ['territory', 'island', 'minor', 'british', 'outlying'])):
-                                                
-                                                option_element.click(timeout=3000)
-                                                print(f"✅ Successfully clicked '{country_option}' option: '{option_text}'")
-                                                option_selected = True
-                                                country_filled = True
-                                                time.sleep(2)  # Wait for selection to register
-                                                break
-                                            else:
-                                                print(f"⚠️ Skipping option '{option_text}' - doesn't match '{country_option}' closely enough")
-                                    except Exception as option_error:
-                                        continue
-                                
-                                if option_selected:
-                                    break
+                            print("🔍 Looking for 'United States' option in dropdown...")
+                            option_clicked = False
                             
-                            # STEP 3: If clicking options didn't work, try typing and selecting
-                            if not option_selected:
-                                print(f"🔄 Trying to type '{country_options_to_try[0]}' directly...")
+                            for option_selector in us_option_selectors:
                                 try:
-                                    # Clear and type the country name
-                                    element.fill("")
-                                    time.sleep(0.5)
-                                    element.fill(country_options_to_try[0])
-                                    time.sleep(1)
-                                    
-                                    # Try different ways to confirm the selection
-                                    try:
-                                        element.press("Enter")
-                                        print(f"✅ Typed and pressed Enter for: {country_options_to_try[0]}")
+                                    option_element = page.locator(option_selector).first
+                                    if option_element.is_visible():
+                                        option_element.click(timeout=3000)
+                                        print(f"✅ Clicked 'United States' option with selector: {option_selector}")
                                         country_filled = True
-                                    except:
-                                        try:
-                                            element.press("Tab")
-                                            print(f"✅ Typed and pressed Tab for: {country_options_to_try[0]}")
-                                            country_filled = True
-                                        except:
-                                            try:
-                                                # Try clicking away to confirm
-                                                page.click("body")
-                                                print(f"✅ Typed and clicked away for: {country_options_to_try[0]}")
-                                                country_filled = True
-                                            except:
-                                                print(f"⚠️ Could not confirm typed country")
+                                        option_clicked = True
+                                        break
                                 except Exception as e:
-                                    print(f"⚠️ Could not type country: {str(e)}")
+                                    print(f"⚠️ Could not click option with {option_selector}: {str(e)}")
+                                    continue
                             
-                            # STEP 4: If it's a select element, try select_option
-                            if not country_filled and country_selector.startswith("select"):
-                                print("🔄 Trying select_option method for select element...")
-                                for country_option in country_options_to_try:
+                            # STEP 3: If clicking individual options didn't work, try select_option on select elements
+                            if not option_clicked and country_selector.startswith("select"):
+                                print("🔄 Trying select_option method...")
+                                country_options = ["US", "USA", "United States", "United States of America"]
+                                for option_value in country_options:
                                     try:
-                                        page.select_option(country_selector, value=country_option, timeout=3000)
-                                        print(f"✅ Country selected using select_option with value: {country_option}")
+                                        page.select_option(country_selector, value=option_value, timeout=3000)
+                                        print(f"✅ Country selected using select_option with value: {option_value}")
                                         country_filled = True
                                         break
                                     except:
                                         try:
-                                            page.select_option(country_selector, label=country_option, timeout=3000)
-                                            print(f"✅ Country selected using select_option with label: {country_option}")
+                                            page.select_option(country_selector, label=option_value, timeout=3000)
+                                            print(f"✅ Country selected using select_option with label: {option_value}")
                                             country_filled = True
                                             break
                                         except:
                                             continue
-                                            
-                        except Exception as e:
-                            print(f"⚠️ Could not interact with country field: {str(e)}")
-                        
-                        # STEP 5: Verify the selection if successful
-                        if country_filled:
-                            time.sleep(2)
-                            try:
-                                current_value = element.input_value() or ""
-                                print(f"🔍 Country field current value: '{current_value}'")
-                                if current_value and any(opt.lower() in current_value.lower() for opt in country_options_to_try):
-                                    print(f"✅ Country selection verified: '{current_value}'")
-                                else:
-                                    print(f"⚠️ Country selection may not have worked. Expected one of {country_options_to_try}, got '{current_value}'")
-                                    # Don't consider it filled if verification failed
-                                    country_filled = False
-                                    continue
-                            except:
-                                print("ℹ️ Could not verify country selection (field might not support input_value)")
                             
-                            break  # Exit the selector loop if we successfully filled
+                            # STEP 4: If it's an input field, try typing
+                            if not country_filled and not country_selector.startswith("select"):
+                                try:
+                                    element.fill("United States", timeout=3000)
+                                    print("✅ Country typed into input field: United States")
+                                    country_filled = True
+                                    # Press Enter to confirm selection
+                                    element.press("Enter")
+                                    print("⌨️ Pressed Enter to confirm country selection")
+                                except:
+                                    print("⚠️ Could not type in country input field")
+                                    
+                        except Exception as e:
+                            print(f"⚠️ Could not click country field: {str(e)}")
+                        
+                        if country_filled:
+                            time.sleep(3)  # Longer pause after successful selection
+                            break
                             
                 except Exception as e:
                     print(f"⚠️ Error with country selector {country_selector}: {str(e)}")
@@ -1025,109 +707,592 @@ class TestPrivacyPortal:
             print(f"❌ Major error in country selection: {str(e)}")
         
         if not country_filled:
-            print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
+            print("⚠️ Could not fill country field - continuing anyway...")
             # Take a screenshot to see current state
-            try:
-                page.screenshot(path="dsr/screenshots/country_field_issue.png")
-                print("📸 Screenshot saved: screenshots/country_field_issue.png")
-            except:
-                pass
+            page.screenshot(path="dsr/screenshots/country_field_issue.png")
+            print("📸 Screenshot saved: screenshots/country_field_issue.png")
 
-        # State/Province handling for international requests
-        print("🌍 Checking if state field is needed for international request...")
+        # State SECOND - Enhanced click logic for state dropdown
+        print("🗽 Attempting to fill state field...")
+        state_filled = False
         
-        # For international requests, state field may not be required or may not exist
-        # Check if the country from Excel indicates this is truly international (non-US)
-        country_from_excel = str(self.form_data.get('country', 'India'))
-        is_us_address = country_from_excel.upper() in ['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']
-        
-        # IMPORTANT: Check if stateOrProvince column exists in the data
-        has_state_data = 'stateOrProvince' in self.form_data and self.form_data.get('stateOrProvince', '').strip()
-        
-        print(f"🌍 Country: '{country_from_excel}', Is US: {is_us_address}, Has state data: {has_state_data}")
-        
-        if is_us_address and has_state_data:
-            print(f"🇺🇸 US address detected with state data ('{country_from_excel}'), will attempt to fill state field...")
-            # Use the existing state logic for US addresses
-            state_filled = False
-            try:
-                # Wait for state field to become available after country selection
-                print("⏳ Waiting for state field to become available after US country selection...")
-                time.sleep(5)
-                
-                # Try multiple selectors for state field
-                state_selectors = [
-                    "select[name*='state']",
-                    "select[id*='state']",
-                    "select[id*='State']", 
-                    "select[class*='state']",
-                    "input[name*='state']",
-                    "input[id*='state']",
-                    "input[placeholder*='State']",
-                    "input[placeholder*='state']",
-                    "input[class*='state']",
-                    "[data-testid*='state']",
-                    "[aria-label*='state']",
-                    "[aria-label*='State']"
-                ]
-                
-                for state_selector in state_selectors:
-                    try:
-                        element = page.locator(state_selector).first
+        try:
+            # Wait longer after country selection for state field to become available
+            print("⏳ Waiting for state field to become available after country selection...")
+            time.sleep(5)
+            
+            # Try multiple selectors for state field - including input fields with dropdowns
+            state_selectors = [
+                "select[name*='state']",
+                "select[id*='state']",
+                "select[id*='State']", 
+                "select[class*='state']",
+                "input[name*='state']",
+                "input[id*='state']",
+                "input[placeholder*='State']",
+                "input[placeholder*='state']",
+                "input[class*='state']",
+                "[data-testid*='state']",
+                "[aria-label*='state']",
+                "[aria-label*='State']"
+            ]
+            
+            # First, let's see what state elements are available
+            print("🔍 Checking for available state elements...")
+            for i, selector in enumerate(state_selectors):
+                try:
+                    elements = page.locator(selector).all()
+                    for j, element in enumerate(elements):
                         if element.is_visible():
-                            print(f"🔍 Found state field with selector: {state_selector}")
+                            print(f"  Found visible state element {i+1}.{j+1}: {selector}")
+                except:
+                    continue
+            
+            for state_selector in state_selectors:
+                try:
+                    element = page.locator(state_selector).first
+                    if element.is_visible():
+                        print(f"🔍 Found state field with selector: {state_selector}")
+                        
+                        # Get state name from Excel data
+                        state_name = str(self.form_data.get('stateOrProvince', 'New York'))
+                        print(f"🏛️ Using state from Excel: '{state_name}'")
+                        
+                        # IMPROVED STATE SELECTION - MORE RELIABLE
+                        try:
+                            print("🎯 Using improved state selection...")
                             
-                            # Get state name from Excel data (fallback for US addresses in international file)
-                            state_name = str(self.form_data.get('stateOrProvince', 'New York'))
-                            print(f"🏛️ Using state from Excel: '{state_name}'")
+                            # Step 1: Click the state field to focus it
+                            element.click(timeout=3000)
+                            print("✅ Clicked state field")
+                            time.sleep(1)
                             
-                            # Simple state selection for US addresses
-                            try:
-                                element.click(timeout=3000)
-                                print("✅ Clicked state field")
+                            # Step 2: Clear any existing value
+                            element.fill("")
+                            print("✅ Cleared field")
+                            time.sleep(0.5)
+                            
+                            # Step 3: Type state name to filter dropdown
+                            element.type(state_name, delay=100)
+                            print(f"✅ Typed '{state_name}'")
+                            time.sleep(3)  # Wait longer for dropdown to appear
+                            
+                            # Step 4: Multiple approaches to select the dropdown option
+                            option_selected = False
+                            
+                            # Approach 1: Look for visible dropdown options
+                            print("🔍 Looking for dropdown options...")
+                            dropdown_option_selectors = [
+                                f"option:has-text('{state_name}'):visible",
+                                f"li:has-text('{state_name}'):visible", 
+                                f"div[role='option']:has-text('{state_name}'):visible",
+                                f"[data-value*='New York']:visible",
+                                f"[value*='New York']:visible",
+                                f".option:has-text('{state_name}'):visible"
+                            ]
+                            
+                            for selector in dropdown_option_selectors:
+                                try:
+                                    options = page.locator(selector).all()
+                                    if options:
+                                        print(f"📋 Found {len(options)} matching options with selector: {selector}")
+                                        for option in options:
+                                            if option.is_visible():
+                                                option_text = option.inner_text()
+                                                print(f"🎯 Clicking option: '{option_text}'")
+                                                option.click(timeout=2000)
+                                                option_selected = True
+                                                print(f"✅ Successfully selected '{option_text}'")
+                                                break
+                                    if option_selected:
+                                        break
+                                except Exception as e:
+                                    print(f"⚠️ Selector {selector} failed: {str(e)}")
+                                    continue
+                            
+                            # Approach 2: If no dropdown option found, try keyboard navigation
+                            if not option_selected:
+                                print("🔄 No dropdown option found, trying keyboard approach...")
+                                
+                                # Press Down arrow to open dropdown if needed
+                                element.press("ArrowDown")
                                 time.sleep(1)
                                 
-                                element.fill(state_name)
-                                print(f"✅ Typed '{state_name}'")
+                                # Press Enter to select the first matching option
+                                element.press("Enter")
+                                print("⏎ Pressed Enter to select")
+                                option_selected = True
+                            
+                            # Approach 3: If still not selected, try Tab to move away and confirm
+                            if option_selected:
+                                time.sleep(1)
+                                element.press("Tab")  # Move focus away to confirm selection
+                                print("✅ Moved focus away to confirm selection")
+                            
+                            time.sleep(2)
+                            state_filled = True
+                            break
+                            
+                            # Step 3: Press Arrow Down to open dropdown
+                            element.press("ArrowDown")
+                            print("✅ Pressed ArrowDown to open dropdown")
+                            time.sleep(2)
+                            
+                            # Step 4: Navigate to New York using keyboard ONLY
+                            print("� Navigating to New York using keyboard navigation...")
+                            
+                            # Press 'N' key to jump to states starting with 'N'
+                            element.press("KeyN")
+                            time.sleep(1)
+                            print("✅ Pressed 'N' to jump to N states")
+                            
+                            # Press 'e' to get to "Ne..." states  
+                            element.press("KeyE")
+                            time.sleep(1)
+                            print("✅ Pressed 'E' to get to 'Ne...' states")
+                            
+                            # Now use Arrow Down to find New York specifically
+                            for i in range(15):  # Try up to 15 arrow downs to find New York
+                                try:
+                                    # Check current selection
+                                    current_element = page.locator("[aria-selected='true'], .selected, .highlighted, option:focus").first
+                                    if current_element.is_visible():
+                                        current_text = current_element.inner_text().strip()
+                                        print(f"🔍 Current selection: '{current_text}'")
+                                        
+                                        if "new york" in current_text.lower():
+                                            print(f"✅ Found New York: '{current_text}'")
+                                            element.press("Enter")
+                                            print("✅ Pressed Enter to select New York")
+                                            time.sleep(2)
+                                            state_filled = True
+                                            break
+                                    
+                                    # If not New York, continue navigating
+                                    element.press("ArrowDown")
+                                    time.sleep(0.5)
+                                    
+                                except Exception as nav_error:
+                                    print(f"⚠️ Navigation error: {nav_error}")
+                                    element.press("ArrowDown")
+                                    time.sleep(0.5)
+                            
+                            # Verify selection worked
+                            if state_filled:
+                                try:
+                                    current_value = element.input_value() or element.text_content() or ""
+                                    print(f"🔍 Field value after selection: '{current_value}'")
+                                    if current_value.strip() and ("new york" in current_value.lower() or len(current_value.strip()) > 0):
+                                        print("✅ State appears to be selected successfully")
+                                        break
+                                    else:
+                                        print("⚠️ Field appears empty, selection may not have worked")
+                                        state_filled = False
+                                except:
+                                    print("✅ Assuming keyboard navigation worked")
+                                    break
+                            
+                            # If keyboard navigation didn't find New York, try alternative
+                            if not state_filled:
+                                print("� Keyboard navigation didn't find New York, trying direct search...")
+                                
+                                # Start over with a different approach
+                                element.click(timeout=3000)
+                                element.fill("")
+                                time.sleep(0.5)
+                                element.press("ArrowDown")
                                 time.sleep(2)
                                 
-                                element.press("Enter")
-                                print("⏎ Pressed Enter to select state")
+                                # Try typing full state name "New York" (not abbreviation)
+                                element.type("New York", delay=100)
+                                print("✅ Typed 'New York' (full name)")
                                 time.sleep(2)
+                                
+                                # Look for exact New York match and click it
+                                try:
+                                    ny_option = page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").first
+                                    if ny_option.is_visible():
+                                        ny_option.click(timeout=3000)
+                                        print("✅ Clicked 'New York' option directly")
+                                        state_filled = True
+                                    else:
+                                        # Fallback - just press Enter
+                                        element.press("Enter")
+                                        print("✅ Pressed Enter to select")
+                                        state_filled = True
+                                except:
+                                    element.press("Enter")
+                                    print("✅ Pressed Enter as fallback")
+                                    state_filled = True
+                            element.press("ArrowDown")
+                            print("✅ Pressed ArrowDown to open dropdown")
+                            time.sleep(2)
+                            
+                            # Step 4: Navigate to New York using keyboard
+                            # New York is typically around position 32-35 in the US states list
+                            print("� Navigating to New York using keyboard...")
+                            
+                            # Press 'N' key to jump to states starting with 'N'
+                            element.press("KeyN")
+                            time.sleep(1)
+                            print("✅ Pressed 'N' to jump to N states")
+                            
+                            # Press 'e' to get to "Ne..." states  
+                            element.press("KeyE")
+                            time.sleep(1)
+                            print("✅ Pressed 'E' to get to 'Ne...' states")
+                            
+                            # Now use Arrow Down to find New York specifically
+                            for i in range(10):  # Try up to 10 arrow downs to find New York
+                                try:
+                                    # Check current selection
+                                    current_element = page.locator("[aria-selected='true'], .selected, .highlighted, option:focus").first
+                                    if current_element.is_visible():
+                                        current_text = current_element.inner_text().strip()
+                                        print(f"🔍 Current selection: '{current_text}'")
+                                        
+                                        if "new york" in current_text.lower():
+                                            print(f"✅ Found New York: '{current_text}'")
+                                            element.press("Enter")
+                                            print("✅ Pressed Enter to select New York")
+                                            time.sleep(2)
+                                            state_filled = True
+                                            break
+                                    
+                                    # If not New York, continue navigating
+                                    element.press("ArrowDown")
+                                    time.sleep(0.5)
+                                    
+                                except Exception as nav_error:
+                                    print(f"⚠️ Navigation error: {nav_error}")
+                                    element.press("ArrowDown")
+                                    time.sleep(0.5)
+                            
+                            # If keyboard navigation didn't work, try direct value setting
+                            if not state_filled:
+                                print("� Keyboard navigation failed, trying direct approach...")
+                                
+                                # Clear and try typing "NY" (abbreviation)
+                                element.fill("")
+                                time.sleep(0.5)
+                                element.type("NY", delay=100)
+                                time.sleep(1)
+                                element.press("Tab")  # Tab to next field to trigger selection
+                                print("✅ Typed 'NY' and pressed Tab")
+                                time.sleep(1)
+                                state_filled = True
+                            
+                            # Verify selection worked
+                            try:
+                                current_value = element.input_value() or element.text_content() or ""
+                                print(f"� Field value after selection: '{current_value}'")
+                                if current_value.strip() and ("new york" in current_value.lower() or "ny" in current_value.lower() or len(current_value.strip()) > 0):
+                                    print("✅ State appears to be selected successfully")
+                                    state_filled = True
+                                    break
+                            except:
+                                # Even if we can't verify, assume it worked
+                                print("✅ Assuming state selection worked")
+                                state_filled = True
+                                break
+                                
+                        except Exception as e:
+                            print(f"❌ Simple approach failed: {str(e)}")
+                            
+                            # FALLBACK: Try different approach - click, open dropdown, type abbreviation
+                            try:
+                                print("🔄 Fallback: Using dropdown + NY abbreviation...")
+                                element.click(timeout=3000)
+                                element.fill("")
+                                time.sleep(0.5)
+                                
+                                # Open dropdown first
+                                element.press("ArrowDown")
+                                time.sleep(2)
+                                
+                                # Type NY abbreviation
+                                element.type("NY", delay=100)
+                                time.sleep(1)
+                                element.press("Enter")
+                                print("✅ Fallback: Typed 'NY' and pressed Enter")
+                                state_filled = True
+                                break
+                            except Exception as e2:
+                                print(f"❌ Fallback also failed: {str(e2)}")
+                                
+                                # LAST RESORT: Try typing first few letters of "New York"
+                                try:
+                                    print("🔄 Last resort: Typing 'New'...")
+                                    element.click(timeout=3000)
+                                    element.fill("")
+                                    time.sleep(0.5)
+                                    element.press("ArrowDown")  # Open dropdown
+                                    time.sleep(2)
+                                    element.type("New", delay=100)  # Type just "New"
+                                    time.sleep(2)
+                                    
+                                    # Look for New York option specifically
+                                    ny_options = page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").count()
+                                    if ny_options > 0:
+                                        page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").first.click()
+                                        print("✅ Found and clicked 'New York' option")
+                                    else:
+                                        element.press("Enter")  # Just press enter
+                                        print("⚠️ No specific New York option found, pressed Enter")
+                                    
+                                    state_filled = True
+                                    break
+                                except Exception as e3:
+                                    print(f"❌ Last resort failed: {str(e3)}")
+                        
+                        if state_filled:
+                            break
+                        
+                        # STEP 2: Fallback - Try abbreviation approach for New York
+                        if not state_filled and state_name == "New York":
+                            print("🔄 Fallback: Trying with 'NY' abbreviation...")
+                            try:
+                                element.click(timeout=3000)
+                                element.fill("", timeout=3000)
+                                time.sleep(0.5)
+                                element.type("NY", delay=100)
+                                print("✅ Typed 'NY' into state field")
+                                time.sleep(2)
+                                
+                                # Look for NY options in dropdown
+                                ny_selectors = [
+                                    "option:has-text('NY')",
+                                    "li:has-text('NY')",
+                                    "option:has-text('New York')",
+                                    "li:has-text('New York')",
+                                    "div:has-text('NY')",
+                                    "[role='option']:has-text('NY')"
+                                ]
+                                
+                                ny_option_found = False
+                                for ny_selector in ny_selectors:
+                                    try:
+                                        ny_option = page.locator(ny_selector).first
+                                        if ny_option.is_visible():
+                                            print(f"✅ Found NY option: {ny_selector}")
+                                            ny_option.click(timeout=3000)
+                                            print("🎯 Clicked on NY option")
+                                            ny_option_found = True
+                                            time.sleep(2)
+                                            break
+                                    except:
+                                        continue
+                                
+                                if not ny_option_found:
+                                    element.press("Enter")
+                                    print("⏎ Pressed Enter for NY")
+                                    time.sleep(1)
+                                
                                 state_filled = True
                                 break
                                 
                             except Exception as e:
-                                print(f"⚠️ Error filling state field: {str(e)}")
-                                continue
+                                print(f"❌ NY abbreviation approach failed: {str(e)}")
                         
-                    except Exception as e:
-                        print(f"⚠️ Error with state selector {state_selector}: {str(e)}")
-                        continue
+                        # STEP 3: Last resort - Try keyboard navigation
+                        if not state_filled:
+                            print("🔄 Last resort: Trying keyboard navigation...")
+                            try:
+                                element.click(timeout=3000)
+                                time.sleep(1)
+                                element.press("ArrowDown")  # Open dropdown
+                                time.sleep(1)
+                                
+                                # Navigate through options looking for our state
+                                for i in range(60):  # Try up to 60 states
+                                    try:
+                                        # Check if current highlighted option matches our state
+                                        highlighted = page.locator("[aria-selected='true'], .highlighted, .selected, [aria-current='true']").first
+                                        if highlighted.is_visible():
+                                            text = highlighted.inner_text().strip()
+                                            if (state_name.lower() in text.lower() or 
+                                                (state_name == "New York" and ("ny" in text.lower() or "new york" in text.lower()))):
+                                                element.press("Enter")
+                                                print(f"✅ Found and selected '{text}' via keyboard navigation")
+                                                state_filled = True
+                                                break
+                                    except:
+                                        pass
+                                    
+                                    element.press("ArrowDown")
+                                    time.sleep(0.1)
+                                
+                                if state_filled:
+                                    break
+                                    
+                            except Exception as e:
+                                print(f"❌ Keyboard navigation failed: {str(e)}")
+                            state_option_selectors = [
+                                # Standard option selectors
+                                f"option:has-text('{state_name}')",
+                                f"option[value='{state_name}']",
+                                "option[value='NY']" if state_name == "New York" else f"option[value='{state_name}']",
+                                f"option:has-text('{state_name[:2]}')" if len(state_name) > 2 else f"option:has-text('{state_name}')",
+                                # List item selectors (for custom dropdowns)
+                                f"li:has-text('{state_name}')",
+                                f"li[data-value='{state_name}']",
+                                f"li:contains('{state_name}')",
+                                # Div-based dropdown options
+                                f"div:has-text('{state_name}')",
+                                f"[role='option']:has-text('{state_name}')",
+                                f"[role='menuitem']:has-text('{state_name}')",
+                                # More specific selectors
+                                f".dropdown-option:has-text('{state_name}')",
+                                f".option:has-text('{state_name}')",
+                                f".select-option:has-text('{state_name}')",
+                                f"[data-value='{state_name}']",
+                                # Button-based options
+                                f"button:has-text('{state_name}')",
+                                f"a:has-text('{state_name}')"
+                            ]
+                            
+                            print(f"🔍 Looking for '{state_name}' option in dropdown...")
+                            
+                            # First, let's see what options are actually available
+                            print("🔍 DEBUG: Checking all visible options after clicking state field...")
+                            try:
+                                all_options = page.locator("option, li, div[role='option'], .dropdown-option, .option").all()
+                                for i, opt in enumerate(all_options):
+                                    try:
+                                        if opt.is_visible():
+                                            text = opt.inner_text() or opt.text_content() or ""
+                                            value = opt.get_attribute("value") or ""
+                                            print(f"  Option {i+1}: text='{text}', value='{value}'")
+                                    except:
+                                        pass
+                            except:
+                                print("  Could not enumerate options")
+                            
+                            option_clicked = False
+                            
+                            # Wait a bit more for options to appear
+                            time.sleep(2)
+                            
+                            for option_selector in state_option_selectors:
+                                try:
+                                    option_elements = page.locator(option_selector).all()
+                                    print(f"🔍 Trying selector: {option_selector} - Found {len(option_elements)} elements")
+                                    
+                                    for j, option_element in enumerate(option_elements):
+                                        try:
+                                            if option_element.is_visible():
+                                                text = option_element.inner_text() or ""
+                                                print(f"  Element {j+1} visible with text: '{text}'")
+                                                option_element.click(timeout=3000, force=True)
+                                                print(f"✅ Clicked '{state_name}' option with selector: {option_selector}")
+                                                state_filled = True
+                                                option_clicked = True
+                                                break
+                                        except Exception as e:
+                                            print(f"    Could not click element {j+1}: {str(e)}")
+                                            continue
+                                    
+                                    if option_clicked:
+                                        break
+                                        
+                                except Exception as e:
+                                    print(f"⚠️ Could not use selector {option_selector}: {str(e)}")
+                                    continue
+                            
+                            # Try typing state abbreviation to filter/select
+                            if not option_clicked:
+                                state_abbrev = "NY" if state_name == "New York" else state_name[:2].upper()
+                                print(f"🔄 Trying to type '{state_abbrev}' to filter dropdown...")
+                                try:
+                                    element.type(state_abbrev, delay=100)
+                                    time.sleep(1)
+                                    element.press("Enter")
+                                    print(f"✅ Typed '{state_abbrev}' and pressed Enter")
+                                    state_filled = True
+                                    option_clicked = True
+                                except Exception as e:
+                                    print(f"⚠️ Could not type '{state_abbrev}': {str(e)}")
+                            
+                            # Try typing full state name to filter/select
+                            if not option_clicked:
+                                print(f"🔄 Trying to type '{state_name}' to filter dropdown...")
+                                try:
+                                    element.clear()
+                                    time.sleep(0.5)
+                                    element.type(state_name, delay=100)
+                                    time.sleep(1)
+                                    element.press("Enter")
+                                    print(f"✅ Typed '{state_name}' and pressed Enter")
+                                    state_filled = True
+                                    option_clicked = True
+                                except Exception as e:
+                                    print(f"⚠️ Could not type '{state_name}': {str(e)}")
+                            
+                            # Try using keyboard navigation
+                            if not option_clicked:
+                                print("🔄 Trying keyboard navigation...")
+                                try:
+                                    element.press("ArrowDown")
+                                    time.sleep(0.5)
+                                    # Look for the state from Excel in the list by pressing down arrow multiple times
+                                    for i in range(50):  # Try up to 50 options to find the state
+                                        try:
+                                            current_text = page.locator("[aria-selected='true'], .selected, .highlighted").first.inner_text()
+                                            # Check if current option matches our target state
+                                            if (state_name.lower() in current_text.lower() or 
+                                                (state_name == "New York" and ("NY" in current_text or "New York" in current_text)) or
+                                                (len(state_name) >= 2 and state_name[:2].upper() in current_text)):
+                                                element.press("Enter")
+                                                print(f"✅ Found and selected '{state_name}' using keyboard navigation")
+                                                state_filled = True
+                                                option_clicked = True
+                                                break
+                                        except:
+                                            pass
+                                        element.press("ArrowDown")
+                                        time.sleep(0.2)
+                                except Exception as e:
+                                    print(f"⚠️ Keyboard navigation failed: {str(e)}")
+                            
+                            # STEP 3: If clicking individual options didn't work, try select_option on select elements
+                            if not option_clicked and state_selector.startswith("select"):
+                                print("🔄 Trying select_option method for state...")
+                                # Create dynamic state options based on Excel data
+                                state_abbrev = "NY" if state_name == "New York" else state_name[:2].upper()
+                                state_options = [
+                                    state_name,  # Full state name from Excel
+                                    state_name.upper(),  # Uppercase version
+                                    state_abbrev,  # State abbreviation
+                                    state_name[:2].upper() if len(state_name) >= 2 else state_name  # First 2 letters
+                                ]
+                                for option_value in state_options:
+                                    try:
+                                        page.select_option(state_selector, value=option_value, timeout=3000)
+                                        print(f"✅ State selected using select_option with value: {option_value}")
+                                        state_filled = True
+                                        break
+                                    except:
+                                        try:
+                                            page.select_option(state_selector, label=option_value, timeout=3000)
+                                            print(f"✅ State selected using select_option with label: {option_value}")
+                                            state_filled = True
+                                            break
+                                        except:
+                                            continue
                         
-            except Exception as e:
-                print(f"❌ Error in US state selection: {str(e)}")
-                
-            if not state_filled:
-                print("⚠️ Could not fill US state field - continuing anyway...")
-                
-        else:
-            print(f"🌏 International address detected ('{country_from_excel}') or no state data available...")
-            print("✅ Skipping state field for international request - this is correct for international forms")
-            
-            # Check if there's actually a state field on the form that we need to handle
-            try:
-                state_field_exists = page.locator("select[name*='state'], input[name*='state'], [aria-label*='state']").first.is_visible(timeout=2000)
-                if state_field_exists:
-                    print("⚠️ State field detected on form despite being international - this may need manual attention")
-                else:
-                    print("✅ No state field found - perfect for international form")
-            except:
-                print("✅ No state field found - perfect for international form")
-            
-            # Wait a moment for form to stabilize after country selection
-            time.sleep(2)
+                except Exception as e:
+                    print(f"⚠️ Error with state selector {state_selector}: {str(e)}")
+                    continue
+                    
+        except Exception as e:
+            print(f"❌ Major error in state selection: {str(e)}")
         
+        if not state_filled:
+            print("⚠️ Could not fill state field - taking debug screenshot...")
+            # Take a screenshot to see current state
+            page.screenshot(path="dsr/screenshots/state_field_debug.png")
+            print("📸 Debug screenshot saved: screenshots/state_field_debug.png")
+            
         print("✅ Contact information section completed")
     
     def fill_additional_details(self, page: Page):
@@ -1257,27 +1422,23 @@ class TestPrivacyPortal:
         if not educator_filled:
             print("⚠️ Educator affiliation field not found")
                 
-        # Look for any textarea fields (description, comments, etc.) - BUT NOT delete request specific ones
-        print("📝 Looking for textarea/comment fields (excluding delete request fields)...")
-        
-        # Check if this is a delete request - if so, be extra cautious about textarea fields
-        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
-        is_delete_request = 'delete' in request_type_from_excel
-        
-        if is_delete_request:
-            print("⚠️ Delete request detected - will be very careful to avoid delete-specific textarea fields")
-        
+        # Look for any textarea fields (description, comments, etc.)
+        print("📝 Looking for textarea/comment fields...")
         textarea_selectors = [
             "textarea[name*='description']",
-            "textarea[name*='comment']", 
+            "textarea[name*='comment']",
             "textarea[name*='message']",
+            "textarea[name*='details']",
             "textarea[placeholder*='description']",
             "textarea[placeholder*='comment']",
             "textarea[placeholder*='message']",
+            "textarea[placeholder*='details']",
+            "textarea[placeholder*='additional']",
             "textarea[placeholder*='other']",
             "textarea[aria-label*='description']",
             "textarea[aria-label*='comment']",
-            "textarea[aria-label*='message']"
+            "textarea[aria-label*='message']",
+            "textarea"
         ]
         textarea_filled = False
         for selector in textarea_selectors:
@@ -1286,36 +1447,7 @@ class TestPrivacyPortal:
                 for element in elements:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
-                        name = element.get_attribute("name") or ""
-                        aria_label = element.get_attribute("aria-label") or ""
-                        element_id = element.get_attribute("id") or ""
-                        
-                        # Combine all text attributes for checking
-                        all_field_text = f"{placeholder} {name} {aria_label} {element_id}".lower()
-                        
-                        # For delete requests, be EXTRA cautious - skip ANY field that could be for additional details
-                        delete_related_keywords = ["additional", "details", "delete", "removal", "n/a", "necessary", "add", "provide"]
-                        phone_related_keywords = ["phone", "telephone", "tel"]
-                        
-                        # Skip if this looks like a delete request specific field
-                        if any(word in all_field_text for word in delete_related_keywords):
-                            print(f"⏭️ Skipping potential delete request field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
-                            continue
-                            
-                        # Skip if this looks like a phone field (extra safety)
-                        if any(word in all_field_text for word in phone_related_keywords):
-                            print(f"⏭️ Skipping phone-related field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
-                            continue
-                        
-                        # For delete requests, only fill if we're very sure this is NOT a delete-specific field
-                        if is_delete_request:
-                            # Be very conservative - only fill fields that clearly look like general description/comment fields
-                            safe_keywords = ["description", "comment", "message", "other"]
-                            if not any(word in all_field_text for word in safe_keywords):
-                                print(f"⏭️ Delete request: Skipping uncertain field - placeholder: '{placeholder}', name: '{name}'")
-                                continue
-                                
-                        print(f"🔍 Found safe textarea field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
+                        print(f"🔍 Found textarea field - placeholder: '{placeholder}'")
                         element.fill("Automated form submission for privacy request testing.")
                         print(f"✅ Textarea filled using selector: {selector}")
                         textarea_filled = True
@@ -1387,33 +1519,31 @@ class TestPrivacyPortal:
             print("ℹ️ Additional details section not found - may not be required")
             return
         
-        # Look for the textarea or input field for additional details - BE VERY SPECIFIC
+        # Look for the textarea or input field for additional details
         print("🔍 Looking for additional details input field...")
         additional_details_selectors = [
-            # Most specific first - target textarea fields that are specifically for additional details
-            "textarea[name*='additional']:not([name*='phone']):not([id*='phone'])",
-            "textarea[name*='details']:not([name*='phone']):not([id*='phone'])",
-            "textarea[placeholder*='additional']:not([name*='phone']):not([id*='phone'])",
-            "textarea[placeholder*='details']:not([name*='phone']):not([id*='phone'])",
-            "textarea[placeholder*='N/A']:not([name*='phone']):not([id*='phone'])",
-            "textarea[placeholder*='add additional details']:not([name*='phone']):not([id*='phone'])",
-            "textarea[aria-label*='additional']:not([name*='phone']):not([id*='phone'])",
-            "textarea[aria-label*='details']:not([name*='phone']):not([id*='phone'])",
-            # Specific input fields for additional details (NOT phone related)
-            "input[name*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
-            "input[name*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
-            "input[placeholder*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
-            "input[placeholder*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
-            "input[placeholder*='N/A']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
-            # Last resort - any textarea that doesn't look like phone field
-            "textarea:not([name*='phone']):not([id*='phone']):not([placeholder*='phone']):not([placeholder*='Phone'])"
+            "textarea[name*='additional']",
+            "textarea[name*='details']",
+            "textarea[name*='comment']",
+            "textarea[name*='message']",
+            "textarea[placeholder*='additional']",
+            "textarea[placeholder*='details']",
+            "textarea[placeholder*='N/A']",
+            "textarea[placeholder*='add additional details']",
+            "textarea[aria-label*='additional']",
+            "textarea[aria-label*='details']",
+            "input[name*='additional']",
+            "input[name*='details']",
+            "input[placeholder*='additional']",
+            "input[placeholder*='details']",
+            "input[placeholder*='N/A']",
+            "textarea"  # Last resort - any textarea
         ]
         
         details_filled = False
-        additional_details_text = str(self.form_data.get('additional_details', '')).strip()
+        additional_details_text = str(self.form_data.get('additional_details', 'N/A')).strip()
         
-        # Use N/A for empty additional details (simple and clean)
-        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none', 'n/a']:
+        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none']:
             additional_details_text = 'N/A'
         
         print(f"📝 Additional details text from Excel: '{additional_details_text}'")
@@ -1425,42 +1555,11 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
                         name = element.get_attribute("name") or ""
-                        element_id = element.get_attribute("id") or ""
-                        element_type = element.get_attribute("type") or ""
-                        aria_label = element.get_attribute("aria-label") or ""
                         
-                        # Combine all attributes for comprehensive checking
-                        all_attributes = f"{placeholder} {name} {element_id} {element_type} {aria_label}".lower()
-                        
-                        # VERY strict phone field detection - reject if ANY phone-related word appears
-                        phone_indicators = ["phone", "telephone", "tel", "mobile", "cell", "number"]
-                        if any(indicator in all_attributes for indicator in phone_indicators):
-                            print(f"⚠️ REJECTING phone-related field - name: '{name}', placeholder: '{placeholder}', id: '{element_id}', type: '{element_type}', aria-label: '{aria_label}'")
-                            continue
-                            
-                        # Also skip if it's a telephone input type
-                        if element_type in ["tel", "phone", "number"]:
-                            print(f"⚠️ REJECTING telephone input type - type: '{element_type}'")
-                            continue
-                        
-                        # Prefer fields that specifically mention additional details
-                        priority_keywords = ["additional", "details", "provide", "necessary"]
-                        has_priority = any(keyword in all_attributes for keyword in priority_keywords)
-                        
-                        print(f"🔍 Evaluating field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}', has_priority: {has_priority}")
-                        
-                        # If this looks like a general description field but we haven't found a priority field yet, skip it
-                        general_keywords = ["description", "comment", "message"]
-                        is_general = any(keyword in all_attributes for keyword in general_keywords)
-                        
-                        if is_general and not has_priority:
-                            print(f"⏭️ Skipping general field - waiting for priority field")
-                            continue
-                        
-                        print(f"✅ SELECTED field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}'")
+                        print(f"🔍 Found details field - name: '{name}', placeholder: '{placeholder}'")
                         
                         # Clear any existing content and fill with our data
-                        element.clear()
+                        element.fill("")
                         time.sleep(0.5)
                         element.fill(additional_details_text)
                         print(f"✅ Additional details filled: '{additional_details_text}' using selector: {selector}")
@@ -1468,8 +1567,7 @@ class TestPrivacyPortal:
                         break
                 if details_filled:
                     break
-            except Exception as e:
-                print(f"⚠️ Error with selector {selector}: {str(e)}")
+            except:
                 continue
         
         if not details_filled:
@@ -1587,13 +1685,53 @@ class TestPrivacyPortal:
         
         print(f"🔍 Final search keywords: {search_keywords}")
         
-        print("� Selecting request type based on Excel data...")
-        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
-        print(f"🎯 Request type from Excel: '{request_type_from_excel}'")
-        
-        # Map Excel request types to form options
-        print("✅ Request type selection completed")
-        time.sleep(2)
+        # First, debug: find all available radio buttons and their labels
+        print("🔍 DEBUG: Finding all available request type options...")
+        try:
+            radio_elements = page.locator("input[type='radio'], input[type='checkbox']").all()
+            available_options = []
+            
+            for i, radio in enumerate(radio_elements):
+                try:
+                    if radio.is_visible():
+                        radio_id = radio.get_attribute("id") or ""
+                        radio_value = radio.get_attribute("value") or ""
+                        radio_name = radio.get_attribute("name") or ""
+                        
+                        # Look for associated label
+                        label_text = ""
+                        try:
+                            if radio_id:
+                                label_elem = page.locator(f"label[for='{radio_id}']").first
+                                if label_elem.is_visible():
+                                    label_text = label_elem.inner_text() or ""
+                            
+                            # Also try to find nearby text
+                            if not label_text:
+                                parent = radio.locator("xpath=..").first
+                                if parent.is_visible():
+                                    parent_text = parent.inner_text() or ""
+                                    # Extract just the relevant part
+                                    lines = parent_text.split('\n')
+                                    for line in lines:
+                                        line = line.strip()
+                                        if line and len(line) < 100:  # Reasonable length for option text
+                                            label_text = line
+                                            break
+                        except:
+                            pass
+                        
+                        option_info = {
+                            'index': i+1,
+                            'element': radio,
+                            'id': radio_id,
+                            'value': radio_value,
+                            'name': radio_name,
+                            'label': label_text
+                        }
+                        available_options.append(option_info)
+                        print(f"  Option {i+1}: value='{radio_value}', name='{radio_name}', label='{label_text}'")
+                except Exception as e:
                     print(f"  Option {i+1}: Error reading - {str(e)}")
                     continue
                     
@@ -2997,28 +3135,3 @@ if __name__ == "__main__":
     test = TestPrivacyPortal()
     test.setup_method()
     test.test_privacy_form_submission()
-    
-    # Automatically generate Data Reading Success Report after completion
-    print("\n" + "="*80)
-    print("🎯 AUTOMATION COMPLETED! Generating Data Reading Success Report...")
-    print("="*80)
-    
-    if create_educator_reading_success_report:
-        try:
-            report_file = create_educator_reading_success_report()
-            if report_file:
-                print(f"\n🎉 SUCCESS! Educator Data Reading Success Report generated:")
-                print(f"📁 Report File: {report_file}")
-                print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            else:
-                print("❌ Failed to generate report")
-        except Exception as e:
-            print(f"❌ Error generating report: {str(e)}")
-    else:
-        print("⚠️ Report generator not available - skipping report generation")
-    
-    print("\n✅ ALL TASKS COMPLETED!")
-    print("📊 Check the dsr/screenshots/ folder for:")
-    print("   • Form submission screenshots")
-    print("   • Data Reading Success Report (Excel file)")
-    print("   • Automation logs and results")

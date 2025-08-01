@@ -136,10 +136,10 @@ class TestPrivacyPortal:
             page = browser.new_page()
             
             try:
-                # Process each record
-                for record_index, record_data in enumerate(self.all_form_data):
+                # Process each record starting from record 4 (index 3) for testing
+                for record_index, record_data in enumerate(self.all_form_data[3:], start=3):
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)} (STARTING FROM RECORD 4)")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -716,37 +716,40 @@ class TestPrivacyPortal:
         ]
         
         # Get phone number from Excel and validate it
-        phone_from_excel = str(self.form_data.get('Phone Number', '5712345567')).strip()
+        phone_from_excel = str(self.form_data.get('Phone Number', '')).strip()
         print(f"📞 Phone from Excel: '{phone_from_excel}'")
         
-        # Validate phone number - check if it's actually a phone number
-        import re
-        # Remove any non-digit characters for validation
-        phone_digits_only = re.sub(r'[^\d]', '', phone_from_excel)
-        
-        # Check if we have a valid phone number (at least 7 digits, no letters/words)
-        is_valid_phone = (
-            len(phone_digits_only) >= 7 and 
-            len(phone_digits_only) <= 15 and
-            not any(word in phone_from_excel.lower() for word in ['account', 'closure', 'close', 'delete', 'request', 'data', 'subject', 'n/a', 'na', 'none', 'test'])
-        )
-        
-        if is_valid_phone:
-            phone_to_use = phone_from_excel
-            print(f"✅ Using phone number from Excel: '{phone_to_use}'")
+        # Check if there's actually phone data in Excel
+        if not phone_from_excel or phone_from_excel.lower() in ['', 'nan', 'none', 'null', 'n/a', 'na']:
+            print("ℹ️ No phone number in Excel - skipping phone field (leaving empty)")
         else:
-            phone_to_use = '5551234567'  # Default safe phone number
-            print(f"⚠️ Invalid phone data in Excel ('{phone_from_excel}'), using default: '{phone_to_use}'")
-        
-        for selector in phone_selectors:
-            try:
-                if page.locator(selector).first.is_visible():
-                    page.fill(selector, phone_to_use)
-                    print(f"✅ Phone filled with selector: {selector}")
-                    time.sleep(1)
-                    break
-            except:
-                continue
+            # Validate phone number - check if it's actually a phone number
+            import re
+            # Remove any non-digit characters for validation
+            phone_digits_only = re.sub(r'[^\d]', '', phone_from_excel)
+            
+            # Check if we have a valid phone number (at least 7 digits, no letters/words)
+            is_valid_phone = (
+                len(phone_digits_only) >= 7 and 
+                len(phone_digits_only) <= 15 and
+                not any(word in phone_from_excel.lower() for word in ['account', 'closure', 'close', 'delete', 'request', 'data', 'subject', 'test'])
+            )
+            
+            if is_valid_phone:
+                phone_to_use = phone_from_excel
+                print(f"✅ Using phone number from Excel: '{phone_to_use}'")
+                
+                for selector in phone_selectors:
+                    try:
+                        if page.locator(selector).first.is_visible():
+                            page.fill(selector, phone_to_use)
+                            print(f"✅ Phone filled with selector: {selector}")
+                            time.sleep(1)
+                            break
+                    except:
+                        continue
+            else:
+                print(f"⚠️ Invalid phone data in Excel ('{phone_from_excel}') - skipping phone field (leaving empty)")
             
         # Birth Date - try multiple selectors and formats
         birthdate_selectors = [

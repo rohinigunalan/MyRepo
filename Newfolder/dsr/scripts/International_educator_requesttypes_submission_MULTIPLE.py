@@ -154,9 +154,9 @@ class TestPrivacyPortal:
                         try:
                             self.fill_subject_information(page)
                             self.fill_contact_information(page)
-                            self.fill_additional_details(page)
                             self.select_request_type(page)
-                            self.handle_delete_request_additional_details(page)  # New method for educator delete details
+                            self.handle_delete_request_additional_details(page)  # Handle delete details BEFORE general details
+                            self.fill_additional_details(page)
                             self.handle_delete_data_suboptions(page)
                             self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
@@ -830,26 +830,29 @@ class TestPrivacyPortal:
                             
                             # STEP 2: Look for dropdown options that match the Excel country
                             # Create dynamic selectors based on the actual country from Excel
+                            # Use EXACT matching to avoid partial matches like "India" -> "British Indian Ocean Territory"
                             country_option_selectors = [
-                                # Standard option selectors for the Excel country
-                                f"option:has-text('{country_from_excel}')",
+                                # Exact text match - most important for avoiding partial matches
+                                f"option:text-is('{country_from_excel}')",
+                                f"li:text-is('{country_from_excel}')", 
+                                f"div[role='option']:text-is('{country_from_excel}')",
+                                # Fallback exact selectors
                                 f"option[value='{country_from_excel}']",
-                                f"option[value*='{country_from_excel}']",
-                                # List item selectors (for custom dropdowns)
-                                f"li:has-text('{country_from_excel}')",
                                 f"li[data-value='{country_from_excel}']",
-                                f"li[data-value*='{country_from_excel}']",
-                                # Div-based dropdown options
-                                f"div:has-text('{country_from_excel}')",
+                                f"[role='option'][data-value='{country_from_excel}']",
+                                # Only if exact doesn't work, try contains but be more specific
+                                f"option:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
+                                f"li:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
+                                f"div:has-text('{country_from_excel}'):not(:has-text('Territory')):not(:has-text('Island'))",
+                                # Generic fallbacks
                                 f"[role='option']:has-text('{country_from_excel}')",
-                                # More specific selectors
                                 f".dropdown-option:has-text('{country_from_excel}')",
                                 f".option:has-text('{country_from_excel}')",
                                 f"[data-value='{country_from_excel}']",
                                 f"[data-value*='{country_from_excel}']"
                             ]
                             
-                            print(f"🔍 Looking for '{country_from_excel}' option in dropdown...")
+                            print(f"🔍 Looking for EXACT match for '{country_from_excel}' option in dropdown...")
                             option_clicked = False
                             
                             for option_selector in country_option_selectors:
@@ -1125,23 +1128,19 @@ class TestPrivacyPortal:
         if not educator_filled:
             print("⚠️ Educator affiliation field not found")
                 
-        # Look for any textarea fields (description, comments, etc.)
-        print("📝 Looking for textarea/comment fields...")
+        # Look for any textarea fields (description, comments, etc.) - BUT NOT delete request specific ones
+        print("📝 Looking for textarea/comment fields (excluding delete request fields)...")
         textarea_selectors = [
             "textarea[name*='description']",
             "textarea[name*='comment']",
             "textarea[name*='message']",
-            "textarea[name*='details']",
             "textarea[placeholder*='description']",
             "textarea[placeholder*='comment']",
             "textarea[placeholder*='message']",
-            "textarea[placeholder*='details']",
-            "textarea[placeholder*='additional']",
             "textarea[placeholder*='other']",
             "textarea[aria-label*='description']",
             "textarea[aria-label*='comment']",
-            "textarea[aria-label*='message']",
-            "textarea"
+            "textarea[aria-label*='message']"
         ]
         textarea_filled = False
         for selector in textarea_selectors:
@@ -1150,7 +1149,14 @@ class TestPrivacyPortal:
                 for element in elements:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
-                        print(f"🔍 Found textarea field - placeholder: '{placeholder}'")
+                        name = element.get_attribute("name") or ""
+                        
+                        # Skip if this looks like a delete request specific field
+                        if any(word in placeholder.lower() or word in name.lower() for word in ["additional", "details", "delete", "removal"]):
+                            print(f"⏭️ Skipping potential delete request field - placeholder: '{placeholder}', name: '{name}'")
+                            continue
+                            
+                        print(f"🔍 Found textarea field - placeholder: '{placeholder}', name: '{name}'")
                         element.fill("Automated form submission for privacy request testing.")
                         print(f"✅ Textarea filled using selector: {selector}")
                         textarea_filled = True
@@ -1222,25 +1228,26 @@ class TestPrivacyPortal:
             print("ℹ️ Additional details section not found - may not be required")
             return
         
-        # Look for the textarea or input field for additional details
+        # Look for the textarea or input field for additional details - BE VERY SPECIFIC
         print("🔍 Looking for additional details input field...")
         additional_details_selectors = [
-            "textarea[name*='additional']",
-            "textarea[name*='details']",
-            "textarea[name*='comment']",
-            "textarea[name*='message']",
-            "textarea[placeholder*='additional']",
-            "textarea[placeholder*='details']",
-            "textarea[placeholder*='N/A']",
-            "textarea[placeholder*='add additional details']",
-            "textarea[aria-label*='additional']",
-            "textarea[aria-label*='details']",
-            "input[name*='additional']",
-            "input[name*='details']",
-            "input[placeholder*='additional']",
-            "input[placeholder*='details']",
-            "input[placeholder*='N/A']",
-            "textarea"  # Last resort - any textarea
+            # Most specific first - target textarea fields that are specifically for additional details
+            "textarea[name*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[name*='details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='N/A']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='add additional details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[aria-label*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[aria-label*='details']:not([name*='phone']):not([id*='phone'])",
+            # Specific input fields for additional details (NOT phone related)
+            "input[name*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[name*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='N/A']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            # Last resort - any textarea that doesn't look like phone field
+            "textarea:not([name*='phone']):not([id*='phone']):not([placeholder*='phone']):not([placeholder*='Phone'])"
         ]
         
         details_filled = False
@@ -1258,8 +1265,20 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
                         name = element.get_attribute("name") or ""
+                        element_id = element.get_attribute("id") or ""
+                        element_type = element.get_attribute("type") or ""
                         
-                        print(f"🔍 Found details field - name: '{name}', placeholder: '{placeholder}'")
+                        # Extra safety check - skip if this looks like a phone field
+                        if any(phone_indicator in (placeholder + name + element_id).lower() for phone_indicator in ["phone", "telephone", "tel"]):
+                            print(f"⚠️ Skipping phone-related field - name: '{name}', placeholder: '{placeholder}', id: '{element_id}'")
+                            continue
+                            
+                        # Also skip if it's a telephone input type
+                        if element_type in ["tel", "phone"]:
+                            print(f"⚠️ Skipping telephone input type - type: '{element_type}'")
+                            continue
+                        
+                        print(f"🔍 Found details field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}'")
                         
                         # Clear any existing content and fill with our data
                         element.fill("")

@@ -39,15 +39,22 @@ class TestPrivacyPortal:
         """Load ALL form data from Parent_form_data.xlsx file for multiple parent records"""
         print("📂 Loading ALL parent form data from file...")
         
-        # Use the Parent_form_data.xlsx file specifically
-        excel_file = "dsr/data/Parent_form_data.xlsx"
+        # Use the International_Parent_form_data.xlsx file specifically
+        excel_file = "dsr/data/International_Parent_form_data.xlsx"
         
         try:
             if os.path.exists(excel_file):
                 print(f"📊 Attempting to read parent data from {excel_file}")
                 try:
-                    df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
+                    df = pd.read_excel(excel_file, engine='openpyxl', na_filter=True, keep_default_na=True, dtype=str)
                     print("✅ Parent Excel file loaded successfully!")
+                    
+                    # Convert Phone Number column to handle NaN properly
+                    if 'Phone Number' in df.columns:
+                        df['Phone Number'] = df['Phone Number'].astype(str)
+                        df['Phone Number'] = df['Phone Number'].replace('nan', '')
+                        print(f"📞 Phone Number column processed - NaN values converted to empty strings")
+                    
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
                     raise FileNotFoundError(f"Could not load Parent_form_data.xlsx: {excel_error}")
@@ -120,10 +127,14 @@ class TestPrivacyPortal:
                     
                     # Display current record info
                     print(f"👤 Current Record Details:")
-                    print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
-                    print(f"   Email: {record_data.get('Email Address', 'N/A')}")
+                    print(f"   Parent: {record_data.get(' First_Name_of parent_guardian', 'N/A')} {record_data.get('Last Name of parent/guardian', 'N/A')}")
+                    print(f"   Child: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
+                    print(f"   Primary Email: {record_data.get('Primary Email Address', 'N/A')}")
+                    print(f"   Child Email: {record_data.get('Email of Child (Data Subject)', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
-                    print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
+                    print(f"   Country: {record_data.get('country', 'N/A')}")
+                    phone_num = record_data.get('Phone Number', '')
+                    print(f"   Phone: {phone_num if phone_num and phone_num != '' else 'Not provided'}")
                     
                     try:
                         # Navigate to the privacy portal for each record
@@ -478,25 +489,38 @@ class TestPrivacyPortal:
         if not child_email_filled:
             print("⚠️ Child email field not found")
             
-        # Phone Number - enhanced selectors
-        phone_selectors = [
-            "input[type='tel']",
-            "input[name='phone']",
-            "input[name='telephone']",
-            "input[id*='phone']",
-            "input[placeholder*='phone']",
-            "input[placeholder*='Phone']",
-            "input[data-testid*='phone']"
-        ]
-        for selector in phone_selectors:
-            try:
-                if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('phone', '5712345567')))
-                    print(f"✅ Phone filled with selector: {selector}")
-                    time.sleep(1)
-                    break
-            except:
-                continue
+        # Phone Number - enhanced selectors with validation
+        print("📞 Checking phone number from Excel data...")
+        phone_data = str(self.form_data.get('Phone Number', '')).strip()
+        
+        # Only fill phone if we have actual data (not empty, not 'nan', not 'NaN')
+        if phone_data and phone_data.lower() not in ['nan', '', 'none', 'null']:
+            print(f"📞 Phone data found: '{phone_data}' - will fill phone field")
+            phone_selectors = [
+                "input[type='tel']",
+                "input[name='phone']",
+                "input[name='telephone']",
+                "input[id*='phone']",
+                "input[placeholder*='phone']",
+                "input[placeholder*='Phone']",
+                "input[data-testid*='phone']"
+            ]
+            phone_filled = False
+            for selector in phone_selectors:
+                try:
+                    if page.locator(selector).first.is_visible():
+                        page.fill(selector, phone_data)
+                        print(f"✅ Phone filled: '{phone_data}' with selector: {selector}")
+                        time.sleep(1)
+                        phone_filled = True
+                        break
+                except:
+                    continue
+            
+            if not phone_filled:
+                print("⚠️ Phone field not found")
+        else:
+            print(f"📞 No valid phone data found (value: '{phone_data}') - skipping phone field")
             
         # Birth Date - try multiple selectors and formats
         birthdate_selectors = [
@@ -517,7 +541,7 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2008'))
+                    birth_date_raw = str(self.form_data.get(' Date of Birth', '11/1/2008'))
                     date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:

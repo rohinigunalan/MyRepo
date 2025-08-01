@@ -858,9 +858,9 @@ class TestPrivacyPortal:
                                     
                                 print(f"🔍 Looking for country option: '{country_option}'")
                                 
-                                # Try multiple ways to select the country option
+                                # Try multiple ways to select the country option with EXACT matching
                                 option_selectors = [
-                                    # Exact text matches (most reliable)
+                                    # Exact text matches (most reliable) - these prevent partial matches
                                     f"li:text-is('{country_option}')",
                                     f"option:text-is('{country_option}')",
                                     f"div:text-is('{country_option}')",
@@ -872,24 +872,39 @@ class TestPrivacyPortal:
                                     f"option[value='{country_option}']",
                                     f"li[data-value='{country_option}']",
                                     f"[data-value='{country_option}']",
-                                    # Contains text but exclude territories (for partial matches)
-                                    f"li:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
-                                    f"option:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
-                                    f"div:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))",
-                                    f"[role='option']:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor'))"
+                                    # Contains text but exclude territories (for partial matches) - IMPORTANT: excludes confusing matches
+                                    f"li:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
+                                    f"option:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
+                                    f"div:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))",
+                                    f"[role='option']:has-text('{country_option}'):not(:has-text('Territory')):not(:has-text('Island')):not(:has-text('Minor')):not(:has-text('British'))"
                                 ]
                                 
                                 for option_selector in option_selectors:
                                     try:
                                         option_element = page.locator(option_selector).first
-                                        if option_element.is_visible():
-                                            option_element.click(timeout=3000)
-                                            print(f"✅ Clicked '{country_option}' option with selector: {option_selector}")
-                                            option_selected = True
-                                            country_filled = True
-                                            break
-                                    except Exception as e:
+                                        if option_element.is_visible(timeout=2000):
+                                            # Verify this is the right option before clicking
+                                            option_text = option_element.text_content().strip()
+                                            print(f"🎯 Found option with text: '{option_text}' using selector: {option_selector}")
+                                            
+                                            # Extra verification: make sure this is an exact match or very close
+                                            if (option_text.lower() == country_option.lower() or 
+                                                country_option.lower() in option_text.lower() and 
+                                                not any(bad in option_text.lower() for bad in ['territory', 'island', 'minor', 'british', 'outlying'])):
+                                                
+                                                option_element.click(timeout=3000)
+                                                print(f"✅ Successfully clicked '{country_option}' option: '{option_text}'")
+                                                option_selected = True
+                                                country_filled = True
+                                                time.sleep(2)  # Wait for selection to register
+                                                break
+                                            else:
+                                                print(f"⚠️ Skipping option '{option_text}' - doesn't match '{country_option}' closely enough")
+                                    except Exception as option_error:
                                         continue
+                                
+                                if option_selected:
+                                    break
                             
                             # STEP 3: If clicking options didn't work, try typing and selecting
                             if not option_selected:
@@ -1187,9 +1202,17 @@ class TestPrivacyPortal:
                 
         # Look for any textarea fields (description, comments, etc.) - BUT NOT delete request specific ones
         print("📝 Looking for textarea/comment fields (excluding delete request fields)...")
+        
+        # Check if this is a delete request - if so, be extra cautious about textarea fields
+        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+        is_delete_request = 'delete' in request_type_from_excel
+        
+        if is_delete_request:
+            print("⚠️ Delete request detected - will be very careful to avoid delete-specific textarea fields")
+        
         textarea_selectors = [
             "textarea[name*='description']",
-            "textarea[name*='comment']",
+            "textarea[name*='comment']", 
             "textarea[name*='message']",
             "textarea[placeholder*='description']",
             "textarea[placeholder*='comment']",
@@ -1207,13 +1230,35 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
                         name = element.get_attribute("name") or ""
+                        aria_label = element.get_attribute("aria-label") or ""
+                        element_id = element.get_attribute("id") or ""
+                        
+                        # Combine all text attributes for checking
+                        all_field_text = f"{placeholder} {name} {aria_label} {element_id}".lower()
+                        
+                        # For delete requests, be EXTRA cautious - skip ANY field that could be for additional details
+                        delete_related_keywords = ["additional", "details", "delete", "removal", "n/a", "necessary", "add", "provide"]
+                        phone_related_keywords = ["phone", "telephone", "tel"]
                         
                         # Skip if this looks like a delete request specific field
-                        if any(word in placeholder.lower() or word in name.lower() for word in ["additional", "details", "delete", "removal"]):
-                            print(f"⏭️ Skipping potential delete request field - placeholder: '{placeholder}', name: '{name}'")
+                        if any(word in all_field_text for word in delete_related_keywords):
+                            print(f"⏭️ Skipping potential delete request field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
                             continue
                             
-                        print(f"🔍 Found textarea field - placeholder: '{placeholder}', name: '{name}'")
+                        # Skip if this looks like a phone field (extra safety)
+                        if any(word in all_field_text for word in phone_related_keywords):
+                            print(f"⏭️ Skipping phone-related field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
+                            continue
+                        
+                        # For delete requests, only fill if we're very sure this is NOT a delete-specific field
+                        if is_delete_request:
+                            # Be very conservative - only fill fields that clearly look like general description/comment fields
+                            safe_keywords = ["description", "comment", "message", "other"]
+                            if not any(word in all_field_text for word in safe_keywords):
+                                print(f"⏭️ Delete request: Skipping uncertain field - placeholder: '{placeholder}', name: '{name}'")
+                                continue
+                                
+                        print(f"🔍 Found safe textarea field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
                         element.fill("Automated form submission for privacy request testing.")
                         print(f"✅ Textarea filled using selector: {selector}")
                         textarea_filled = True

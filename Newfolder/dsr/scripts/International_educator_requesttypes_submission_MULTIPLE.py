@@ -48,33 +48,33 @@ class TestPrivacyPortal:
         self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
-        """Load ALL form data from Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
-        print("📂 Loading ALL educator form data from file...")
+        """Load ALL form data from International_Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
+        print("📂 Loading ALL international educator form data from file...")
         
-        # Use the Educatoronbehalfofstudent_form_data.xlsx file specifically
-        excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
+        # Use the International_Educatoronbehalfofstudent_form_data.xlsx file specifically
+        excel_file = "dsr/data/International_Educatoronbehalfofstudent_form_data.xlsx"
         
         try:
             if os.path.exists(excel_file):
                 print(f"📊 Attempting to read educator data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ Educator Excel file loaded successfully!")
+                    print("✅ International Educator Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    raise FileNotFoundError(f"Could not load Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
+                    raise FileNotFoundError(f"Could not load International_Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError(f"Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
+                raise FileNotFoundError(f"International_Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
                 raise ValueError("No data found in the Educatoronbehalfofstudent_form_data.xlsx file")
             
-            print(f"📊 Found {len(df)} educator records in the file")
+            print(f"📊 Found {len(df)} international educator records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All educator form data loaded successfully:")
+            print("✅ All international educator form data loaded successfully:")
             for i, record in enumerate(all_records):
                 agent_company = record.get('Authorized Agent Company Name', 'N/A')
                 print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Request: {record.get('Request_type', 'N/A')}")
@@ -82,8 +82,8 @@ class TestPrivacyPortal:
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading educator form data: {str(e)}")
-            print("📝 Using default fallback data for educator requests...")
+            print(f"❌ Error loading international educator form data: {str(e)}")
+            print("📝 Using default fallback data for international educator requests...")
             # Fallback to default educator data - return as list
             return [{
                 'Who is making this request': 'Authorized Agent on behalf of someone else',
@@ -138,7 +138,7 @@ class TestPrivacyPortal:
                     print(f"   Agent Company: {record_data.get('Authorized Agent Company Name', 'N/A')}")
                     print(f"   Student: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
-                    print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
+                    print(f"   Country: {record_data.get('country', 'N/A')}")  # International uses country instead of state
                     
                     try:
                         # Navigate to the privacy portal for each record
@@ -794,9 +794,13 @@ class TestPrivacyPortal:
             except:
                 continue
             
-        # Country FIRST - Click input field first, then select from dropdown
-        print("🌍 Attempting to fill country field...")
+        # Country FIRST - Use the actual country from Excel data for international requests
+        print("🌍 Attempting to fill country field for international request...")
         country_filled = False
+        
+        # Get the actual country from Excel data
+        country_from_excel = str(self.form_data.get('country', 'India'))
+        print(f"🌏 Country from Excel: '{country_from_excel}'")
         
         try:
             # Try multiple selectors for country field - including input fields with dropdowns
@@ -824,36 +828,36 @@ class TestPrivacyPortal:
                             print("🖱️ Clicked country field to open dropdown")
                             time.sleep(2)  # Wait for dropdown to fully open
                             
-                            # STEP 2: Look for dropdown options that appear after clicking
-                            # Try multiple ways to find and click "United States" option
-                            us_option_selectors = [
-                                # Standard option selectors
-                                "option:has-text('United States')",
-                                "option[value='US']",
-                                "option[value='USA']", 
-                                "option[value='United States']",
+                            # STEP 2: Look for dropdown options that match the Excel country
+                            # Create dynamic selectors based on the actual country from Excel
+                            country_option_selectors = [
+                                # Standard option selectors for the Excel country
+                                f"option:has-text('{country_from_excel}')",
+                                f"option[value='{country_from_excel}']",
+                                f"option[value*='{country_from_excel}']",
                                 # List item selectors (for custom dropdowns)
-                                "li:has-text('United States')",
-                                "li[data-value='US']",
-                                "li[data-value='USA']",
+                                f"li:has-text('{country_from_excel}')",
+                                f"li[data-value='{country_from_excel}']",
+                                f"li[data-value*='{country_from_excel}']",
                                 # Div-based dropdown options
-                                "div:has-text('United States')",
-                                "[role='option']:has-text('United States')",
+                                f"div:has-text('{country_from_excel}')",
+                                f"[role='option']:has-text('{country_from_excel}')",
                                 # More specific selectors
-                                ".dropdown-option:has-text('United States')",
-                                ".option:has-text('United States')",
-                                "[data-value='United States']"
+                                f".dropdown-option:has-text('{country_from_excel}')",
+                                f".option:has-text('{country_from_excel}')",
+                                f"[data-value='{country_from_excel}']",
+                                f"[data-value*='{country_from_excel}']"
                             ]
                             
-                            print("🔍 Looking for 'United States' option in dropdown...")
+                            print(f"🔍 Looking for '{country_from_excel}' option in dropdown...")
                             option_clicked = False
                             
-                            for option_selector in us_option_selectors:
+                            for option_selector in country_option_selectors:
                                 try:
                                     option_element = page.locator(option_selector).first
                                     if option_element.is_visible():
                                         option_element.click(timeout=3000)
-                                        print(f"✅ Clicked 'United States' option with selector: {option_selector}")
+                                        print(f"✅ Clicked '{country_from_excel}' option with selector: {option_selector}")
                                         country_filled = True
                                         option_clicked = True
                                         break
@@ -864,33 +868,34 @@ class TestPrivacyPortal:
                             # STEP 3: If clicking individual options didn't work, try select_option on select elements
                             if not option_clicked and country_selector.startswith("select"):
                                 print("🔄 Trying select_option method...")
-                                country_options = ["US", "USA", "United States", "United States of America"]
-                                for option_value in country_options:
+                                # Try different variations of the country name
+                                country_variations = [country_from_excel, country_from_excel.upper(), country_from_excel.lower(), country_from_excel.title()]
+                                for country_variation in country_variations:
                                     try:
-                                        page.select_option(country_selector, value=option_value, timeout=3000)
-                                        print(f"✅ Country selected using select_option with value: {option_value}")
+                                        page.select_option(country_selector, value=country_variation, timeout=3000)
+                                        print(f"✅ Country selected using select_option with value: {country_variation}")
                                         country_filled = True
                                         break
                                     except:
                                         try:
-                                            page.select_option(country_selector, label=option_value, timeout=3000)
-                                            print(f"✅ Country selected using select_option with label: {option_value}")
+                                            page.select_option(country_selector, label=country_variation, timeout=3000)
+                                            print(f"✅ Country selected using select_option with label: {country_variation}")
                                             country_filled = True
                                             break
                                         except:
                                             continue
                             
-                            # STEP 4: If it's an input field, try typing
+                            # STEP 4: If it's an input field, try typing the actual country
                             if not country_filled and not country_selector.startswith("select"):
                                 try:
-                                    element.fill("United States", timeout=3000)
-                                    print("✅ Country typed into input field: United States")
+                                    element.fill(country_from_excel, timeout=3000)
+                                    print(f"✅ Country typed into input field: {country_from_excel}")
                                     country_filled = True
                                     # Press Enter to confirm selection
                                     element.press("Enter")
                                     print("⌨️ Pressed Enter to confirm country selection")
                                 except:
-                                    print("⚠️ Could not type in country input field")
+                                    print(f"⚠️ Could not type '{country_from_excel}' in country input field")
                                     
                         except Exception as e:
                             print(f"⚠️ Could not click country field: {str(e)}")
@@ -907,592 +912,90 @@ class TestPrivacyPortal:
             print(f"❌ Major error in country selection: {str(e)}")
         
         if not country_filled:
-            print("⚠️ Could not fill country field - continuing anyway...")
+            print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
             # Take a screenshot to see current state
             page.screenshot(path="dsr/screenshots/country_field_issue.png")
             print("📸 Screenshot saved: screenshots/country_field_issue.png")
 
-        # State SECOND - Enhanced click logic for state dropdown
-        print("🗽 Attempting to fill state field...")
-        state_filled = False
+        # State/Province handling for international requests
+        print("🌍 Checking if state field is needed for international request...")
         
-        try:
-            # Wait longer after country selection for state field to become available
-            print("⏳ Waiting for state field to become available after country selection...")
-            time.sleep(5)
-            
-            # Try multiple selectors for state field - including input fields with dropdowns
-            state_selectors = [
-                "select[name*='state']",
-                "select[id*='state']",
-                "select[id*='State']", 
-                "select[class*='state']",
-                "input[name*='state']",
-                "input[id*='state']",
-                "input[placeholder*='State']",
-                "input[placeholder*='state']",
-                "input[class*='state']",
-                "[data-testid*='state']",
-                "[aria-label*='state']",
-                "[aria-label*='State']"
-            ]
-            
-            # First, let's see what state elements are available
-            print("🔍 Checking for available state elements...")
-            for i, selector in enumerate(state_selectors):
-                try:
-                    elements = page.locator(selector).all()
-                    for j, element in enumerate(elements):
+        # For international requests, state field may not be required or may not exist
+        # Check if the country from Excel indicates this is truly international (non-US)
+        country_from_excel = str(self.form_data.get('country', 'India'))
+        is_us_address = country_from_excel.upper() in ['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']
+        
+        if is_us_address:
+            print(f"🇺🇸 US address detected ('{country_from_excel}'), will attempt to fill state field...")
+            # Use the existing state logic for US addresses
+            state_filled = False
+            try:
+                # Wait for state field to become available after country selection
+                print("⏳ Waiting for state field to become available after US country selection...")
+                time.sleep(5)
+                
+                # Try multiple selectors for state field
+                state_selectors = [
+                    "select[name*='state']",
+                    "select[id*='state']",
+                    "select[id*='State']", 
+                    "select[class*='state']",
+                    "input[name*='state']",
+                    "input[id*='state']",
+                    "input[placeholder*='State']",
+                    "input[placeholder*='state']",
+                    "input[class*='state']",
+                    "[data-testid*='state']",
+                    "[aria-label*='state']",
+                    "[aria-label*='State']"
+                ]
+                
+                for state_selector in state_selectors:
+                    try:
+                        element = page.locator(state_selector).first
                         if element.is_visible():
-                            print(f"  Found visible state element {i+1}.{j+1}: {selector}")
-                except:
-                    continue
+                            print(f"🔍 Found state field with selector: {state_selector}")
+                            
+                            # Get state name from Excel data (fallback for US addresses in international file)
+                            state_name = str(self.form_data.get('stateOrProvince', 'New York'))
+                            print(f"🏛️ Using state from Excel: '{state_name}'")
+                            
+                            # Simple state selection for US addresses
+                            try:
+                                element.click(timeout=3000)
+                                print("✅ Clicked state field")
+                                time.sleep(1)
+                                
+                                element.fill(state_name)
+                                print(f"✅ Typed '{state_name}'")
+                                time.sleep(2)
+                                
+                                element.press("Enter")
+                                print("⏎ Pressed Enter to select state")
+                                time.sleep(2)
+                                state_filled = True
+                                break
+                                
+                            except Exception as e:
+                                print(f"⚠️ Error filling state field: {str(e)}")
+                                continue
+                        
+                    except Exception as e:
+                        print(f"⚠️ Error with state selector {state_selector}: {str(e)}")
+                        continue
+                        
+            except Exception as e:
+                print(f"❌ Error in US state selection: {str(e)}")
+                
+            if not state_filled:
+                print("⚠️ Could not fill US state field - continuing anyway...")
+                
+        else:
+            print(f"🌏 International address detected ('{country_from_excel}'), skipping state field...")
+            print("✅ No state field needed for international addresses")
             
-            for state_selector in state_selectors:
-                try:
-                    element = page.locator(state_selector).first
-                    if element.is_visible():
-                        print(f"🔍 Found state field with selector: {state_selector}")
-                        
-                        # Get state name from Excel data
-                        state_name = str(self.form_data.get('stateOrProvince', 'New York'))
-                        print(f"🏛️ Using state from Excel: '{state_name}'")
-                        
-                        # IMPROVED STATE SELECTION - MORE RELIABLE
-                        try:
-                            print("🎯 Using improved state selection...")
-                            
-                            # Step 1: Click the state field to focus it
-                            element.click(timeout=3000)
-                            print("✅ Clicked state field")
-                            time.sleep(1)
-                            
-                            # Step 2: Clear any existing value
-                            element.fill("")
-                            print("✅ Cleared field")
-                            time.sleep(0.5)
-                            
-                            # Step 3: Type state name to filter dropdown
-                            element.type(state_name, delay=100)
-                            print(f"✅ Typed '{state_name}'")
-                            time.sleep(3)  # Wait longer for dropdown to appear
-                            
-                            # Step 4: Multiple approaches to select the dropdown option
-                            option_selected = False
-                            
-                            # Approach 1: Look for visible dropdown options
-                            print("🔍 Looking for dropdown options...")
-                            dropdown_option_selectors = [
-                                f"option:has-text('{state_name}'):visible",
-                                f"li:has-text('{state_name}'):visible", 
-                                f"div[role='option']:has-text('{state_name}'):visible",
-                                f"[data-value*='New York']:visible",
-                                f"[value*='New York']:visible",
-                                f".option:has-text('{state_name}'):visible"
-                            ]
-                            
-                            for selector in dropdown_option_selectors:
-                                try:
-                                    options = page.locator(selector).all()
-                                    if options:
-                                        print(f"📋 Found {len(options)} matching options with selector: {selector}")
-                                        for option in options:
-                                            if option.is_visible():
-                                                option_text = option.inner_text()
-                                                print(f"🎯 Clicking option: '{option_text}'")
-                                                option.click(timeout=2000)
-                                                option_selected = True
-                                                print(f"✅ Successfully selected '{option_text}'")
-                                                break
-                                    if option_selected:
-                                        break
-                                except Exception as e:
-                                    print(f"⚠️ Selector {selector} failed: {str(e)}")
-                                    continue
-                            
-                            # Approach 2: If no dropdown option found, try keyboard navigation
-                            if not option_selected:
-                                print("🔄 No dropdown option found, trying keyboard approach...")
-                                
-                                # Press Down arrow to open dropdown if needed
-                                element.press("ArrowDown")
-                                time.sleep(1)
-                                
-                                # Press Enter to select the first matching option
-                                element.press("Enter")
-                                print("⏎ Pressed Enter to select")
-                                option_selected = True
-                            
-                            # Approach 3: If still not selected, try Tab to move away and confirm
-                            if option_selected:
-                                time.sleep(1)
-                                element.press("Tab")  # Move focus away to confirm selection
-                                print("✅ Moved focus away to confirm selection")
-                            
-                            time.sleep(2)
-                            state_filled = True
-                            break
-                            
-                            # Step 3: Press Arrow Down to open dropdown
-                            element.press("ArrowDown")
-                            print("✅ Pressed ArrowDown to open dropdown")
-                            time.sleep(2)
-                            
-                            # Step 4: Navigate to New York using keyboard ONLY
-                            print("� Navigating to New York using keyboard navigation...")
-                            
-                            # Press 'N' key to jump to states starting with 'N'
-                            element.press("KeyN")
-                            time.sleep(1)
-                            print("✅ Pressed 'N' to jump to N states")
-                            
-                            # Press 'e' to get to "Ne..." states  
-                            element.press("KeyE")
-                            time.sleep(1)
-                            print("✅ Pressed 'E' to get to 'Ne...' states")
-                            
-                            # Now use Arrow Down to find New York specifically
-                            for i in range(15):  # Try up to 15 arrow downs to find New York
-                                try:
-                                    # Check current selection
-                                    current_element = page.locator("[aria-selected='true'], .selected, .highlighted, option:focus").first
-                                    if current_element.is_visible():
-                                        current_text = current_element.inner_text().strip()
-                                        print(f"🔍 Current selection: '{current_text}'")
-                                        
-                                        if "new york" in current_text.lower():
-                                            print(f"✅ Found New York: '{current_text}'")
-                                            element.press("Enter")
-                                            print("✅ Pressed Enter to select New York")
-                                            time.sleep(2)
-                                            state_filled = True
-                                            break
-                                    
-                                    # If not New York, continue navigating
-                                    element.press("ArrowDown")
-                                    time.sleep(0.5)
-                                    
-                                except Exception as nav_error:
-                                    print(f"⚠️ Navigation error: {nav_error}")
-                                    element.press("ArrowDown")
-                                    time.sleep(0.5)
-                            
-                            # Verify selection worked
-                            if state_filled:
-                                try:
-                                    current_value = element.input_value() or element.text_content() or ""
-                                    print(f"🔍 Field value after selection: '{current_value}'")
-                                    if current_value.strip() and ("new york" in current_value.lower() or len(current_value.strip()) > 0):
-                                        print("✅ State appears to be selected successfully")
-                                        break
-                                    else:
-                                        print("⚠️ Field appears empty, selection may not have worked")
-                                        state_filled = False
-                                except:
-                                    print("✅ Assuming keyboard navigation worked")
-                                    break
-                            
-                            # If keyboard navigation didn't find New York, try alternative
-                            if not state_filled:
-                                print("� Keyboard navigation didn't find New York, trying direct search...")
-                                
-                                # Start over with a different approach
-                                element.click(timeout=3000)
-                                element.fill("")
-                                time.sleep(0.5)
-                                element.press("ArrowDown")
-                                time.sleep(2)
-                                
-                                # Try typing full state name "New York" (not abbreviation)
-                                element.type("New York", delay=100)
-                                print("✅ Typed 'New York' (full name)")
-                                time.sleep(2)
-                                
-                                # Look for exact New York match and click it
-                                try:
-                                    ny_option = page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").first
-                                    if ny_option.is_visible():
-                                        ny_option.click(timeout=3000)
-                                        print("✅ Clicked 'New York' option directly")
-                                        state_filled = True
-                                    else:
-                                        # Fallback - just press Enter
-                                        element.press("Enter")
-                                        print("✅ Pressed Enter to select")
-                                        state_filled = True
-                                except:
-                                    element.press("Enter")
-                                    print("✅ Pressed Enter as fallback")
-                                    state_filled = True
-                            element.press("ArrowDown")
-                            print("✅ Pressed ArrowDown to open dropdown")
-                            time.sleep(2)
-                            
-                            # Step 4: Navigate to New York using keyboard
-                            # New York is typically around position 32-35 in the US states list
-                            print("� Navigating to New York using keyboard...")
-                            
-                            # Press 'N' key to jump to states starting with 'N'
-                            element.press("KeyN")
-                            time.sleep(1)
-                            print("✅ Pressed 'N' to jump to N states")
-                            
-                            # Press 'e' to get to "Ne..." states  
-                            element.press("KeyE")
-                            time.sleep(1)
-                            print("✅ Pressed 'E' to get to 'Ne...' states")
-                            
-                            # Now use Arrow Down to find New York specifically
-                            for i in range(10):  # Try up to 10 arrow downs to find New York
-                                try:
-                                    # Check current selection
-                                    current_element = page.locator("[aria-selected='true'], .selected, .highlighted, option:focus").first
-                                    if current_element.is_visible():
-                                        current_text = current_element.inner_text().strip()
-                                        print(f"🔍 Current selection: '{current_text}'")
-                                        
-                                        if "new york" in current_text.lower():
-                                            print(f"✅ Found New York: '{current_text}'")
-                                            element.press("Enter")
-                                            print("✅ Pressed Enter to select New York")
-                                            time.sleep(2)
-                                            state_filled = True
-                                            break
-                                    
-                                    # If not New York, continue navigating
-                                    element.press("ArrowDown")
-                                    time.sleep(0.5)
-                                    
-                                except Exception as nav_error:
-                                    print(f"⚠️ Navigation error: {nav_error}")
-                                    element.press("ArrowDown")
-                                    time.sleep(0.5)
-                            
-                            # If keyboard navigation didn't work, try direct value setting
-                            if not state_filled:
-                                print("� Keyboard navigation failed, trying direct approach...")
-                                
-                                # Clear and try typing "NY" (abbreviation)
-                                element.fill("")
-                                time.sleep(0.5)
-                                element.type("NY", delay=100)
-                                time.sleep(1)
-                                element.press("Tab")  # Tab to next field to trigger selection
-                                print("✅ Typed 'NY' and pressed Tab")
-                                time.sleep(1)
-                                state_filled = True
-                            
-                            # Verify selection worked
-                            try:
-                                current_value = element.input_value() or element.text_content() or ""
-                                print(f"� Field value after selection: '{current_value}'")
-                                if current_value.strip() and ("new york" in current_value.lower() or "ny" in current_value.lower() or len(current_value.strip()) > 0):
-                                    print("✅ State appears to be selected successfully")
-                                    state_filled = True
-                                    break
-                            except:
-                                # Even if we can't verify, assume it worked
-                                print("✅ Assuming state selection worked")
-                                state_filled = True
-                                break
-                                
-                        except Exception as e:
-                            print(f"❌ Simple approach failed: {str(e)}")
-                            
-                            # FALLBACK: Try different approach - click, open dropdown, type abbreviation
-                            try:
-                                print("🔄 Fallback: Using dropdown + NY abbreviation...")
-                                element.click(timeout=3000)
-                                element.fill("")
-                                time.sleep(0.5)
-                                
-                                # Open dropdown first
-                                element.press("ArrowDown")
-                                time.sleep(2)
-                                
-                                # Type NY abbreviation
-                                element.type("NY", delay=100)
-                                time.sleep(1)
-                                element.press("Enter")
-                                print("✅ Fallback: Typed 'NY' and pressed Enter")
-                                state_filled = True
-                                break
-                            except Exception as e2:
-                                print(f"❌ Fallback also failed: {str(e2)}")
-                                
-                                # LAST RESORT: Try typing first few letters of "New York"
-                                try:
-                                    print("🔄 Last resort: Typing 'New'...")
-                                    element.click(timeout=3000)
-                                    element.fill("")
-                                    time.sleep(0.5)
-                                    element.press("ArrowDown")  # Open dropdown
-                                    time.sleep(2)
-                                    element.type("New", delay=100)  # Type just "New"
-                                    time.sleep(2)
-                                    
-                                    # Look for New York option specifically
-                                    ny_options = page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").count()
-                                    if ny_options > 0:
-                                        page.locator("option:has-text('New York'), li:has-text('New York'), div:has-text('New York')").first.click()
-                                        print("✅ Found and clicked 'New York' option")
-                                    else:
-                                        element.press("Enter")  # Just press enter
-                                        print("⚠️ No specific New York option found, pressed Enter")
-                                    
-                                    state_filled = True
-                                    break
-                                except Exception as e3:
-                                    print(f"❌ Last resort failed: {str(e3)}")
-                        
-                        if state_filled:
-                            break
-                        
-                        # STEP 2: Fallback - Try abbreviation approach for New York
-                        if not state_filled and state_name == "New York":
-                            print("🔄 Fallback: Trying with 'NY' abbreviation...")
-                            try:
-                                element.click(timeout=3000)
-                                element.fill("", timeout=3000)
-                                time.sleep(0.5)
-                                element.type("NY", delay=100)
-                                print("✅ Typed 'NY' into state field")
-                                time.sleep(2)
-                                
-                                # Look for NY options in dropdown
-                                ny_selectors = [
-                                    "option:has-text('NY')",
-                                    "li:has-text('NY')",
-                                    "option:has-text('New York')",
-                                    "li:has-text('New York')",
-                                    "div:has-text('NY')",
-                                    "[role='option']:has-text('NY')"
-                                ]
-                                
-                                ny_option_found = False
-                                for ny_selector in ny_selectors:
-                                    try:
-                                        ny_option = page.locator(ny_selector).first
-                                        if ny_option.is_visible():
-                                            print(f"✅ Found NY option: {ny_selector}")
-                                            ny_option.click(timeout=3000)
-                                            print("🎯 Clicked on NY option")
-                                            ny_option_found = True
-                                            time.sleep(2)
-                                            break
-                                    except:
-                                        continue
-                                
-                                if not ny_option_found:
-                                    element.press("Enter")
-                                    print("⏎ Pressed Enter for NY")
-                                    time.sleep(1)
-                                
-                                state_filled = True
-                                break
-                                
-                            except Exception as e:
-                                print(f"❌ NY abbreviation approach failed: {str(e)}")
-                        
-                        # STEP 3: Last resort - Try keyboard navigation
-                        if not state_filled:
-                            print("🔄 Last resort: Trying keyboard navigation...")
-                            try:
-                                element.click(timeout=3000)
-                                time.sleep(1)
-                                element.press("ArrowDown")  # Open dropdown
-                                time.sleep(1)
-                                
-                                # Navigate through options looking for our state
-                                for i in range(60):  # Try up to 60 states
-                                    try:
-                                        # Check if current highlighted option matches our state
-                                        highlighted = page.locator("[aria-selected='true'], .highlighted, .selected, [aria-current='true']").first
-                                        if highlighted.is_visible():
-                                            text = highlighted.inner_text().strip()
-                                            if (state_name.lower() in text.lower() or 
-                                                (state_name == "New York" and ("ny" in text.lower() or "new york" in text.lower()))):
-                                                element.press("Enter")
-                                                print(f"✅ Found and selected '{text}' via keyboard navigation")
-                                                state_filled = True
-                                                break
-                                    except:
-                                        pass
-                                    
-                                    element.press("ArrowDown")
-                                    time.sleep(0.1)
-                                
-                                if state_filled:
-                                    break
-                                    
-                            except Exception as e:
-                                print(f"❌ Keyboard navigation failed: {str(e)}")
-                            state_option_selectors = [
-                                # Standard option selectors
-                                f"option:has-text('{state_name}')",
-                                f"option[value='{state_name}']",
-                                "option[value='NY']" if state_name == "New York" else f"option[value='{state_name}']",
-                                f"option:has-text('{state_name[:2]}')" if len(state_name) > 2 else f"option:has-text('{state_name}')",
-                                # List item selectors (for custom dropdowns)
-                                f"li:has-text('{state_name}')",
-                                f"li[data-value='{state_name}']",
-                                f"li:contains('{state_name}')",
-                                # Div-based dropdown options
-                                f"div:has-text('{state_name}')",
-                                f"[role='option']:has-text('{state_name}')",
-                                f"[role='menuitem']:has-text('{state_name}')",
-                                # More specific selectors
-                                f".dropdown-option:has-text('{state_name}')",
-                                f".option:has-text('{state_name}')",
-                                f".select-option:has-text('{state_name}')",
-                                f"[data-value='{state_name}']",
-                                # Button-based options
-                                f"button:has-text('{state_name}')",
-                                f"a:has-text('{state_name}')"
-                            ]
-                            
-                            print(f"🔍 Looking for '{state_name}' option in dropdown...")
-                            
-                            # First, let's see what options are actually available
-                            print("🔍 DEBUG: Checking all visible options after clicking state field...")
-                            try:
-                                all_options = page.locator("option, li, div[role='option'], .dropdown-option, .option").all()
-                                for i, opt in enumerate(all_options):
-                                    try:
-                                        if opt.is_visible():
-                                            text = opt.inner_text() or opt.text_content() or ""
-                                            value = opt.get_attribute("value") or ""
-                                            print(f"  Option {i+1}: text='{text}', value='{value}'")
-                                    except:
-                                        pass
-                            except:
-                                print("  Could not enumerate options")
-                            
-                            option_clicked = False
-                            
-                            # Wait a bit more for options to appear
-                            time.sleep(2)
-                            
-                            for option_selector in state_option_selectors:
-                                try:
-                                    option_elements = page.locator(option_selector).all()
-                                    print(f"🔍 Trying selector: {option_selector} - Found {len(option_elements)} elements")
-                                    
-                                    for j, option_element in enumerate(option_elements):
-                                        try:
-                                            if option_element.is_visible():
-                                                text = option_element.inner_text() or ""
-                                                print(f"  Element {j+1} visible with text: '{text}'")
-                                                option_element.click(timeout=3000, force=True)
-                                                print(f"✅ Clicked '{state_name}' option with selector: {option_selector}")
-                                                state_filled = True
-                                                option_clicked = True
-                                                break
-                                        except Exception as e:
-                                            print(f"    Could not click element {j+1}: {str(e)}")
-                                            continue
-                                    
-                                    if option_clicked:
-                                        break
-                                        
-                                except Exception as e:
-                                    print(f"⚠️ Could not use selector {option_selector}: {str(e)}")
-                                    continue
-                            
-                            # Try typing state abbreviation to filter/select
-                            if not option_clicked:
-                                state_abbrev = "NY" if state_name == "New York" else state_name[:2].upper()
-                                print(f"🔄 Trying to type '{state_abbrev}' to filter dropdown...")
-                                try:
-                                    element.type(state_abbrev, delay=100)
-                                    time.sleep(1)
-                                    element.press("Enter")
-                                    print(f"✅ Typed '{state_abbrev}' and pressed Enter")
-                                    state_filled = True
-                                    option_clicked = True
-                                except Exception as e:
-                                    print(f"⚠️ Could not type '{state_abbrev}': {str(e)}")
-                            
-                            # Try typing full state name to filter/select
-                            if not option_clicked:
-                                print(f"🔄 Trying to type '{state_name}' to filter dropdown...")
-                                try:
-                                    element.clear()
-                                    time.sleep(0.5)
-                                    element.type(state_name, delay=100)
-                                    time.sleep(1)
-                                    element.press("Enter")
-                                    print(f"✅ Typed '{state_name}' and pressed Enter")
-                                    state_filled = True
-                                    option_clicked = True
-                                except Exception as e:
-                                    print(f"⚠️ Could not type '{state_name}': {str(e)}")
-                            
-                            # Try using keyboard navigation
-                            if not option_clicked:
-                                print("🔄 Trying keyboard navigation...")
-                                try:
-                                    element.press("ArrowDown")
-                                    time.sleep(0.5)
-                                    # Look for the state from Excel in the list by pressing down arrow multiple times
-                                    for i in range(50):  # Try up to 50 options to find the state
-                                        try:
-                                            current_text = page.locator("[aria-selected='true'], .selected, .highlighted").first.inner_text()
-                                            # Check if current option matches our target state
-                                            if (state_name.lower() in current_text.lower() or 
-                                                (state_name == "New York" and ("NY" in current_text or "New York" in current_text)) or
-                                                (len(state_name) >= 2 and state_name[:2].upper() in current_text)):
-                                                element.press("Enter")
-                                                print(f"✅ Found and selected '{state_name}' using keyboard navigation")
-                                                state_filled = True
-                                                option_clicked = True
-                                                break
-                                        except:
-                                            pass
-                                        element.press("ArrowDown")
-                                        time.sleep(0.2)
-                                except Exception as e:
-                                    print(f"⚠️ Keyboard navigation failed: {str(e)}")
-                            
-                            # STEP 3: If clicking individual options didn't work, try select_option on select elements
-                            if not option_clicked and state_selector.startswith("select"):
-                                print("🔄 Trying select_option method for state...")
-                                # Create dynamic state options based on Excel data
-                                state_abbrev = "NY" if state_name == "New York" else state_name[:2].upper()
-                                state_options = [
-                                    state_name,  # Full state name from Excel
-                                    state_name.upper(),  # Uppercase version
-                                    state_abbrev,  # State abbreviation
-                                    state_name[:2].upper() if len(state_name) >= 2 else state_name  # First 2 letters
-                                ]
-                                for option_value in state_options:
-                                    try:
-                                        page.select_option(state_selector, value=option_value, timeout=3000)
-                                        print(f"✅ State selected using select_option with value: {option_value}")
-                                        state_filled = True
-                                        break
-                                    except:
-                                        try:
-                                            page.select_option(state_selector, label=option_value, timeout=3000)
-                                            print(f"✅ State selected using select_option with label: {option_value}")
-                                            state_filled = True
-                                            break
-                                        except:
-                                            continue
-                        
-                except Exception as e:
-                    print(f"⚠️ Error with state selector {state_selector}: {str(e)}")
-                    continue
-                    
-        except Exception as e:
-            print(f"❌ Major error in state selection: {str(e)}")
+            # Wait a moment for form to stabilize after country selection
         
-        if not state_filled:
-            print("⚠️ Could not fill state field - taking debug screenshot...")
-            # Take a screenshot to see current state
-            page.screenshot(path="dsr/screenshots/state_field_debug.png")
-            print("📸 Debug screenshot saved: screenshots/state_field_debug.png")
-            
         print("✅ Contact information section completed")
     
     def fill_additional_details(self, page: Page):

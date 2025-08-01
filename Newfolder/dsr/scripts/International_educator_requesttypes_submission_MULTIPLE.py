@@ -704,7 +704,7 @@ class TestPrivacyPortal:
             except Exception as debug_error:
                 print(f"⚠️ Debug error: {debug_error}")
             
-        # Phone Number - enhanced selectors
+        # Phone Number - enhanced selectors with data validation
         phone_selectors = [
             "input[type='tel']",
             "input[name='phone']",
@@ -714,10 +714,34 @@ class TestPrivacyPortal:
             "input[placeholder*='Phone']",
             "input[data-testid*='phone']"
         ]
+        
+        # Get phone number from Excel and validate it
+        phone_from_excel = str(self.form_data.get('Phone Number', '5712345567')).strip()
+        print(f"📞 Phone from Excel: '{phone_from_excel}'")
+        
+        # Validate phone number - check if it's actually a phone number
+        import re
+        # Remove any non-digit characters for validation
+        phone_digits_only = re.sub(r'[^\d]', '', phone_from_excel)
+        
+        # Check if we have a valid phone number (at least 7 digits, no letters/words)
+        is_valid_phone = (
+            len(phone_digits_only) >= 7 and 
+            len(phone_digits_only) <= 15 and
+            not any(word in phone_from_excel.lower() for word in ['account', 'closure', 'close', 'delete', 'request', 'data', 'subject', 'n/a', 'na', 'none', 'test'])
+        )
+        
+        if is_valid_phone:
+            phone_to_use = phone_from_excel
+            print(f"✅ Using phone number from Excel: '{phone_to_use}'")
+        else:
+            phone_to_use = '5551234567'  # Default safe phone number
+            print(f"⚠️ Invalid phone data in Excel ('{phone_from_excel}'), using default: '{phone_to_use}'")
+        
         for selector in phone_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Phone Number', '5712345567')))
+                    page.fill(selector, phone_to_use)
                     print(f"✅ Phone filled with selector: {selector}")
                     time.sleep(1)
                     break

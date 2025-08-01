@@ -7,7 +7,7 @@ def check_phone_data():
     """Check what phone numbers are in the Excel file"""
     try:
         # Read the Excel file
-        df = pd.read_excel('International_Educatoronbehalfofstudent_form_data.xlsx', na_filter=False, keep_default_na=False, dtype=str)
+        df = pd.read_excel('dsr/data/International_Educatoronbehalfofstudent_form_data.xlsx', na_filter=False, keep_default_na=False, dtype=str)
         
         print(f"Total records in Excel: {len(df)}")
         print("\n" + "="*60)

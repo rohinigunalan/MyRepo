@@ -109,7 +109,7 @@ class TestPrivacyPortal:
                 'Last Name': 'InternationalStudent',
                 'Email of Child (Data Subject)': 'student@mailinator.com',
                 'Date of Birth': '11/1/2008',
-                'Phone Number': '5712345567',
+                # NO Phone Number in fallback - should be empty
                 'country': 'India',  # International country, not US
                 # NO stateOrProvince field for international requests
                 'postalCode': '110001',

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 🚨 IMPORTANT SETUP NOTE - PARENT REQUEST AUTOMATION:
-This script automates PARENT requests using Parent_form_data.xlsx file with the following fields:
+This script automates PARENT requests using International_Parent_form_data.xlsx file with the following fields:
 - Who is making this request: Parent on behalf of child
 - Parent/Guardian First Name
 - Parent/Guardian Last Name  
@@ -36,18 +36,37 @@ class TestPrivacyPortal:
         self.form_data = {}  # Will be set for each individual record
     
     def load_form_data(self):
-        """Load ALL form data from Parent_form_data.xlsx file for multiple parent records"""
+        """Load ALL form data from International_Parent_form_data.xlsx file for multiple parent records"""
         print("📂 Loading ALL parent form data from file...")
         
         # Use the International_Parent_form_data.xlsx file specifically
-        excel_file = "dsr/data/International_Parent_form_data.xlsx"
+        # Handle both running from root folder and from scripts folder
+        excel_file_options = [
+            "dsr/data/International_Parent_form_data.xlsx",  # When running from root
+            "../data/International_Parent_form_data.xlsx",  # When running from scripts folder
+            "International_Parent_form_data.xlsx",  # Direct path
+        ]
+        
+        excel_file = None
+        for file_option in excel_file_options:
+            if os.path.exists(file_option):
+                excel_file = file_option
+                break
+        
+        if not excel_file:
+            # Try absolute path as fallback
+            absolute_path = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\International_Parent_form_data.xlsx"
+            if os.path.exists(absolute_path):
+                excel_file = absolute_path
+            else:
+                raise FileNotFoundError(f"International_Parent_form_data.xlsx file not found in any of these locations: {excel_file_options} or {absolute_path}")
         
         try:
-            if os.path.exists(excel_file):
+            if excel_file:
                 print(f"📊 Attempting to read parent data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=True, keep_default_na=True, dtype=str)
-                    print("✅ Parent Excel file loaded successfully!")
+                    print("✅ International Parent Excel file loaded successfully!")
                     
                     # Improved Phone Number column handling to properly deal with NaN/empty values
                     if 'Phone Number' in df.columns:
@@ -68,15 +87,40 @@ class TestPrivacyPortal:
                         print(f"📞 Phone Number column processed - NaN/empty values converted to empty strings")
                         print(f"After processing sample: {df['Phone Number'].head().tolist()}")
                     
+                    # Handle NaN values in student school name field
+                    if 'studentSchoolName' in df.columns:
+                        print(f"🏫 Student School Name column check:")
+                        print(f"All school names are NaN: {df['studentSchoolName'].isna().all()}")
+                        df['studentSchoolName'] = df['studentSchoolName'].fillna('N/A')
+                        df['studentSchoolName'] = df['studentSchoolName'].replace(['nan', 'NaN', 'None', 'null'], 'N/A')
+                        print(f"🏫 Student School Name processed - NaN values converted to 'N/A'")
+                    
+                    # Handle NaN values in student graduation year field
+                    if 'studentGraduationYear' in df.columns:
+                        print(f"🎓 Student Graduation Year column check:")
+                        print(f"All graduation years are NaN: {df['studentGraduationYear'].isna().all()}")
+                        df['studentGraduationYear'] = df['studentGraduationYear'].fillna('N/A')
+                        df['studentGraduationYear'] = df['studentGraduationYear'].replace(['nan', 'NaN', 'None', 'null'], 'N/A')
+                        print(f"🎓 Student Graduation Year processed - NaN values converted to 'N/A'")
+                    
+                    # Handle NaN values in educator school affiliation field
+                    if 'educatorSchoolAffiliation' in df.columns:
+                        print(f"👨‍🏫 Educator School Affiliation column check:")
+                        print(f"All educator affiliations are NaN: {df['educatorSchoolAffiliation'].isna().all()}")
+                        df['educatorSchoolAffiliation'] = df['educatorSchoolAffiliation'].fillna('N/A')
+                        df['educatorSchoolAffiliation'] = df['educatorSchoolAffiliation'].replace(['nan', 'NaN', 'None', 'null'], 'N/A')
+                        print(f"👨‍🏫 Educator School Affiliation processed - NaN values converted to 'N/A'")
+                    
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    raise FileNotFoundError(f"Could not load Parent_form_data.xlsx: {excel_error}")
+                    raise FileNotFoundError(f"Could not load International_Parent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError(f"Parent_form_data.xlsx file not found at: {excel_file}")
+                # This should not happen due to the earlier check, but keeping for safety
+                raise FileNotFoundError("International_Parent_form_data.xlsx file not found")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the Parent_form_data.xlsx file")
+                raise ValueError("No data found in the International_Parent_form_data.xlsx file")
             
             print(f"📊 Found {len(df)} parent records in the file")
             # Return ALL records as a list of dictionaries
@@ -659,7 +703,22 @@ class TestPrivacyPortal:
                 "input[id*='country']",
                 "input[placeholder*='Country']",
                 "input[placeholder*='country']",
-                "[data-testid*='country']"
+                "[data-testid*='country']",
+                # Additional common patterns
+                "select[name='country']",
+                "select[id='country']",
+                "input[name='country']", 
+                "input[id='country']",
+                # CSS class patterns
+                ".country-select",
+                ".country-dropdown",
+                ".form-control[name*='country']",
+                ".form-select[name*='country']",
+                # Aria label patterns
+                "select[aria-label*='country']",
+                "input[aria-label*='country']",
+                "select[aria-label*='Country']",
+                "input[aria-label*='Country']"
             ]
             
             for country_selector in country_selectors:
@@ -677,7 +736,17 @@ class TestPrivacyPortal:
                             # STEP 2: Look for dropdown options that appear after clicking
                             # Try multiple ways to find and click the country option from Excel data
                             country_option_selectors = [
-                                # Try exact match from Excel first
+                                # Try exact match from Excel first - use exact text matching
+                                f"option[text()='{country_from_excel}']",
+                                f"li[text()='{country_from_excel}']", 
+                                f"div[text()='{country_from_excel}']",
+                                f"[role='option'][text()='{country_from_excel}']",
+                                # Try has-text with exact match for short country names
+                                f"option:text('{country_from_excel}')",
+                                f"li:text('{country_from_excel}')",
+                                f"div:text('{country_from_excel}')",
+                                f"[role='option']:text('{country_from_excel}')",
+                                # Fallback to has-text (less precise)
                                 f"option:has-text('{country_from_excel}')",
                                 f"li:has-text('{country_from_excel}')",
                                 f"div:has-text('{country_from_excel}')",
@@ -690,16 +759,56 @@ class TestPrivacyPortal:
                                 f"li[data-value='{country_from_excel.upper()}']"
                             ]
                             
-                            # Add specific mappings for common countries
+                            # Add specific mappings for countries in our Excel file
                             if country_from_excel.lower() == 'india':
                                 country_option_selectors.extend([
+                                    "option:text('India')",  # Exact text match
+                                    "li:text('India')",
+                                    "div:text('India')", 
+                                    "[role='option']:text('India')",
                                     "option[value='IN']",
                                     "option[value='IND']", 
+                                    "option[value='India']",
                                     "li[data-value='IN']",
-                                    "li[data-value='IND']"
+                                    "li[data-value='IND']",
+                                    "li[data-value='India']",
+                                    # Only use has-text as last resort for India to avoid "British Indian Ocean Territory"
+                                    "option:has-text('India')"
+                                ])
+                            elif country_from_excel.lower() == 'canada':
+                                country_option_selectors.extend([
+                                    "option:text('Canada')",  # Exact text match
+                                    "li:text('Canada')",
+                                    "div:text('Canada')",
+                                    "[role='option']:text('Canada')",
+                                    "option[value='CA']",
+                                    "option[value='CAN']", 
+                                    "option[value='Canada']",
+                                    "li[data-value='CA']",
+                                    "li[data-value='CAN']",
+                                    "li[data-value='Canada']",
+                                    "option:has-text('Canada')"
+                                ])
+                            elif country_from_excel.lower() == 'cuba':
+                                country_option_selectors.extend([
+                                    "option:text('Cuba')",  # Exact text match
+                                    "li:text('Cuba')",
+                                    "div:text('Cuba')",
+                                    "[role='option']:text('Cuba')",
+                                    "option[value='CU']",
+                                    "option[value='CUB']", 
+                                    "option[value='Cuba']",
+                                    "li[data-value='CU']",
+                                    "li[data-value='CUB']",
+                                    "li[data-value='Cuba']",
+                                    "option:has-text('Cuba')"
                                 ])
                             elif country_from_excel.lower() in ['us', 'usa', 'united states']:
                                 country_option_selectors.extend([
+                                    "option:text('United States')",  # Exact text match
+                                    "li:text('United States')",
+                                    "div:text('United States')",
+                                    "[role='option']:text('United States')",
                                     "option:has-text('United States')",
                                     "option[value='US']",
                                     "option[value='USA']",
@@ -731,6 +840,10 @@ class TestPrivacyPortal:
                                 country_options = [country_from_excel]
                                 if country_from_excel.lower() == 'india':
                                     country_options.extend(["IN", "IND", "India"])
+                                elif country_from_excel.lower() == 'canada':
+                                    country_options.extend(["CA", "CAN", "Canada"])
+                                elif country_from_excel.lower() == 'cuba':
+                                    country_options.extend(["CU", "CUB", "Cuba"])
                                 elif country_from_excel.lower() in ['us', 'usa', 'united states']:
                                     country_options.extend(["US", "USA", "United States", "United States of America"])
                                 
@@ -828,8 +941,14 @@ class TestPrivacyPortal:
                             pass
                         
                         print(f"🔍 Found school field - placeholder: '{placeholder}', label: '{label_text}'")
-                        element.fill(str(self.form_data.get('studentSchoolName', 'South Lakes High School')))
-                        print(f"✅ School field filled with '{self.form_data.get('studentSchoolName', 'South Lakes High School')}' using selector: {selector}")
+                        
+                        # Get student school name from Excel data with NaN handling
+                        school_name = str(self.form_data.get('studentSchoolName', 'N/A'))
+                        if school_name.lower() in ['nan', 'none', '', 'null']:
+                            school_name = 'N/A'
+                        
+                        element.fill(school_name)
+                        print(f"✅ School field filled with '{school_name}' using selector: {selector}")
                         school_filled = True
                         break
                 if school_filled:
@@ -863,8 +982,14 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
                         print(f"🔍 Found graduation field - placeholder: '{placeholder}'")
-                        element.fill(str(self.form_data.get('studentGraduationYear', '2020')))
-                        print(f"✅ Graduation year filled with '{self.form_data.get('studentGraduationYear', '2020')}' using selector: {selector}")
+                        
+                        # Get graduation year from Excel data with NaN handling
+                        grad_year = str(self.form_data.get('studentGraduationYear', 'N/A'))
+                        if grad_year.lower() in ['nan', 'none', '', 'null']:
+                            grad_year = 'N/A'
+                        
+                        element.fill(grad_year)
+                        print(f"✅ Graduation year filled with '{grad_year}' using selector: {selector}")
                         grad_filled = True
                         break
                 if grad_filled:
@@ -900,8 +1025,14 @@ class TestPrivacyPortal:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
                         print(f"🔍 Found educator field - placeholder: '{placeholder}'")
-                        element.fill(str(self.form_data.get('educatorSchoolAffiliation', 'N/A')))
-                        print(f"✅ Educator affiliation filled with '{self.form_data.get('educatorSchoolAffiliation', 'N/A')}' using selector: {selector}")
+                        
+                        # Get educator affiliation from Excel data with NaN handling
+                        educator_affiliation = str(self.form_data.get('educatorSchoolAffiliation', 'N/A'))
+                        if educator_affiliation.lower() in ['nan', 'none', '', 'null']:
+                            educator_affiliation = 'N/A'
+                        
+                        element.fill(educator_affiliation)
+                        print(f"✅ Educator affiliation filled with '{educator_affiliation}' using selector: {selector}")
                         educator_filled = True
                         break
                 if educator_filled:

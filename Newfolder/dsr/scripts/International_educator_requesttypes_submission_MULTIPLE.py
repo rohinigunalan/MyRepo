@@ -2380,13 +2380,13 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
-                                "textarea[placeholder*='details']:visible",
-                                "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible"
+                                "input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])", 
+                                "input[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "input[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "textarea[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([type='tel']):not([type='phone']):not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):visible"
                             ]
                             
                             text_input_found = False
@@ -2395,10 +2395,31 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Double-check this is not a phone field
+                                            element_attrs = {
+                                                'placeholder': text_input.get_attribute('placeholder') or '',
+                                                'name': text_input.get_attribute('name') or '',
+                                                'id': text_input.get_attribute('id') or '',
+                                                'type': text_input.get_attribute('type') or '',
+                                                'aria-label': text_input.get_attribute('aria-label') or ''
+                                            }
+                                            
+                                            # Skip if ANY attribute contains phone-related keywords
+                                            phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                            is_phone_field = any(
+                                                any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                                for attr_value in element_attrs.values() if attr_value
+                                            )
+                                            
+                                            if is_phone_field:
+                                                print(f"  🚫 Skipping phone field: {element_attrs}")
+                                                continue
+                                            
+                                            # Check if this is a new text input (not pre-filled)
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
-                                                text_input.fill("Account closure request")
-                                                print(f"  ✅ Entered 'Account closure request' in text input for {description}")
+                                                # Leave the text input empty as requested by user
+                                                print(f"  ✅ Found text input for {description} - leaving empty as requested")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break

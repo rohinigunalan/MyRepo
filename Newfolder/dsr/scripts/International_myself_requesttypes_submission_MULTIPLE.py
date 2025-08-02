@@ -21,6 +21,14 @@ import os
 import sys
 from datetime import datetime
 
+# Add the parent directory to sys.path to import the report generator
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from create_myself_reading_success_report import create_myself_reading_success_report
+except ImportError:
+    print("⚠️ Warning: Could not import create_myself_reading_success_report function")
+    create_myself_reading_success_report = None
+
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
     

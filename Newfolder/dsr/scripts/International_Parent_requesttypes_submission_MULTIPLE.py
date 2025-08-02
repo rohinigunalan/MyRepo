@@ -391,7 +391,7 @@ class TestPrivacyPortal:
         os.makedirs(screenshots_dir, exist_ok=True)
         
         # Save as text file
-        text_filename = f"dsr/screenshots/International_Parent_Success_Report_{timestamp}.txt"
+        text_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.txt")
         try:
             with open(text_filename, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(report_content))
@@ -400,7 +400,7 @@ class TestPrivacyPortal:
             print(f"⚠️ Could not save text report: {e}")
         
         # Save as HTML file with better formatting
-        html_filename = f"dsr/screenshots/International_Parent_Success_Report_{timestamp}.html"
+        html_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.html")
         try:
             html_content = self._generate_html_report(report_content, timestamp)
             with open(html_filename, 'w', encoding='utf-8') as f:

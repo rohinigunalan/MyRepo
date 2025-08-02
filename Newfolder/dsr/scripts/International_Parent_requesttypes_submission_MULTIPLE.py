@@ -215,7 +215,8 @@ class TestPrivacyPortal:
                             self.handle_acknowledgments(page)
                             
                             # Take screenshot BEFORE submission (after all fields are filled)
-                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+                            page.screenshot(path=os.path.join(screenshots_dir, f"before_submission_record_{record_index + 1}.png"))
                             print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
                             
                             # Submit the form
@@ -223,7 +224,8 @@ class TestPrivacyPortal:
                             
                         except Exception as e:
                             print(f"⚠️ Error in parent form processing: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+                            page.screenshot(path=os.path.join(screenshots_dir, f"error_record_{record_index + 1}.png"))
                         
                         # Pause after submission to see results
                         print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
@@ -234,7 +236,8 @@ class TestPrivacyPortal:
                     except Exception as e:
                         print(f"❌ Error processing record {record_index + 1}: {str(e)}")
                         # Take screenshot on error
-                        page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+                        page.screenshot(path=os.path.join(screenshots_dir, f"error_record_{record_index + 1}.png"))
                         print(f"📸 Error screenshot saved for record {record_index + 1}")
                         # Continue with next record
                         
@@ -251,7 +254,8 @@ class TestPrivacyPortal:
                 
             except Exception as e:
                 # Take screenshot on major error
-                page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+                page.screenshot(path=os.path.join(screenshots_dir, "major_error_screenshot.png"))
                 print(f"❌ Major error occurred: {str(e)}")
                 print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
                 raise
@@ -1473,7 +1477,8 @@ class TestPrivacyPortal:
         if not country_filled:
             print("⚠️ Could not fill country field - continuing anyway...")
             # Take a screenshot to see current state
-            page.screenshot(path="dsr/screenshots/country_field_issue.png")
+            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+            page.screenshot(path=os.path.join(screenshots_dir, "country_field_issue.png"))
             print("📸 Screenshot saved: screenshots/country_field_issue.png")
 
         # State field handling skipped - no state column in International Parent Excel file
@@ -2092,7 +2097,8 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/request_type_debug.png")
+            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+            page.screenshot(path=os.path.join(screenshots_dir, "request_type_debug.png"))
             print("📸 Debug screenshot saved: screenshots/request_type_debug.png")
         
         print("✅ Request type selection completed")
@@ -2435,7 +2441,8 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        page.screenshot(path="dsr/screenshots/delete_options_selected.png")
+        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+        page.screenshot(path=os.path.join(screenshots_dir, "delete_options_selected.png"))
         print("📸 Screenshot saved: screenshots/delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
@@ -2672,7 +2679,8 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        page.screenshot(path="dsr/screenshots/close_account_options_selected.png")
+        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+        page.screenshot(path=os.path.join(screenshots_dir, "close_account_options_selected.png"))
         print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
@@ -3040,7 +3048,8 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/captcha_debug.png")
+            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+            page.screenshot(path=os.path.join(screenshots_dir, "captcha_debug.png"))
             print("📸 Debug screenshot saved: screenshots/captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
@@ -3074,7 +3083,8 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                page.screenshot(path="dsr/screenshots/captcha_challenge.png")
+                screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+                page.screenshot(path=os.path.join(screenshots_dir, "captcha_challenge.png"))
                 print("📸 Challenge screenshot saved: screenshots/captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
@@ -3271,7 +3281,8 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            page.screenshot(path="dsr/screenshots/submit_button_not_found.png")
+            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+            page.screenshot(path=os.path.join(screenshots_dir, "submit_button_not_found.png"))
             print("📸 Debug screenshot saved: screenshots/submit_button_not_found.png")
 
 def test_inspect_form_elements():

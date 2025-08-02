@@ -29,6 +29,7 @@ class TestPrivacyPortal:
         self.url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
         self.all_form_data = self.load_form_data()  # Load ALL records
         self.form_data = {}  # Will be set for each individual record
+        self.screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
     
     def load_form_data(self):
         """Load ALL form data from Excel or CSV file for multiple records"""
@@ -138,10 +139,10 @@ class TestPrivacyPortal:
                             self.fill_subject_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in subject information: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_subject_info_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_subject_info_record_{record_index + 1}.png")
                         
                         # Take screenshot after subject info
-                        page.screenshot(path=f"dsr/screenshots/after_subject_info_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\after_subject_info_record_{record_index + 1}.png")
                         print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
                         
                         # Pause after subject info
@@ -152,10 +153,10 @@ class TestPrivacyPortal:
                             self.fill_contact_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in contact information: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_contact_info_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_contact_info_record_{record_index + 1}.png")
                         
                         # Take screenshot after contact info
-                        page.screenshot(path=f"dsr/screenshots/after_contact_info_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\after_contact_info_record_{record_index + 1}.png")
                         print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
                         
                         # Pause after contact info to observe dropdowns
@@ -166,7 +167,7 @@ class TestPrivacyPortal:
                             self.fill_additional_details(page)
                         except Exception as e:
                             print(f"⚠️ Error in additional details: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_additional_details_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_additional_details_record_{record_index + 1}.png")
                         
                         # Pause after additional details
                         print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
@@ -176,7 +177,7 @@ class TestPrivacyPortal:
                             self.select_request_type(page)
                         except Exception as e:
                             print(f"⚠️ Error in request type selection: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_request_type_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_request_type_record_{record_index + 1}.png")
                         
                         # Pause after request type selection
                         print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
@@ -187,7 +188,7 @@ class TestPrivacyPortal:
                             self.handle_delete_data_suboptions(page)
                         except Exception as e:
                             print(f"⚠️ Error in delete data sub-options: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_delete_options_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_delete_options_record_{record_index + 1}.png")
                         
                         # Pause after delete options
                         print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
@@ -198,7 +199,7 @@ class TestPrivacyPortal:
                             self.handle_close_account_suboptions(page)
                         except Exception as e:
                             print(f"⚠️ Error in close account sub-options: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_close_options_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_close_options_record_{record_index + 1}.png")
                         
                         # Pause after close account options
                         print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
@@ -208,18 +209,18 @@ class TestPrivacyPortal:
                             self.handle_acknowledgments(page)
                         except Exception as e:
                             print(f"⚠️ Error in acknowledgments: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_acknowledgments_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_acknowledgments_record_{record_index + 1}.png")
                         
                         # Pause after acknowledgments
                         print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
                         time.sleep(2)
                         
                         # Take a screenshot after filling all fields
-                        page.screenshot(path=f"dsr/screenshots/form_filled_complete_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\form_filled_complete_record_{record_index + 1}.png")
                         print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
                         
                         # Take a screenshot before submission (backup)
-                        page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\before_submission_record_{record_index + 1}.png")
                         print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
                         
                         # Pause before submission to review completed form
@@ -231,10 +232,10 @@ class TestPrivacyPortal:
                             self.submit_form(page)
                         except Exception as e:
                             print(f"⚠️ Error during form submission: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_submission_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{self.screenshot_dir}\\error_submission_record_{record_index + 1}.png")
                         
                         # Take screenshot after submission
-                        page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\after_submission_record_{record_index + 1}.png")
                         print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
                         
                         # Pause after submission to see results
@@ -246,7 +247,7 @@ class TestPrivacyPortal:
                     except Exception as e:
                         print(f"❌ Error processing record {record_index + 1}: {str(e)}")
                         # Take screenshot on error
-                        page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{self.screenshot_dir}\\error_record_{record_index + 1}.png")
                         print(f"📸 Error screenshot saved for record {record_index + 1}")
                         # Continue with next record
                         
@@ -260,9 +261,9 @@ class TestPrivacyPortal:
                 
             except Exception as e:
                 # Take screenshot on major error
-                page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                page.screenshot(path=f"{self.screenshot_dir}\\major_error_screenshot.png")
                 print(f"❌ Major error occurred: {str(e)}")
-                print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
+                print(f"📸 Major error screenshot saved: {self.screenshot_dir}\\major_error_screenshot.png")
                 raise
                 
             finally:
@@ -676,8 +677,8 @@ class TestPrivacyPortal:
             print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
             # Take a screenshot to see current state
             try:
-                page.screenshot(path="dsr/screenshots/country_field_issue.png")
-                print("📸 Screenshot saved: screenshots/country_field_issue.png")
+                page.screenshot(path=f"{self.screenshot_dir}\\country_field_issue.png")
+                print(f"📸 Screenshot saved: {self.screenshot_dir}\\country_field_issue.png")
             except:
                 pass
 
@@ -1208,8 +1209,8 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/request_type_debug.png")
-            print("📸 Debug screenshot saved: screenshots/request_type_debug.png")
+            page.screenshot(path=f"{self.screenshot_dir}\\request_type_debug.png")
+            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\request_type_debug.png")
         
         print("✅ Request type selection completed")
     
@@ -1551,8 +1552,8 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        page.screenshot(path="dsr/screenshots/delete_options_selected.png")
-        print("📸 Screenshot saved: screenshots/delete_options_selected.png")
+        page.screenshot(path=f"{self.screenshot_dir}\\delete_options_selected.png")
+        print(f"📸 Screenshot saved: {self.screenshot_dir}\\delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
     
@@ -1788,8 +1789,8 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        page.screenshot(path="dsr/screenshots/close_account_options_selected.png")
-        print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
+        page.screenshot(path=f"{self.screenshot_dir}\\close_account_options_selected.png")
+        print(f"📸 Screenshot saved: {self.screenshot_dir}\\close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
     
@@ -2156,8 +2157,8 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/captcha_debug.png")
-            print("📸 Debug screenshot saved: screenshots/captcha_debug.png")
+            page.screenshot(path=f"{self.screenshot_dir}\\captcha_debug.png")
+            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
             print("🔍 Checking for reCAPTCHA challenge after clicking...")
@@ -2190,8 +2191,8 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                page.screenshot(path="dsr/screenshots/captcha_challenge.png")
-                print("📸 Challenge screenshot saved: screenshots/captcha_challenge.png")
+                page.screenshot(path=f"{self.screenshot_dir}\\captcha_challenge.png")
+                print(f"📸 Challenge screenshot saved: {self.screenshot_dir}\\captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
                 max_wait_time = 60  # Wait up to 60 seconds
@@ -2334,8 +2335,8 @@ class TestPrivacyPortal:
                 time.sleep(5)
             
             # Take screenshot after submission
-            page.screenshot(path="dsr/screenshots/after_submission.png")
-            print("📸 Screenshot saved: screenshots/after_submission.png")
+            page.screenshot(path=f"{self.screenshot_dir}\\after_submission.png")
+            print(f"📸 Screenshot saved: {self.screenshot_dir}\\after_submission.png")
             
             # Check for success message or confirmation
             success_indicators = [
@@ -2387,8 +2388,8 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            page.screenshot(path="dsr/screenshots/submit_button_not_found.png")
-            print("📸 Debug screenshot saved: screenshots/submit_button_not_found.png")
+            page.screenshot(path=f"{self.screenshot_dir}\\submit_button_not_found.png")
+            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\submit_button_not_found.png")
 
 def test_inspect_form_elements():
     """Helper test to inspect form elements and their selectors"""
@@ -2477,8 +2478,9 @@ if __name__ == "__main__":
             # Run report generation
             create_myself_reading_success_report()
             
+            screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
             print(f"🎉 SUCCESS! Myself Data Reading Success Report generated:")
-            print(f"📁 Report File: dsr/screenshots/Myself_Data_Reading_Success_Report_{timestamp}.xlsx")
+            print(f"📁 Report File: {screenshot_dir}\\Myself_Data_Reading_Success_Report_{timestamp}.xlsx")
             print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             
         except ImportError as e:
@@ -2492,7 +2494,8 @@ if __name__ == "__main__":
         print(f"⚠️ Error in report generation setup: {e}")
     
     print("\n✅ ALL TASKS COMPLETED!")
-    print("📊 Check the dsr/screenshots/ folder for:")
+    screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
+    print(f"📊 Check the {screenshot_dir}\\ folder for:")
     print("   • Form submission screenshots")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")

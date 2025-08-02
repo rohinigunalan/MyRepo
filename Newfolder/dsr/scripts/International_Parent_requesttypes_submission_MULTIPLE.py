@@ -496,8 +496,7 @@ class TestPrivacyPortal:
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
             
-        print(f"
-📁 Success report saved in: {screenshots_dir}")
+        print(f"\n📁 Success report saved in: {screenshots_dir}")
         print(f"   📊 Excel: International_Parent_Success_Report_{timestamp}.xlsx")
 
 

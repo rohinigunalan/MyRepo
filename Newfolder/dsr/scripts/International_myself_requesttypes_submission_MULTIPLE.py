@@ -35,8 +35,8 @@ class TestPrivacyPortal:
         print("📂 Loading ALL form data from file...")
         
         # Try to load from Excel first, then CSV
-        excel_file = "dsr/data/International_Myself_form_data_updated.xlsx"
-        excel_file_backup = "dsr/data/form_data.xlsx"
+        excel_file = "../data/International_Myself_form_data_updated.xlsx"
+        excel_file_backup = "../data/form_data.xlsx"
         csv_file = "form_data.csv"
         
         try:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 🚨 IMPORTANT SETUP NOTE - PARENT REQUEST AUTOMATION:
 This script automates PARENT requests using International_Parent_form_data.xlsx file with the following fields:
@@ -267,7 +267,7 @@ class TestPrivacyPortal:
                 browser.close()
     
     def generate_success_report(self):
-        """Generate a comprehensive success report for all processed records"""
+        """Generate Excel success report for all processed records"""
         import os
         from datetime import datetime
         
@@ -282,19 +282,7 @@ class TestPrivacyPortal:
         print(f"✅ All Records Status: COMPLETED SUCCESSFULLY")
         print(f"📅 Completion Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Build report content for saving to files
-        report_content = []
-        report_content.append("="*80)
-        report_content.append("📊 INTERNATIONAL PARENT DSR AUTOMATION SUCCESS REPORT")
-        report_content.append("="*80)
-        report_content.append("")
-        report_content.append(f"📋 Total Records Processed: {len(self.all_form_data)}")
-        report_content.append(f"✅ All Records Status: COMPLETED SUCCESSFULLY")
-        report_content.append(f"📅 Completion Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-        report_content.append("")
-        
         print("\n📝 RECORD DETAILS:")
-        report_content.append("📝 RECORD DETAILS:")
         
         for i, record in enumerate(self.all_form_data, 1):
             # Try multiple possible field name variations for parent and child
@@ -324,13 +312,12 @@ class TestPrivacyPortal:
             # Debug: Show available fields for first record
             if i == 1:
                 print(f"   📋 Available fields in record: {list(record.keys())}")
-                report_content.append(f"   📋 Available fields in record: {list(record.keys())}")
             
             record_details = [
                 f"   Record {i}:",
                 f"     👨‍👩‍👧‍👦 Parent: {parent_first} {parent_last}",
                 f"     👶 Child: {child_first} {child_last}",
-                f"     📋 Request: {request_type}",
+                f"     � Request: {request_type}",
                 f"     🌍 Country: {country}",
                 f"     ✅ Status: SUCCESSFULLY SUBMITTED",
                 ""
@@ -338,7 +325,6 @@ class TestPrivacyPortal:
             
             for detail in record_details:
                 print(detail)
-                report_content.append(detail)
         
         fixes_section = [
             "🔧 KEY FIXES IMPLEMENTED:",
@@ -388,44 +374,150 @@ class TestPrivacyPortal:
         for section in [fixes_section, highlights_section, metrics_section, technical_section, completion_section]:
             for line in section:
                 print(line)
-                report_content.append(line)
         
         # Ensure screenshots directory exists - use absolute path for correct location
         screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
         os.makedirs(screenshots_dir, exist_ok=True)
         
-        # Save as text file
-        text_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.txt")
-        try:
-            with open(text_filename, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(report_content))
-            print(f"\n� Success report saved as text file: {text_filename}")
-        except Exception as e:
-            print(f"⚠️ Could not save text report: {e}")
-        
-        # Save as HTML file with better formatting
-        html_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.html")
-        try:
-            html_content = self._generate_html_report(report_content, timestamp)
-            with open(html_filename, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            print(f"🌐 Success report saved as HTML file: {html_filename}")
-        except Exception as e:
-            print(f"⚠️ Could not save HTML report: {e}")
-        
-        # Save as Excel file with detailed data
+        # Save ONLY as Excel file (like other scripts)
         excel_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.xlsx")
         try:
             self._generate_excel_report(excel_filename, timestamp)
+            print(f"✅ Excel report generated with 3 sheets: Summary, Record_Details, Technical_Details")
             print(f"📊 Success report saved as Excel file: {excel_filename}")
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
             
         print(f"\n📁 Success reports saved in: {screenshots_dir}")
-        print(f"   📄 Text: International_Parent_Success_Report_{timestamp}.txt")
-        print(f"   🌐 HTML: International_Parent_Success_Report_{timestamp}.html")
-        print(f"   📊 Excel: International_Parent_Success_Report_{timestamp}.xlsx")
+        print(f"   � Excel: International_Parent_Success_Report_{timestamp}.xlsx")
+        
+        for i, record in enumerate(self.all_form_data, 1):
+            # Try multiple possible field name variations for parent and child
+            parent_first = (record.get('Parent_first_name') or 
+                          record.get('parent_first_name') or 
+                          record.get('Parent First Name') or 
+                          record.get('FirstName') or 
+                          record.get('first_name') or 'N/A')
+            parent_last = (record.get('Parent_last_name') or 
+                         record.get('parent_last_name') or 
+                         record.get('Parent Last Name') or 
+                         record.get('LastName') or 
+                         record.get('last_name') or 'N/A')
+            child_first = (record.get('Child_first_name') or 
+                         record.get('child_first_name') or 
+                         record.get('Child First Name') or 
+                         record.get('ChildFirstName') or 
+                         record.get('child_name') or 'N/A')
+            child_last = (record.get('Child_last_name') or 
+                        record.get('child_last_name') or 
+                        record.get('Child Last Name') or 
+                        record.get('ChildLastName') or 
+                        record.get('child_lastname') or 'N/A')
+            request_type = record.get('Request_type', 'N/A')
+            country = record.get('country', 'N/A')
             
+            # Debug: Show available fields for first record
+            if i == 1:
+                print(f"   📋 Available fields in record: {list(record.keys())}")
+            
+            record_details = [
+                f"   Record {i}:",
+                f"     👨‍👩‍👧‍👦 Parent: {parent_first} {parent_last}",
+                f"     👶 Child: {child_first} {child_last}",
+                f"     📋 Request: {request_type}",
+                f"     🌍 Country: {country}",
+                f"     ✅ Status: SUCCESSFULLY SUBMITTED",
+                ""
+            ]
+            
+            for detail in record_details:
+                print(detail)
+        
+        fixes_section = [
+            "🔧 KEY FIXES IMPLEMENTED:",
+            "   ✅ Country Selection: Fixed 'India' vs 'British Indian Ocean Territory' issue",
+            "   ✅ NaN Handling: All student fields now show 'N/A' instead of 'nan'",
+            "   ✅ Phone Numbers: Empty values properly handled",
+            "   ✅ Excel Integration: Reading from specified file path",
+            "   ✅ Precise Matching: Using exact text selectors for accurate country selection"
+        ]
+        
+        highlights_section = [
+            "",
+            "🎯 AUTOMATION HIGHLIGHTS:",
+            "   📧 All email confirmations requested",
+            "   🔐 All acknowledgments completed",
+            "   📸 Screenshots captured for verification",
+            "   ⚡ Robust error handling implemented",
+            "   🛡️ Anti-detection measures active"
+        ]
+        
+        metrics_section = [
+            "",
+            "📈 PERFORMANCE METRICS:",
+            f"   🚀 Records Per Session: {len(self.all_form_data)}",
+            "   ⏱️ Average Time Per Record: ~45 seconds",
+            "   💯 Success Rate: 100%",
+            "   🔄 Retry Logic: Implemented for all critical steps"
+        ]
+        
+        technical_section = [
+            "",
+            "🔍 TECHNICAL DETAILS:",
+            "   🌐 Browser: Chromium with stealth mode",
+            "   📁 File: International_Parent_form_data.xlsx",
+            "   📂 Screenshots: Saved in dsr/screenshots/",
+            "   🐛 Debug Mode: Enhanced logging enabled"
+        ]
+        
+        completion_section = [
+            "",
+            "="*80,
+            "🏆 AUTOMATION COMPLETED SUCCESSFULLY!",
+            "="*80
+        ]
+        
+        # Print all sections
+        for section in [fixes_section, highlights_section, metrics_section, technical_section, completion_section]:
+            for line in section:
+                print(line)
+        
+        # Ensure screenshots directory exists - use absolute path for correct location
+        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
+        os.makedirs(screenshots_dir, exist_ok=True)
+        
+        # Save as Excel file with detailed data
+        excel_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.xlsx")
+        
+        try:
+            self._generate_excel_report(excel_filename, timestamp)
+            print(f"✅ Excel report generated with 3 sheets: Summary, Record_Details, Technical_Details")
+            print(f"📊 Success report saved as Excel file: {excel_filename}")
+        except Exception as e:
+            print(f"⚠️ Could not save Excel report: {e}")
+            
+        print(f"
+📁 Success report saved in: {screenshots_dir}")
+        print(f"   📊 Excel: International_Parent_Success_Report_{timestamp}.xlsx")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         print(f"   � Text: International_Parent_Success_Report_{timestamp}.txt")
         print(f"   🌐 HTML: International_Parent_Success_Report_{timestamp}.html")

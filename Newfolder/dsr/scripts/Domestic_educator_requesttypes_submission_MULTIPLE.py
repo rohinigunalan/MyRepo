@@ -52,7 +52,7 @@ class TestPrivacyPortal:
         print("📂 Loading ALL educator form data from file...")
         
         # Use the Educatoronbehalfofstudent_form_data.xlsx file specifically
-        excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
+        excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"  # Fixed absolute path from project root
         
         try:
             if os.path.exists(excel_file):
@@ -108,13 +108,19 @@ class TestPrivacyPortal:
             }]
         
     def test_privacy_form_submission(self):
-        """Test filling and submitting the privacy portal form for ALL records"""
+        """Test filling and submitting the privacy portal form for ALL records starting from record 20"""
         print("🚨 IMPORTANT NOTE: This script will automate form filling for ALL records in Excel,")
         print("   but you may need to manually solve reCAPTCHA challenges if they appear.")
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
+        # START FROM RECORD 20 (index 19 since 0-based)
+        start_record = 19  # Record 20 (0-based indexing)
+        records_to_process = self.all_form_data[start_record:]  # Get records from 20 onwards
+        
+        print(f"🎯 STARTING FROM RECORD {start_record + 1} - PROCESSING {len(records_to_process)} RECORDS FROM EXCEL FILE")
+        print(f"📊 Total records in file: {len(self.all_form_data)}")
+        print(f"📊 Records to process: {len(records_to_process)} (from record {start_record + 1} to {len(self.all_form_data)})")
         
         with sync_playwright() as p:
             # Launch browser
@@ -122,10 +128,12 @@ class TestPrivacyPortal:
             page = browser.new_page()
             
             try:
-                # Process each record
-                for record_index, record_data in enumerate(self.all_form_data):
+                # Process each record starting from record 20
+                for i, record_data in enumerate(records_to_process):
+                    actual_record_number = start_record + i + 1  # Calculate the actual record number
+                    
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"🔄 PROCESSING RECORD {actual_record_number} OF {len(self.all_form_data)} (Batch {i + 1} of {len(records_to_process)})")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -142,7 +150,7 @@ class TestPrivacyPortal:
                     
                     try:
                         # Navigate to the privacy portal for each record
-                        print(f"\n🌐 Navigating to form for record {record_index + 1}...")
+                        print(f"\n🌐 Navigating to form for record {actual_record_number}...")
                         page.goto(self.url)
                         
                         # Wait for page to load
@@ -150,7 +158,7 @@ class TestPrivacyPortal:
                         time.sleep(2)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING EDUCATOR/AGENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING EDUCATOR/AGENT FORM FILLING PROCESS FOR RECORD {actual_record_number}...")
                         try:
                             self.fill_subject_information(page)
                             self.fill_contact_information(page)
@@ -162,39 +170,40 @@ class TestPrivacyPortal:
                             self.handle_acknowledgments(page)
                             
                             # Take screenshot BEFORE submission (after all fields are filled)
-                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
-                            print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{actual_record_number}.png")
+                            print(f"📸 Screenshot saved: before_submission_record_{actual_record_number}.png")
                             
                             # Submit the form
-                            self.submit_form(page, record_index + 1)
+                            self.submit_form(page, actual_record_number)
                             
                         except Exception as e:
                             print(f"⚠️ Error in parent form processing: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                            page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
                         
                         # Pause after submission to see results
-                        print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
+                        print(f"⏸️ PAUSE: Record {actual_record_number} submission completed. Observing results for 3 seconds...")
                         time.sleep(3)
                         
-                        print(f"✅ RECORD {record_index + 1} AUTOMATION COMPLETED SUCCESSFULLY!")
+                        print(f"✅ RECORD {actual_record_number} AUTOMATION COMPLETED SUCCESSFULLY!")
                         
                     except Exception as e:
-                        print(f"❌ Error processing record {record_index + 1}: {str(e)}")
+                        print(f"❌ Error processing record {actual_record_number}: {str(e)}")
                         # Try to take screenshot on error if page is still available
                         try:
                             if page and not page.is_closed():
-                                page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
-                                print(f"📸 Error screenshot saved for record {record_index + 1}")
+                                page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
+                                print(f"📸 Error screenshot saved for record {actual_record_number}")
                         except:
                             print("⚠️ Could not take error screenshot (page may be closed)")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
-                    if record_index < len(self.all_form_data) - 1:
+                    if i < len(records_to_process) - 1:
                         print(f"\n⏸️ PAUSING 5 SECONDS BEFORE PROCESSING NEXT RECORD...")
                         time.sleep(5)
                 
-                print(f"\n🎉 ALL {len(self.all_form_data)} RECORDS PROCESSED SUCCESSFULLY!")
+                print(f"\n🎉 ALL {len(records_to_process)} RECORDS PROCESSED SUCCESSFULLY!")
+                print(f"📊 Processed records {start_record + 1} to {len(self.all_form_data)}")
                 print("✅ Multiple record form automation completed!")
                 
             except Exception as e:

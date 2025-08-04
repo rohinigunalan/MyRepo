@@ -202,9 +202,10 @@ class TestPrivacyPortal:
                             self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
                             
-                            # Take screenshot BEFORE submission (after all fields are filled)
+                            # Take screenshot BEFORE submission (with all input fields filled)
+                            print(f"📸 Taking screenshot BEFORE submission for record {actual_record_number}...")
                             page.screenshot(path=f"dsr/screenshots/before_submission_record_{actual_record_number}.png")
-                            print(f"📸 Screenshot saved: before_submission_record_{actual_record_number}.png")
+                            print(f"✅ BEFORE submission screenshot saved: before_submission_record_{actual_record_number}.png")
                             
                             # Submit the form
                             self.submit_form(page, actual_record_number)
@@ -293,7 +294,9 @@ class TestPrivacyPortal:
                 # Final completion message
                 print("\n✅ ALL DOMESTIC EDUCATOR AUTOMATION TASKS COMPLETED!")
                 print("📊 Check the dsr/screenshots/ folder for:")
-                print("   • Form submission screenshots")  
+                print("   • BEFORE submission screenshots (before_submission_record_XX.png)")
+                print("   • AFTER submission screenshots (after_submission_record_XX.png)")
+                print("   • Form submission process documentation")  
                 print("   • Data Reading Success Report (Excel file)")
                 print("   • Automation logs and results")
     
@@ -3404,7 +3407,7 @@ class TestPrivacyPortal:
             print("✅ Parent form submission initiated!")
             
             # Wait for submission to complete
-            print("⏳ Waiting for parent form submission to complete...")
+            print("⏳ Waiting for form submission to complete...")
             try:
                 page.wait_for_load_state("networkidle", timeout=15000)
                 time.sleep(3)
@@ -3412,9 +3415,10 @@ class TestPrivacyPortal:
                 print("⚠️ Submission may still be processing...")
                 time.sleep(5)
             
-            # Take screenshot AFTER submission
+            # Take screenshot IMMEDIATELY AFTER submission
+            print(f"📸 Taking screenshot IMMEDIATELY AFTER submission for record {record_number}...")
             page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
-            print(f"📸 Screenshot saved: after_submission_record_{record_number}.png")
+            print(f"✅ AFTER submission screenshot saved: after_submission_record_{record_number}.png")
             
             # Check for success message or confirmation
             success_indicators = [

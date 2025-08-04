@@ -124,8 +124,8 @@ class TestPrivacyPortal:
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        # CRITICAL: ALWAYS START FROM RECORD 20 (index 19 since 0-based) - As requested by user
-        start_record = 19  # Record 20 (0-based indexing) - ALWAYS start from row 20 of Excel
+        # TEMPORARY: START FROM RECORD 1 for testing full page screenshots - USER CAN CHANGE BACK TO 19 later
+        start_record = 0  # Record 1 (0-based indexing) - TEMPORARY for testing
         
         print(f"🎯 CRITICAL: THIS SCRIPT ALWAYS STARTS FROM RECORD 20 (ROW 20 IN EXCEL)")
         print(f"🎯 NEVER CHANGES: Starting record is HARD-CODED to be record {start_record + 1} (Excel row 20)")
@@ -202,10 +202,15 @@ class TestPrivacyPortal:
                             self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
                             
-                            # Take screenshot BEFORE submission (with all input fields filled)
-                            print(f"📸 Taking screenshot BEFORE submission for record {actual_record_number}...")
-                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{actual_record_number}.png")
-                            print(f"✅ BEFORE submission screenshot saved: before_submission_record_{actual_record_number}.png")
+                            # Scroll to top of the form before taking screenshot to ensure complete form capture
+                            print(f"📋 Scrolling to top of form to capture complete form...")
+                            page.evaluate("window.scrollTo(0, 0)")
+                            time.sleep(1)  # Brief pause to ensure scroll completes
+                            
+                            # Take FULL PAGE screenshot BEFORE submission (with all input fields filled)
+                            print(f"📸 Taking FULL PAGE screenshot BEFORE submission for record {actual_record_number}...")
+                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{actual_record_number}.png", full_page=True)
+                            print(f"✅ BEFORE submission FULL PAGE screenshot saved: before_submission_record_{actual_record_number}.png")
                             
                             # Submit the form
                             self.submit_form(page, actual_record_number)
@@ -3415,10 +3420,10 @@ class TestPrivacyPortal:
                 print("⚠️ Submission may still be processing...")
                 time.sleep(5)
             
-            # Take screenshot IMMEDIATELY AFTER submission
-            print(f"📸 Taking screenshot IMMEDIATELY AFTER submission for record {record_number}...")
-            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
-            print(f"✅ AFTER submission screenshot saved: after_submission_record_{record_number}.png")
+            # Take FULL PAGE screenshot IMMEDIATELY AFTER submission
+            print(f"📸 Taking FULL PAGE screenshot IMMEDIATELY AFTER submission for record {record_number}...")
+            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png", full_page=True)
+            print(f"✅ AFTER submission FULL PAGE screenshot saved: after_submission_record_{record_number}.png")
             
             # Check for success message or confirmation
             success_indicators = [

@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """
-🚨 IMPORTANT SETUP NOTE:
+🚨 IMPORTANT SETUP NOTE - EDUCATOR/AGENT REQUEST AUTOMATION:
+This script automates EDUCATOR/AGENT requests using Educatoronbehalfofstudent_form_data.xlsx file with the following fields:
+- Who is making this request: Authorized Agent on behalf of someone else
+- Authorized Agent Company Name (insert N/A if not applicable)
+- Agent First Name
+- Agent Last Name  
+- Agent Email Address
+- Student/Child information (First Name, Last Name, Email)
+- Additional details for delete requests
+
 This script should ALWAYS be run using the virtual environment (.venv) which has all required packages installed:
 - Playwright (with browser binaries)
 - Pandas 
@@ -8,7 +17,7 @@ This script should ALWAYS be run using the virtual environment (.venv) which has
 - Pytest
 
 TO RUN THIS SCRIPT:
-Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest myself_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
+Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest educator_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
 
 The .venv contains all necessary dependencies and is properly configured for this automation.
 """
@@ -24,10 +33,10 @@ from datetime import datetime
 # Add the parent directory to sys.path to import the report generator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 try:
-    from create_myself_reading_success_report import create_myself_reading_success_report
+    from create_educator_reading_success_report import create_educator_reading_success_report
 except ImportError:
-    print("⚠️ Warning: Could not import create_myself_reading_success_report function")
-    create_myself_reading_success_report = None
+    print("⚠️ Warning: Could not import create_educator_reading_success_report function")
+    create_educator_reading_success_report = None
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -37,70 +46,71 @@ class TestPrivacyPortal:
         self.url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
         self.all_form_data = self.load_form_data()  # Load ALL records
         self.form_data = {}  # Will be set for each individual record
-        self.screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
     
     def load_form_data(self):
-        """Load ALL form data from Excel or CSV file for multiple records"""
-        print("📂 Loading ALL form data from file...")
+        """Load ALL form data from International_Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
+        print("📂 Loading ALL international educator form data from file...")
         
-        # Try to load from Excel first, then CSV
-        excel_file = "../data/International_Myself_form_data_updated.xlsx"
-        excel_file_backup = "../data/form_data.xlsx"
-        csv_file = "form_data.csv"
+        # Use the International_Educatoronbehalfofstudent_form_data.xlsx file specifically
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)  # Go up one level from scripts/ to dsr/
+        data_dir = os.path.join(parent_dir, 'data')
+        excel_file = os.path.join(data_dir, 'International_Educatoronbehalfofstudent_form_data.xlsx')
+        
+        print(f"🔍 Looking for international educator Excel file at: {excel_file}")
         
         try:
             if os.path.exists(excel_file):
-                print(f"📊 Attempting to read data from {excel_file}")
+                print(f"📊 Attempting to read educator data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ Excel file loaded successfully!")
+                    print("✅ International Educator Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    print("🔄 Trying CSV file as fallback...")
-                    if os.path.exists(csv_file):
-                        df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                        print("✅ CSV file loaded successfully!")
-                    else:
-                        raise FileNotFoundError("Neither Excel nor CSV file could be loaded")
-            elif os.path.exists(csv_file):
-                print(f"📊 Reading data from {csv_file}")
-                df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                print("✅ CSV file loaded successfully!")
+                    raise FileNotFoundError(f"Could not load International_Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError("No form_data.xlsx or form_data.csv file found")
+                raise FileNotFoundError(f"International_Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the file")
+                raise ValueError("No data found in the Educatoronbehalfofstudent_form_data.xlsx file")
             
-            print(f"📊 Found {len(df)} records in the file")
+            print(f"📊 Found {len(df)} international educator records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All form data loaded successfully:")
+            print("✅ All international educator form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - {record.get('Request_type', 'N/A')}")
+                agent_company = record.get('Authorized Agent Company Name', 'N/A')
+                country = record.get('country', 'N/A')
+                print(f"  Record {i+1}: {record.get('Agent First Name', 'N/A')} {record.get('Agent Last Name', 'N/A')} (Company: {agent_company}) - Student: {record.get('First Name', 'N/A')} {record.get('Last Name', 'N/A')} - Country: {country} - Request: {record.get('Request_type', 'N/A')}")
             
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading form data: {str(e)}")
-            print("📝 Using default fallback data...")
-            # Fallback to default data - return as list
+            print(f"❌ Error loading international educator form data: {str(e)}")
+            print("📝 Using default fallback data for international educator requests...")
+            # Fallback to default educator data - return as list with INTERNATIONAL data
             return [{
-                'Email Address': 'palmny1@mailinator.com',
-                'First_Name': 'RobNY',
-                'Last_Name': 'EdisonNY',
-                'birthDate': '11/1/2003',
-                'phone': '5712345567',
-                'country': 'US',
-                'postalCode': '14111',
-                'city': 'North Collins',
-                'streetAddress': '507 Central Avenue',
-                'studentSchoolName': 'South Lakes High School',
-                'studentGraduationYear': '2020',
-                'educatorSchoolAffiliation': 'N/A',
-                'Request_type': 'Request a copy of my data'
+                'Who is making this request': 'Authorized Agent on behalf of someone else',
+                'Authorized Agent Company Name': 'International School District',
+                'Agent First Name': 'John',
+                'Agent Last Name': 'InternationalEducator',
+                'Agent Email Address': 'john.educator@mailinator.com',
+                'First Name': 'Jane',
+                'Last Name': 'InternationalStudent',
+                'Email of Child (Data Subject)': 'student@mailinator.com',
+                'Date of Birth': '11/1/2008',
+                # NO Phone Number in fallback - should be empty
+                'country': 'India',  # International country, not US
+                # NO stateOrProvince field for international requests
+                'postalCode': '110001',
+                'city': 'New Delhi',
+                'streetAddress': '123 International Avenue',
+                'studentSchoolName': 'International High School',
+                'studentGraduationYear': '2026',
+                'educatorSchoolAffiliation': 'International High School',
+                'Request_type': 'Request to delete my data'
             }]
         
     def test_privacy_form_submission(self):
@@ -113,15 +123,29 @@ class TestPrivacyPortal:
         print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
         
         with sync_playwright() as p:
-            # Launch browser
-            browser = p.chromium.launch(headless=False)  # Set to True for headless mode
-            page = browser.new_page()
+            # Launch browser with clean state - disable autofill and use incognito mode
+            browser = p.chromium.launch(
+                headless=False,
+                args=[
+                    '--disable-blink-features=AutofillShowTypePredictions',
+                    '--disable-autofill',
+                    '--disable-autofill-keyboard-accessory-view',
+                    '--disable-full-form-autofill-ios',
+                    '--incognito'
+                ]
+            )
+            context = browser.new_context(
+                # Disable form persistence and auto-fill
+                ignore_https_errors=True,
+                extra_http_headers={'Accept-Language': 'en-US,en;q=0.9'}
+            )
+            page = context.new_page()
             
             try:
-                # Process each record
-                for record_index, record_data in enumerate(self.all_form_data):
+                # Process each record starting from record 4 (index 3) for testing
+                for record_index, record_data in enumerate(self.all_form_data[3:], start=3):
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)} (STARTING FROM RECORD 4)")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -129,9 +153,13 @@ class TestPrivacyPortal:
                     
                     # Display current record info
                     print(f"👤 Current Record Details:")
-                    print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
-                    print(f"   Email: {record_data.get('Email Address', 'N/A')}")
+                    print(f"   Agent: {record_data.get('Agent First Name', 'N/A')} {record_data.get('Agent Last Name', 'N/A')}")
+                    print(f"   Agent Email: {record_data.get('Agent Email Address', 'N/A')}")
+                    print(f"   Agent Company: {record_data.get('Authorized Agent Company Name', 'N/A')}")
+                    print(f"   Student: {record_data.get('First Name', 'N/A')} {record_data.get('Last Name', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
+                    print(f"   Country: {record_data.get('country', 'N/A')}")  # International uses country instead of state
+                    
                     try:
                         # Navigate to the privacy portal for each record
                         print(f"\n🌐 Navigating to form for record {record_index + 1}...")
@@ -140,111 +168,44 @@ class TestPrivacyPortal:
                         # Wait for page to load
                         page.wait_for_load_state("networkidle")
                         time.sleep(2)
+                        
+                        # 🔧 PHONE FIELD FIX: Clear any pre-filled phone fields to prevent auto-fill issues
+                        self.clear_phone_fields(page)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING EDUCATOR/AGENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
                         try:
                             self.fill_subject_information(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in subject information: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_subject_info_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after subject info
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_subject_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
-                        
-                        # Pause after subject info
-                        print("⏸️ PAUSE: Subject information filled. Continuing in 3 seconds...")
-                        time.sleep(3)
-                        
-                        try:
                             self.fill_contact_information(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in contact information: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_contact_info_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after contact info
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_contact_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
-                        
-                        # Pause after contact info to observe dropdowns
-                        print("⏸️ PAUSE: Contact information filled. Continuing in 3 seconds...")
-                        time.sleep(3)
-                        
-                        try:
-                            self.fill_additional_details(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in additional details: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_additional_details_record_{record_index + 1}.png")
-                        
-                        # Pause after additional details
-                        print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        try:
                             self.select_request_type(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in request type selection: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_request_type_record_{record_index + 1}.png")
-                        
-                        # Pause after request type selection
-                        print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Handle delete data sub-options if applicable
-                        try:
-                            self.handle_delete_data_suboptions(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in delete data sub-options: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_delete_options_record_{record_index + 1}.png")
-                        
-                        # Pause after delete options
-                        print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Handle close account sub-options if applicable
-                        try:
-                            self.handle_close_account_suboptions(page)
-                        except Exception as e:
-                            print(f"⚠️ Error in close account sub-options: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_close_options_record_{record_index + 1}.png")
-                        
-                        # Pause after close account options
-                        print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        try:
+                            self.handle_delete_request_additional_details(page)  # Handle delete details BEFORE general details
+                            self.fill_additional_details(page)
+                            
+                            # Handle request-specific sub-options based on the actual request type
+                            request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+                            print(f"🔍 Determining sub-options to handle for request type: '{request_type_from_excel}'")
+                            
+                            if 'delete' in request_type_from_excel:
+                                print("🗑️ DELETE request detected - handling delete sub-options")
+                                self.handle_delete_data_suboptions(page)
+                            elif any(keyword in request_type_from_excel for keyword in ['close', 'deactivate', 'cancel']):
+                                print("🚪 CLOSE request detected - handling close sub-options")
+                                self.handle_close_account_suboptions(page)
+                            else:
+                                print("ℹ️ Other request type - skipping specific sub-options")
+                                
                             self.handle_acknowledgments(page)
+                            
+                            # Take screenshot BEFORE submission (after all fields are filled)
+                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{record_index + 1}.png")
+                            print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                            
+                            # Submit the form
+                            self.submit_form(page, record_index + 1)
+                            
                         except Exception as e:
-                            print(f"⚠️ Error in acknowledgments: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_acknowledgments_record_{record_index + 1}.png")
-                        
-                        # Pause after acknowledgments
-                        print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
-                        time.sleep(2)
-                        
-                        # Take a screenshot after filling all fields
-                        page.screenshot(path=f"{self.screenshot_dir}\\form_filled_complete_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
-                        
-                        # Take a screenshot before submission (backup)
-                        page.screenshot(path=f"{self.screenshot_dir}\\before_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
-                        
-                        # Pause before submission to review completed form
-                        print(f"⏸️ PAUSE: Form completely filled for record {record_index + 1}! Submitting in 3 seconds...")
-                        time.sleep(3)
-                        
-                        # Submit the form
-                        try:
-                            self.submit_form(page)
-                        except Exception as e:
-                            print(f"⚠️ Error during form submission: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_submission_record_{record_index + 1}.png")
-                        
-                        # Take screenshot after submission
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
+                            print(f"⚠️ Error in parent form processing: {str(e)}")
+                            page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
                         
                         # Pause after submission to see results
                         print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
@@ -254,9 +215,13 @@ class TestPrivacyPortal:
                         
                     except Exception as e:
                         print(f"❌ Error processing record {record_index + 1}: {str(e)}")
-                        # Take screenshot on error
-                        page.screenshot(path=f"{self.screenshot_dir}\\error_record_{record_index + 1}.png")
-                        print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        # Try to take screenshot on error if page is still available
+                        try:
+                            if page and not page.is_closed():
+                                page.screenshot(path=f"dsr/screenshots/error_record_{record_index + 1}.png")
+                                print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        except:
+                            print("⚠️ Could not take error screenshot (page may be closed)")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
@@ -268,10 +233,14 @@ class TestPrivacyPortal:
                 print("✅ Multiple record form automation completed!")
                 
             except Exception as e:
-                # Take screenshot on major error
-                page.screenshot(path=f"{self.screenshot_dir}\\major_error_screenshot.png")
+                # Try to take screenshot on major error if page is still available
+                try:
+                    if page and not page.is_closed():
+                        page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                        print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
+                except:
+                    print("⚠️ Could not take major error screenshot (page may be closed)")
                 print(f"❌ Major error occurred: {str(e)}")
-                print(f"📸 Major error screenshot saved: {self.screenshot_dir}\\major_error_screenshot.png")
                 raise
                 
             finally:
@@ -280,51 +249,323 @@ class TestPrivacyPortal:
                 time.sleep(10)
                 browser.close()
     
-    def fill_subject_information(self, page: Page):
-        """Fill subject information section"""
-        print("Filling subject information...")
+    def clear_phone_fields(self, page: Page):
+        """🔧 Clear any pre-filled phone fields to prevent browser auto-fill issues"""
+        print("🧹 Clearing any pre-filled phone fields...")
         
-        # FIRST: Click "Myself" button if it exists
-        print("🔘 Looking for 'Myself' button...")
-        myself_selectors = [
-            "button:has-text('Myself')",
-            "button:has-text('myself')",
-            "input[value='Myself']",
-            "input[value='myself']",
-            "input[type='radio'][value*='myself']",
-            "input[type='radio'][value*='Myself']",
-            "label:has-text('Myself')",
-            "label:has-text('myself')",
-            "button[data-testid*='myself']",
-            ".myself-btn",
-            "#myself",
-            "span:has-text('Myself')",
-            "div:has-text('Myself')",
-            "[data-value='myself']",
-            "[data-value='Myself']"
+        phone_selectors = [
+            "input[type='tel']",
+            "input[name*='phone']", 
+            "input[id*='phone']",
+            "input[placeholder*='phone']",
+            "input[placeholder*='Phone']",
+            "input[data-testid*='phone']"
         ]
         
-        myself_clicked = False
-        for selector in myself_selectors:
+        for selector in phone_selectors:
+            try:
+                elements = page.locator(selector).all()
+                for element in elements:
+                    if element.is_visible():
+                        element.clear()
+                        print(f"✅ Cleared phone field: {selector}")
+            except:
+                continue  # Field might not exist yet, that's okay
+    
+    
+    def fill_subject_information(self, page: Page):
+        """Fill subject information section for EDUCATOR/AGENT requests"""
+        print("Filling subject information for EDUCATOR/AGENT request...")
+        
+        # FIRST: Click "Authorized Agent on behalf of someone else" button
+        print("🔘 Looking for 'Authorized Agent on behalf of someone else' button...")
+        agent_selectors = [
+            "button:has-text('Authorized Agent on behalf of someone else')",
+            "button:has-text('authorized agent on behalf of someone else')", 
+            "button:has-text('Authorized Agent')",
+            "button:has-text('authorized agent')",
+            "button:has-text('Agent')",
+            "button:has-text('agent')",
+            "input[value='Authorized Agent on behalf of someone else']",
+            "input[value='authorized agent on behalf of someone else']",
+            "input[value='Authorized Agent']",
+            "input[value='authorized agent']",
+            "input[value='Agent']",
+            "input[value='agent']",
+            "input[type='radio'][value*='agent']",
+            "input[type='radio'][value*='Agent']",
+            "input[type='radio'][value*='authorized']",
+            "input[type='radio'][value*='Authorized']",
+            "label:has-text('Authorized Agent on behalf of someone else')",
+            "label:has-text('authorized agent on behalf of someone else')",
+            "label:has-text('Authorized Agent')",
+            "label:has-text('authorized agent')",
+            "label:has-text('Agent')",
+            "label:has-text('agent')",
+            "button[data-testid*='agent']",
+            ".agent-btn",
+            "#agent",
+            "span:has-text('Authorized Agent on behalf of someone else')",
+            "span:has-text('Authorized Agent')",
+            "span:has-text('Agent')",
+            "div:has-text('Authorized Agent on behalf of someone else')",
+            "div:has-text('Authorized Agent')",
+            "div:has-text('Agent')",
+            "[data-value='agent']",
+            "[data-value='Agent']",
+            "[data-value='authorized']",
+            "[data-value='Authorized']",
+            "[role='button']:has-text('Agent')",
+            "[role='button']:has-text('Authorized')"
+        ]
+        
+        agent_clicked = False
+        for selector in agent_selectors:
             try:
                 if page.locator(selector).first.is_visible():
                     page.click(selector)
-                    print(f"✅ Clicked 'Myself' button with selector: {selector}")
-                    time.sleep(2)  # Longer pause to see form update
-                    myself_clicked = True
+                    print(f"✅ Clicked 'Authorized Agent on behalf of someone else' button with selector: {selector}")
+                    time.sleep(3)  # Longer pause to let form update for agent fields
+                    agent_clicked = True
                     break
             except Exception as e:
-                print(f"⚠️ Could not click 'Myself' button with selector {selector}: {str(e)}")
+                print(f"⚠️ Could not click 'Agent' button with selector {selector}: {str(e)}")
                 continue
         
-        if not myself_clicked:
-            print("⚠️ 'Myself' button not found - continuing anyway...")
+        if not agent_clicked:
+            print("⚠️ 'Authorized Agent on behalf of someone else' button not found - continuing anyway...")
         
-        # Pause after clicking Myself to let form update
-        print("⏸️ Brief pause after 'Myself' selection...")
-        time.sleep(2)
+        # Pause after clicking Agent to let form update with agent fields
+        print("⏸️ Brief pause after 'Agent' selection to load agent fields...")
+        time.sleep(3)
         
-        # First Name - enhanced selectors
+        # AGENT FIELDS: Fill agent/educator information
+        print("👨‍🏫 Filling agent/educator information...")
+        
+        # Agent First Name
+        agent_first_name_selectors = [
+            # Look for fields specifically labeled for agent first name
+            "input[aria-label*='Agent First Name']",
+            "input[placeholder*='Agent First Name']",
+            "input[aria-label*='First Name of Agent']",
+            "input[placeholder*='First Name of Agent']",
+            "label:has-text('Agent First Name') + input",
+            "label:has-text('Agent First Name') ~ input",
+            "label:has-text('First Name of Agent') + input",
+            "label:has-text('First Name of Agent') ~ input",
+            "*:has-text('Agent First Name') + input",
+            "*:has-text('Agent First Name') ~ input",
+            "*:has-text('First Name of Agent') + input",
+            "*:has-text('First Name of Agent') ~ input",
+            # Generic agent selectors
+            "input[name*='agent'][name*='first']",
+            "input[name*='educator'][name*='first']",
+            "input[placeholder*='Agent'][placeholder*='First']",
+            "input[placeholder*='Educator'][placeholder*='First']",
+            "input[placeholder*='agent'][placeholder*='first']",
+            "input[placeholder*='educator'][placeholder*='first']",
+            "input[aria-label*='Agent'][aria-label*='First']",
+            "input[aria-label*='Educator'][aria-label*='First']",
+            "input[id*='agent'][id*='first']",
+            "input[id*='educator'][id*='first']",
+            "input[data-testid*='agent'][data-testid*='first']",
+            "input[data-testid*='educator'][data-testid*='first']"
+        ]
+        agent_first_filled = False
+        for selector in agent_first_name_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('Agent First Name', 'Educator')))
+                    print(f"✅ Agent first name filled: '{self.form_data.get('Agent First Name', 'Educator')}' with selector: {selector}")
+                    time.sleep(1)
+                    agent_first_filled = True
+                    break
+            except:
+                continue
+        
+        if not agent_first_filled:
+            print("⚠️ Agent first name field not found")
+        
+        # Agent Last Name
+        agent_last_name_selectors = [
+            # Look for fields specifically labeled for agent last name
+            "input[aria-label*='Agent Last Name']",
+            "input[placeholder*='Agent Last Name']",
+            "input[aria-label*='Last Name of Agent']",
+            "input[placeholder*='Last Name of Agent']",
+            "label:has-text('Agent Last Name') + input",
+            "label:has-text('Agent Last Name') ~ input",
+            "label:has-text('Last Name of Agent') + input",
+            "label:has-text('Last Name of Agent') ~ input", 
+            "*:has-text('Agent Last Name') + input",
+            "*:has-text('Agent Last Name') ~ input",
+            "*:has-text('Last Name of Agent') + input",
+            "*:has-text('Last Name of Agent') ~ input",
+            # Generic agent selectors
+            "input[name*='agent'][name*='last']",
+            "input[name*='educator'][name*='last']",
+            "input[placeholder*='Agent'][placeholder*='Last']",
+            "input[placeholder*='Educator'][placeholder*='Last']",
+            "input[placeholder*='agent'][placeholder*='last']",
+            "input[placeholder*='educator'][placeholder*='last']",
+            "input[aria-label*='Agent'][aria-label*='Last']",
+            "input[aria-label*='Educator'][aria-label*='Last']",
+            "input[id*='agent'][id*='last']",
+            "input[id*='educator'][id*='last']",
+            "input[data-testid*='agent'][data-testid*='last']",
+            "input[data-testid*='educator'][data-testid*='last']"
+        ]
+        agent_last_filled = False
+        for selector in agent_last_name_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, str(self.form_data.get('Agent Last Name', 'AgentbehalfofStu')))
+                    print(f"✅ Agent last name filled: '{self.form_data.get('Agent Last Name', 'AgentbehalfofStu')}' with selector: {selector}")
+                    time.sleep(1)
+                    agent_last_filled = True
+                    break
+            except:
+                continue
+        
+        if not agent_last_filled:
+            print("⚠️ Agent last name field not found")
+        
+        # Agent Email Address (This is a TEXT field, not email type!)
+        print("📧 Filling agent email address...")
+        agent_email_selectors = [
+            # The exact field we found on the form
+            "input[aria-label='Agent Email Address']",
+            "input[id='formField123DSARElement']",
+            # Fallback selectors
+            "input[aria-label*='Agent Email Address']",
+            "input[placeholder*='Agent Email Address']",
+            "input[aria-label*='Email Address of Agent']",
+            "input[placeholder*='Email Address of Agent']",
+            "label:has-text('Agent Email Address') + input",
+            "label:has-text('Agent Email Address') ~ input",
+            "label:has-text('Email Address of Agent') + input",
+            "label:has-text('Email Address of Agent') ~ input",
+            "*:has-text('Agent Email Address') + input",
+            "*:has-text('Agent Email Address') ~ input",
+            "*:has-text('Email Address of Agent') + input",
+            "*:has-text('Email Address of Agent') ~ input",
+            # Generic agent email selectors - INCLUDE TEXT FIELDS!
+            "input[name*='agent'][type='email']",
+            "input[name*='educator'][type='email']", 
+            "input[name*='agent'][name*='email']",
+            "input[name*='educator'][name*='email']",
+            "input[name*='agent'][type='text']",  # Agent email might be text type
+            "input[name*='educator'][type='text']",
+            "input[placeholder*='Agent'][placeholder*='Email']",
+            "input[placeholder*='Educator'][placeholder*='Email']",
+            "input[placeholder*='agent'][placeholder*='email']",
+            "input[placeholder*='educator'][placeholder*='email']",
+            "input[aria-label*='Agent'][aria-label*='Email']",
+            "input[aria-label*='Educator'][aria-label*='Email']",
+            "input[id*='agent'][id*='email']",
+            "input[id*='educator'][id*='email']",
+            "input[data-testid*='agent'][data-testid*='email']",
+            "input[data-testid*='educator'][data-testid*='email']"
+        ]
+        agent_email_filled = False
+        agent_email_value = str(self.form_data.get('Agent Email Address', 'educator@mailinator.com'))
+        print(f"📧 Agent email from Excel: '{agent_email_value}'")
+        
+        for selector in agent_email_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, agent_email_value)
+                    print(f"✅ Agent email filled: '{agent_email_value}' with selector: {selector}")
+                    time.sleep(1)
+                    agent_email_filled = True
+                    break
+            except:
+                continue
+        
+        if not agent_email_filled:
+            print("⚠️ Agent email field not found")
+        
+        # Agent Company Name - Found the exact field!
+        print("🏢 Filling agent company name...")
+        agent_company_selectors = [
+            # The exact field we found on the form
+            "input[aria-label='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "input[id='formField120DSARElement']",
+            # Fallback selectors
+            "input[aria-label*='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "input[placeholder*='Authorized Agent Company Name (insert N/A if not applicable)']",
+            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
+            "label:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
+            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') + input",
+            "*:has-text('Authorized Agent Company Name (insert N/A if not applicable)') ~ input",
+            # Partial matches for the field
+            "input[aria-label*='insert N/A if not applicable']",
+            "input[placeholder*='insert N/A if not applicable']",
+            "label:has-text('insert N/A if not applicable') + input",
+            "label:has-text('insert N/A if not applicable') ~ input",
+            "*:has-text('insert N/A if not applicable') + input",
+            "*:has-text('insert N/A if not applicable') ~ input",
+            # Look for fields specifically labeled for agent company name
+            "input[aria-label*='Agent Company Name']",
+            "input[placeholder*='Agent Company Name']",
+            "input[aria-label*='Company Name of Agent']",
+            "input[placeholder*='Company Name of Agent']",
+            "input[aria-label*='Authorized Agent Company Name']",
+            "input[placeholder*='Authorized Agent Company Name']",
+            "label:has-text('Agent Company Name') + input",
+            "label:has-text('Agent Company Name') ~ input",
+            "label:has-text('Company Name of Agent') + input",
+            "label:has-text('Company Name of Agent') ~ input",
+            "label:has-text('Authorized Agent Company Name') + input",
+            "label:has-text('Authorized Agent Company Name') ~ input",
+            "*:has-text('Agent Company Name') + input",
+            "*:has-text('Agent Company Name') ~ input",
+            "*:has-text('Company Name of Agent') + input",
+            "*:has-text('Company Name of Agent') ~ input",
+            "*:has-text('Authorized Agent Company Name') + input",
+            "*:has-text('Authorized Agent Company Name') ~ input",
+            # Generic agent company selectors
+            "input[name*='agent'][name*='company']",
+            "input[name*='educator'][name*='company']",
+            "input[name*='agent'][name*='organization']",
+            "input[name*='educator'][name*='organization']",
+            "input[placeholder*='Agent'][placeholder*='Company']",
+            "input[placeholder*='Educator'][placeholder*='Company']",
+            "input[placeholder*='agent'][placeholder*='company']",
+            "input[placeholder*='educator'][placeholder*='company']",
+            "input[aria-label*='Agent'][aria-label*='Company']",
+            "input[aria-label*='Educator'][aria-label*='Company']",
+            "input[id*='agent'][id*='company']",
+            "input[id*='educator'][id*='company']",
+            "input[data-testid*='agent'][data-testid*='company']",
+            "input[data-testid*='educator'][data-testid*='company']"
+        ]
+        
+        agent_company_filled = False
+        company_name = str(self.form_data.get('Authorized Agent Company Name', 'N/A'))
+        
+        # Fill company name field - use "N/A" when Excel has "N/A", or use actual company name
+        print(f"🏢 Company name from Excel: '{company_name}'")
+        
+        # Always try to fill the field (whether it's "N/A" or a real company name)
+        for selector in agent_company_selectors:
+            try:
+                if page.locator(selector).first.is_visible():
+                    page.fill(selector, company_name)
+                    print(f"✅ Agent company name filled: '{company_name}' with selector: {selector}")
+                    time.sleep(1)
+                    agent_company_filled = True
+                    break
+            except:
+                continue
+        
+        if not agent_company_filled:
+            print(f"⚠️ Agent company name field not found (value: '{company_name}')")
+        
+        # STUDENT FIELDS: Fill student information (the person the agent is representing)
+        print("👨‍🎓 Filling student information...")
+        
+        # Student First Name - enhanced selectors
         first_name_selectors = [
             "input[name='firstName']",
             "input[name='first_name']", 
@@ -336,14 +577,14 @@ class TestPrivacyPortal:
         for selector in first_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('First_Name', 'RobNY')))
-                    print(f"✅ First name filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    page.fill(selector, str(self.form_data.get('First Name', 'StudentFirst')))
+                    print(f"✅ Student first name filled with selector: {selector}")
+                    time.sleep(1)
                     break
             except:
                 continue
                 
-        # Last Name - enhanced selectors
+        # Child Last Name - enhanced selectors
         last_name_selectors = [
             "input[name='lastName']",
             "input[name='last_name']",
@@ -355,33 +596,108 @@ class TestPrivacyPortal:
         for selector in last_name_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Last_Name', 'EdisonNY')))
-                    print(f"✅ Last name filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
+                    page.fill(selector, str(self.form_data.get('Last Name', 'ChildLast')))
+                    print(f"✅ Child last name filled with selector: {selector}")
+                    time.sleep(1)
                     break
             except:
                 continue
             
-        # Email Address - enhanced selectors
-        email_selectors = [
-            "input[type='email']",
-            "input[name='email']",
-            "input[id*='email']",
-            "input[placeholder*='email']",
-            "input[placeholder*='Email']",
-            "input[data-testid*='email']"
+        # Child Email Address (Email of Child/Data Subject) - This might be the Primary Email Address field
+        print("📧 Filling child/student email address...")
+        child_email_selectors = [
+            # Primary Email Address field we found (might be for child)
+            "input[aria-label='Primary Email Address']",
+            "input[id='emailDSARElement']",
+            # Exact match from form label variations
+            "input[aria-label*='Email of Child (Data Subject)']",
+            "input[placeholder*='Email of Child (Data Subject)']",
+            "label:has-text('Email of Child (Data Subject)') + input",
+            "label:has-text('Email of Child (Data Subject)') ~ input",
+            "*:has-text('Email of Child (Data Subject)') + input",
+            "*:has-text('Email of Child (Data Subject)') ~ input",
+            # Alternative variations
+            "input[aria-label*='Email of Child']",
+            "input[placeholder*='Email of Child']",
+            "input[aria-label*='Child Email']", 
+            "input[placeholder*='Child Email']",
+            "input[aria-label*='Data Subject Email']",
+            "input[placeholder*='Data Subject Email']",
+            "input[aria-label*='Student Email']",
+            "input[placeholder*='Student Email']",
+            "label:has-text('Email of Child') + input",
+            "label:has-text('Child Email') + input",
+            "label:has-text('Student Email') + input",
+            "label:has-text('Data Subject Email') + input",
+            "*:has-text('Email of Child') + input",
+            "*:has-text('Child Email') + input",
+            "*:has-text('Student Email') + input",
+            "*:has-text('Data Subject') + input[type='email']",
+            # Generic selectors that might contain child/data subject context
+            "input[name*='child'][type='email']",
+            "input[name*='subject'][type='email']",
+            "input[name*='student'][type='email']",
+            "input[id*='child'][id*='email']",
+            "input[id*='subject'][id*='email']",
+            "input[id*='student'][id*='email']",
+            "input[data-testid*='child'][data-testid*='email']",
+            "input[data-testid*='student'][data-testid*='email']"
         ]
-        for selector in email_selectors:
+        
+        child_email_filled = False
+        child_email_value = str(self.form_data.get('Primary Email address', 
+                               self.form_data.get('Email of Child (Data Subject)', 'childstudent@mailinator.com')))
+        print(f"📧 Child email from Excel: '{child_email_value}'")
+        
+        for selector in child_email_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Email Address', 'palmny1@mailinator.com')))
-                    print(f"✅ Email filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
-                    break
+                    # Check if this field is actually for child and not parent by examining context
+                    field_element = page.locator(selector).first
+                    field_label = ""
+                    try:
+                        # Try to get aria-label or placeholder to determine context
+                        field_label = field_element.get_attribute('aria-label') or ""
+                        if not field_label:
+                            field_label = field_element.get_attribute('placeholder') or ""
+                        if not field_label:
+                            # Try to find associated label
+                            field_id = field_element.get_attribute('id')
+                            if field_id:
+                                label_element = page.locator(f"label[for='{field_id}']").first
+                                if label_element.is_visible():
+                                    field_label = label_element.text_content() or ""
+                    except:
+                        pass
+                    
+                    # Check if this is definitely a child/student field and not parent/agent
+                    field_label_lower = field_label.lower()
+                    is_child_field = any(keyword in field_label_lower for keyword in ['child', 'student', 'data subject', 'subject'])
+                    is_agent_field = any(keyword in field_label_lower for keyword in ['agent', 'educator', 'teacher'])
+                    # NOTE: In agent forms, "Primary Email Address" is actually for the child, not parent
+                    is_parent_field = any(keyword in field_label_lower for keyword in ['parent', 'guardian']) and 'primary email' not in field_label_lower
+                    
+                    # Skip agent fields, but allow primary email and child fields
+                    if is_agent_field and 'primary' not in field_label_lower:
+                        print(f"⚠️ Skipping email field (appears to be for agent): {selector} - {field_label}")
+                        continue
+                    elif is_parent_field:
+                        print(f"⚠️ Skipping email field (appears to be for parent): {selector} - {field_label}")
+                        continue
+                    elif is_child_field or 'primary email' in field_label_lower or not (is_agent_field or is_parent_field):
+                        page.fill(selector, child_email_value)
+                        print(f"✅ Child email filled: '{child_email_value}' with selector: {selector}")
+                        print(f"   Field context: {field_label}")
+                        time.sleep(1)
+                        child_email_filled = True
+                        break
             except:
                 continue
+        
+        if not child_email_filled:
+            print("⚠️ Child email field not found")
             
-        # Phone Number - enhanced selectors
+        # Phone Number - enhanced selectors with data validation
         phone_selectors = [
             "input[type='tel']",
             "input[name='phone']",
@@ -391,15 +707,42 @@ class TestPrivacyPortal:
             "input[placeholder*='Phone']",
             "input[data-testid*='phone']"
         ]
-        for selector in phone_selectors:
-            try:
-                if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('phone', '5712345567')))
-                    print(f"✅ Phone filled with selector: {selector}")
-                    time.sleep(1)  # Brief pause to watch field fill
-                    break
-            except:
-                continue
+        
+        # Get phone number from Excel and validate it
+        phone_from_excel = str(self.form_data.get('Phone Number', '')).strip()
+        print(f"📞 Phone from Excel: '{phone_from_excel}'")
+        
+        # Check if there's actually phone data in Excel
+        if not phone_from_excel or phone_from_excel.lower() in ['', 'nan', 'none', 'null', 'n/a', 'na']:
+            print("ℹ️ No phone number in Excel - skipping phone field (leaving empty)")
+        else:
+            # Validate phone number - check if it's actually a phone number
+            import re
+            # Remove any non-digit characters for validation
+            phone_digits_only = re.sub(r'[^\d]', '', phone_from_excel)
+            
+            # Check if we have a valid phone number (at least 7 digits, no letters/words)
+            is_valid_phone = (
+                len(phone_digits_only) >= 7 and 
+                len(phone_digits_only) <= 15 and
+                not any(word in phone_from_excel.lower() for word in ['account', 'closure', 'close', 'delete', 'request', 'data', 'subject', 'test'])
+            )
+            
+            if is_valid_phone:
+                phone_to_use = phone_from_excel
+                print(f"✅ Using phone number from Excel: '{phone_to_use}'")
+                
+                for selector in phone_selectors:
+                    try:
+                        if page.locator(selector).first.is_visible():
+                            page.fill(selector, phone_to_use)
+                            print(f"✅ Phone filled with selector: {selector}")
+                            time.sleep(1)
+                            break
+                    except:
+                        continue
+            else:
+                print(f"⚠️ Invalid phone data in Excel ('{phone_from_excel}') - skipping phone field (leaving empty)")
             
         # Birth Date - try multiple selectors and formats
         birthdate_selectors = [
@@ -420,8 +763,8 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2003'))
-                    date_formats = [birth_date_raw, "11/01/2003", "11/1/2003", "2003-11-01", "01/11/2003", "01-11-2003"]
+                    birth_date_raw = str(self.form_data.get('Date of Birth', '11/1/2008'))
+                    date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)
@@ -503,7 +846,7 @@ class TestPrivacyPortal:
         
         # Get the actual country from Excel data
         country_from_excel = str(self.form_data.get('country', 'India'))
-        print(f"� Country from Excel: '{country_from_excel}'")
+        print(f"🌏 Country from Excel: '{country_from_excel}'")
         
         # Map common abbreviations to full country names to avoid dropdown selection issues
         country_mapping = {
@@ -685,24 +1028,94 @@ class TestPrivacyPortal:
             print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
             # Take a screenshot to see current state
             try:
-                page.screenshot(path=f"{self.screenshot_dir}\\country_field_issue.png")
-                print(f"📸 Screenshot saved: {self.screenshot_dir}\\country_field_issue.png")
+                page.screenshot(path="dsr/screenshots/country_field_issue.png")
+                print("📸 Screenshot saved: screenshots/country_field_issue.png")
             except:
                 pass
 
-        # Check for international form completion (no state field needed for most international addresses)
-        print("🌍 Checking if this is truly an international form...")
+        # State/Province handling for international requests
+        print("🌍 Checking if state field is needed for international request...")
         
         # For international requests, state field may not be required or may not exist
         # Check if the country from Excel indicates this is truly international (non-US)
         country_from_excel = str(self.form_data.get('country', 'India'))
         is_us_address = country_from_excel.upper() in ['US', 'USA', 'UNITED STATES', 'UNITED STATES OF AMERICA']
         
-        print(f"🌍 Country: '{country_from_excel}', Is US: {is_us_address}")
+        # IMPORTANT: Check if stateOrProvince column exists in the data
+        has_state_data = 'stateOrProvince' in self.form_data and self.form_data.get('stateOrProvince', '').strip()
         
-        if not is_us_address:
-            print(f"🌍 International address detected ('{country_from_excel}'), skipping state field...")
-            # Check if state field exists anyway (shouldn't for international)
+        print(f"🌍 Country: '{country_from_excel}', Is US: {is_us_address}, Has state data: {has_state_data}")
+        
+        if is_us_address and has_state_data:
+            print(f"🇺🇸 US address detected with state data ('{country_from_excel}'), will attempt to fill state field...")
+            # Use the existing state logic for US addresses
+            state_filled = False
+            try:
+                # Wait for state field to become available after country selection
+                print("⏳ Waiting for state field to become available after US country selection...")
+                time.sleep(5)
+                
+                # Try multiple selectors for state field
+                state_selectors = [
+                    "select[name*='state']",
+                    "select[id*='state']",
+                    "select[id*='State']", 
+                    "select[class*='state']",
+                    "input[name*='state']",
+                    "input[id*='state']",
+                    "input[placeholder*='State']",
+                    "input[placeholder*='state']",
+                    "input[class*='state']",
+                    "[data-testid*='state']",
+                    "[aria-label*='state']",
+                    "[aria-label*='State']"
+                ]
+                
+                for state_selector in state_selectors:
+                    try:
+                        element = page.locator(state_selector).first
+                        if element.is_visible():
+                            print(f"🔍 Found state field with selector: {state_selector}")
+                            
+                            # Get state name from Excel data (fallback for US addresses in international file)
+                            state_name = str(self.form_data.get('stateOrProvince', 'New York'))
+                            print(f"🏛️ Using state from Excel: '{state_name}'")
+                            
+                            # Simple state selection for US addresses
+                            try:
+                                element.click(timeout=3000)
+                                print("✅ Clicked state field")
+                                time.sleep(1)
+                                
+                                element.fill(state_name)
+                                print(f"✅ Typed '{state_name}'")
+                                time.sleep(2)
+                                
+                                element.press("Enter")
+                                print("⏎ Pressed Enter to select state")
+                                time.sleep(2)
+                                state_filled = True
+                                break
+                                
+                            except Exception as e:
+                                print(f"⚠️ Error filling state field: {str(e)}")
+                                continue
+                        
+                    except Exception as e:
+                        print(f"⚠️ Error with state selector {state_selector}: {str(e)}")
+                        continue
+                        
+            except Exception as e:
+                print(f"❌ Error in US state selection: {str(e)}")
+                
+            if not state_filled:
+                print("⚠️ Could not fill US state field - continuing anyway...")
+                
+        else:
+            print(f"🌏 International address detected ('{country_from_excel}') or no state data available...")
+            print("✅ Skipping state field for international request - this is correct for international forms")
+            
+            # Check if there's actually a state field on the form that we need to handle
             try:
                 state_field_exists = page.locator("select[name*='state'], input[name*='state'], [aria-label*='state']").first.is_visible(timeout=2000)
                 if state_field_exists:
@@ -714,8 +1127,7 @@ class TestPrivacyPortal:
             
             # Wait a moment for form to stabilize after country selection
             time.sleep(2)
-
-        # ...existing code...
+        
         print("✅ Contact information section completed")
     
     def fill_additional_details(self, page: Page):
@@ -845,23 +1257,27 @@ class TestPrivacyPortal:
         if not educator_filled:
             print("⚠️ Educator affiliation field not found")
                 
-        # Look for any textarea fields (description, comments, etc.)
-        print("📝 Looking for textarea/comment fields...")
+        # Look for any textarea fields (description, comments, etc.) - BUT NOT delete request specific ones
+        print("📝 Looking for textarea/comment fields (excluding delete request fields)...")
+        
+        # Check if this is a delete request - if so, be extra cautious about textarea fields
+        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+        is_delete_request = 'delete' in request_type_from_excel
+        
+        if is_delete_request:
+            print("⚠️ Delete request detected - will be very careful to avoid delete-specific textarea fields")
+        
         textarea_selectors = [
             "textarea[name*='description']",
-            "textarea[name*='comment']",
+            "textarea[name*='comment']", 
             "textarea[name*='message']",
-            "textarea[name*='details']",
             "textarea[placeholder*='description']",
             "textarea[placeholder*='comment']",
             "textarea[placeholder*='message']",
-            "textarea[placeholder*='details']",
-            "textarea[placeholder*='additional']",
             "textarea[placeholder*='other']",
             "textarea[aria-label*='description']",
             "textarea[aria-label*='comment']",
-            "textarea[aria-label*='message']",
-            "textarea"
+            "textarea[aria-label*='message']"
         ]
         textarea_filled = False
         for selector in textarea_selectors:
@@ -870,7 +1286,36 @@ class TestPrivacyPortal:
                 for element in elements:
                     if element.is_visible():
                         placeholder = element.get_attribute("placeholder") or ""
-                        print(f"🔍 Found textarea field - placeholder: '{placeholder}'")
+                        name = element.get_attribute("name") or ""
+                        aria_label = element.get_attribute("aria-label") or ""
+                        element_id = element.get_attribute("id") or ""
+                        
+                        # Combine all text attributes for checking
+                        all_field_text = f"{placeholder} {name} {aria_label} {element_id}".lower()
+                        
+                        # For delete requests, be EXTRA cautious - skip ANY field that could be for additional details
+                        delete_related_keywords = ["additional", "details", "delete", "removal", "n/a", "necessary", "add", "provide"]
+                        phone_related_keywords = ["phone", "telephone", "tel"]
+                        
+                        # Skip if this looks like a delete request specific field
+                        if any(word in all_field_text for word in delete_related_keywords):
+                            print(f"⏭️ Skipping potential delete request field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
+                            continue
+                            
+                        # Skip if this looks like a phone field (extra safety)
+                        if any(word in all_field_text for word in phone_related_keywords):
+                            print(f"⏭️ Skipping phone-related field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
+                            continue
+                        
+                        # For delete requests, only fill if we're very sure this is NOT a delete-specific field
+                        if is_delete_request:
+                            # Be very conservative - only fill fields that clearly look like general description/comment fields
+                            safe_keywords = ["description", "comment", "message", "other"]
+                            if not any(word in all_field_text for word in safe_keywords):
+                                print(f"⏭️ Delete request: Skipping uncertain field - placeholder: '{placeholder}', name: '{name}'")
+                                continue
+                                
+                        print(f"🔍 Found safe textarea field - placeholder: '{placeholder}', name: '{name}', aria-label: '{aria_label}'")
                         element.fill("Automated form submission for privacy request testing.")
                         print(f"✅ Textarea filled using selector: {selector}")
                         textarea_filled = True
@@ -904,6 +1349,135 @@ class TestPrivacyPortal:
             pass
         
         print("✅ Additional details section completed")
+    
+    def handle_delete_request_additional_details(self, page: Page):
+        """Handle additional details field that appears specifically for delete requests"""
+        print("📝 Handling delete request additional details...")
+        
+        # Check if this is a delete request
+        request_type_from_excel = str(self.form_data.get('Request_type', '')).strip().lower()
+        if 'delete' not in request_type_from_excel:
+            print("ℹ️ Not a delete request, skipping additional details")
+            return
+        
+        # Wait for the additional details field to appear after selecting delete request type
+        time.sleep(3)
+        
+        # Look for the additional details prompt
+        details_indicators = [
+            "text=If necessary, please add additional details",
+            "text=If you have no details to add, write N/A",
+            "text=additional details",
+            "text=Additional details",
+            "text=Please provide additional information",
+            "text=If necessary, please add"
+        ]
+        
+        details_section_found = False
+        for indicator in details_indicators:
+            try:
+                if page.locator(indicator).first.is_visible():
+                    print(f"✅ Found additional details section: {indicator}")
+                    details_section_found = True
+                    break
+            except:
+                continue
+        
+        if not details_section_found:
+            print("ℹ️ Additional details section not found - may not be required")
+            return
+        
+        # Look for the textarea or input field for additional details - BE VERY SPECIFIC
+        print("🔍 Looking for additional details input field...")
+        additional_details_selectors = [
+            # Most specific first - target textarea fields that are specifically for additional details
+            "textarea[name*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[name*='details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='N/A']:not([name*='phone']):not([id*='phone'])",
+            "textarea[placeholder*='add additional details']:not([name*='phone']):not([id*='phone'])",
+            "textarea[aria-label*='additional']:not([name*='phone']):not([id*='phone'])",
+            "textarea[aria-label*='details']:not([name*='phone']):not([id*='phone'])",
+            # Specific input fields for additional details (NOT phone related)
+            "input[name*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[name*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='additional']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='details']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            "input[placeholder*='N/A']:not([name*='phone']):not([id*='phone']):not([type='tel']):not([type='phone'])",
+            # Last resort - any textarea that doesn't look like phone field
+            "textarea:not([name*='phone']):not([id*='phone']):not([placeholder*='phone']):not([placeholder*='Phone'])"
+        ]
+        
+        details_filled = False
+        additional_details_text = str(self.form_data.get('additional_details', '')).strip()
+        
+        # Use N/A for empty additional details (simple and clean)
+        if not additional_details_text or additional_details_text.lower() in ['nan', '', 'none', 'n/a']:
+            additional_details_text = 'N/A'
+        
+        print(f"📝 Additional details text from Excel: '{additional_details_text}'")
+        
+        for selector in additional_details_selectors:
+            try:
+                elements = page.locator(selector).all()
+                for element in elements:
+                    if element.is_visible():
+                        placeholder = element.get_attribute("placeholder") or ""
+                        name = element.get_attribute("name") or ""
+                        element_id = element.get_attribute("id") or ""
+                        element_type = element.get_attribute("type") or ""
+                        aria_label = element.get_attribute("aria-label") or ""
+                        
+                        # Combine all attributes for comprehensive checking
+                        all_attributes = f"{placeholder} {name} {element_id} {element_type} {aria_label}".lower()
+                        
+                        # VERY strict phone field detection - reject if ANY phone-related word appears
+                        phone_indicators = ["phone", "telephone", "tel", "mobile", "cell", "number"]
+                        if any(indicator in all_attributes for indicator in phone_indicators):
+                            print(f"⚠️ REJECTING phone-related field - name: '{name}', placeholder: '{placeholder}', id: '{element_id}', type: '{element_type}', aria-label: '{aria_label}'")
+                            continue
+                            
+                        # Also skip if it's a telephone input type
+                        if element_type in ["tel", "phone", "number"]:
+                            print(f"⚠️ REJECTING telephone input type - type: '{element_type}'")
+                            continue
+                        
+                        # Prefer fields that specifically mention additional details
+                        priority_keywords = ["additional", "details", "provide", "necessary"]
+                        has_priority = any(keyword in all_attributes for keyword in priority_keywords)
+                        
+                        print(f"🔍 Evaluating field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}', has_priority: {has_priority}")
+                        
+                        # If this looks like a general description field but we haven't found a priority field yet, skip it
+                        general_keywords = ["description", "comment", "message"]
+                        is_general = any(keyword in all_attributes for keyword in general_keywords)
+                        
+                        if is_general and not has_priority:
+                            print(f"⏭️ Skipping general field - waiting for priority field")
+                            continue
+                        
+                        print(f"✅ SELECTED field - name: '{name}', placeholder: '{placeholder}', type: '{element_type}'")
+                        
+                        # Clear any existing content and fill with our data
+                        element.clear()
+                        time.sleep(0.5)
+                        element.fill(additional_details_text)
+                        print(f"✅ Additional details filled: '{additional_details_text}' using selector: {selector}")
+                        details_filled = True
+                        break
+                if details_filled:
+                    break
+            except Exception as e:
+                print(f"⚠️ Error with selector {selector}: {str(e)}")
+                continue
+        
+        if not details_filled:
+            print("⚠️ Additional details field not found")
+        else:
+            print(f"✅ Successfully filled additional details with: '{additional_details_text}'")
+        
+        time.sleep(2)  # Brief pause after filling details
     
     def select_request_type(self, page: Page):
         """Select request type dynamically based on Excel data"""
@@ -1013,52 +1587,49 @@ class TestPrivacyPortal:
         
         print(f"🔍 Final search keywords: {search_keywords}")
         
-        # First, debug: find all available radio buttons and their labels
-        print("🔍 DEBUG: Finding all available request type options...")
+        # Find all available radio button options on the form
+        print("🔍 Finding available request type options on form...")
+        available_options = []
+        
         try:
-            radio_elements = page.locator("input[type='radio'], input[type='checkbox']").all()
-            available_options = []
+            # Look for radio button elements
+            radio_elements = page.locator("input[type='radio']").all()
+            print(f"🔍 Found {len(radio_elements)} radio elements")
             
             for i, radio in enumerate(radio_elements):
                 try:
                     if radio.is_visible():
-                        radio_id = radio.get_attribute("id") or ""
-                        radio_value = radio.get_attribute("value") or ""
-                        radio_name = radio.get_attribute("name") or ""
+                        value = radio.get_attribute("value") or ""
+                        name = radio.get_attribute("name") or ""
+                        element_id = radio.get_attribute("id") or ""
                         
-                        # Look for associated label
+                        # Try to find associated label text
                         label_text = ""
                         try:
-                            if radio_id:
-                                label_elem = page.locator(f"label[for='{radio_id}']").first
-                                if label_elem.is_visible():
-                                    label_text = label_elem.inner_text() or ""
+                            # Try multiple ways to find the label
+                            if element_id:
+                                label_element = page.locator(f"label[for='{element_id}']").first
+                                if label_element.is_visible():
+                                    label_text = label_element.inner_text() or label_element.text_content() or ""
                             
-                            # Also try to find nearby text
+                            # If no label found by ID, try to find parent container text
                             if not label_text:
-                                parent = radio.locator("xpath=..").first
+                                parent = radio.locator("..").first
                                 if parent.is_visible():
-                                    parent_text = parent.inner_text() or ""
-                                    # Extract just the relevant part
-                                    lines = parent_text.split('\n')
-                                    for line in lines:
-                                        line = line.strip()
-                                        if line and len(line) < 100:  # Reasonable length for option text
-                                            label_text = line
-                                            break
+                                    label_text = parent.inner_text() or parent.text_content() or ""
                         except:
                             pass
                         
-                        option_info = {
-                            'index': i+1,
-                            'element': radio,
-                            'id': radio_id,
-                            'value': radio_value,
-                            'name': radio_name,
-                            'label': label_text
-                        }
-                        available_options.append(option_info)
-                        print(f"  Option {i+1}: value='{radio_value}', name='{radio_name}', label='{label_text}'")
+                        if value or label_text:
+                            option = {
+                                'element': radio,
+                                'value': value,
+                                'label': label_text,
+                                'name': name
+                            }
+                            available_options.append(option)
+                            print(f"  Option {i+1}: '{label_text}' (value: '{value}')")
+                        
                 except Exception as e:
                     print(f"  Option {i+1}: Error reading - {str(e)}")
                     continue
@@ -1217,8 +1788,8 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            page.screenshot(path=f"{self.screenshot_dir}\\request_type_debug.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\request_type_debug.png")
+            page.screenshot(path="dsr/screenshots/request_type_debug.png")
+            print("📸 Debug screenshot saved: screenshots/request_type_debug.png")
         
         print("✅ Request type selection completed")
     
@@ -1462,16 +2033,16 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
-                                "textarea[placeholder*='details']:visible",
-                                "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible",
-                                ".text-input:visible",
-                                "[data-testid*='text']:visible",
-                                "[aria-label*='text']:visible"
+                                "input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])", 
+                                "input[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([type='tel']):not([type='phone']):not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):visible",
+                                ".text-input:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "[data-testid*='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "[aria-label*='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])"
                             ]
                             
                             text_input_found = False
@@ -1480,12 +2051,32 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Double-check this is not a phone field
+                                            element_attrs = {
+                                                'placeholder': text_input.get_attribute('placeholder') or '',
+                                                'name': text_input.get_attribute('name') or '',
+                                                'id': text_input.get_attribute('id') or '',
+                                                'type': text_input.get_attribute('type') or '',
+                                                'aria-label': text_input.get_attribute('aria-label') or ''
+                                            }
+                                            
+                                            # Skip if ANY attribute contains phone-related keywords
+                                            phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                            is_phone_field = any(
+                                                any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                                for attr_value in element_attrs.values() if attr_value
+                                            )
+                                            
+                                            if is_phone_field:
+                                                print(f"  🚫 Skipping phone field: {element_attrs}")
+                                                continue
+                                            
                                             # Check if this is a new text input (not pre-filled)
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
                                                 # This looks like the text input for the delete option
-                                                text_input.fill("test DSR")
-                                                print(f"  ✅ Entered 'test DSR' in text input for {description}")
+                                                # Leave the text input empty as requested by user
+                                                print(f"  ✅ Found text input for {description} - leaving empty as requested")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break
@@ -1507,12 +2098,31 @@ class TestPrivacyPortal:
                                 print(f"  ✅ Force-clicked {description}: '{option_info.get('text', '')}'")
                                 time.sleep(2)
                                 
-                                # Try text input after force click too
+                                # Try text input after force click too - but exclude phone fields
                                 try:
-                                    text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                    text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel']), textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])").first
                                     if text_input.is_visible():
-                                        text_input.fill("test DSR")
-                                        print(f"  ✅ Entered 'test DSR' after force-click")
+                                        # Double-check this is not a phone field
+                                        element_attrs = {
+                                            'placeholder': text_input.get_attribute('placeholder') or '',
+                                            'name': text_input.get_attribute('name') or '',
+                                            'id': text_input.get_attribute('id') or '',
+                                            'type': text_input.get_attribute('type') or '',
+                                            'aria-label': text_input.get_attribute('aria-label') or ''
+                                        }
+                                        
+                                        # Skip if ANY attribute contains phone-related keywords
+                                        phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                        is_phone_field = any(
+                                            any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                            for attr_value in element_attrs.values() if attr_value
+                                        )
+                                        
+                                        if not is_phone_field:
+                                            # Leave the text input empty as requested by user
+                                            print(f"  ✅ Found text input after force-click - leaving empty as requested")
+                                        else:
+                                            print(f"  🚫 Skipped phone field after force-click: {element_attrs}")
                                 except:
                                     pass
                                 
@@ -1542,12 +2152,31 @@ class TestPrivacyPortal:
                             print(f"  ✅ Clicked {description} using text selector: '{pattern}'")
                             time.sleep(2)
                             
-                            # Check for text input after clicking
+                            # Check for text input after clicking - but exclude phone fields
                             try:
-                                text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel']), textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])").first
                                 if text_input.is_visible():
-                                    text_input.fill("test DSR")
-                                    print(f"  ✅ Entered 'test DSR' after clicking '{pattern}'")
+                                    # Double-check this is not a phone field
+                                    element_attrs = {
+                                        'placeholder': text_input.get_attribute('placeholder') or '',
+                                        'name': text_input.get_attribute('name') or '',
+                                        'id': text_input.get_attribute('id') or '',
+                                        'type': text_input.get_attribute('type') or '',
+                                        'aria-label': text_input.get_attribute('aria-label') or ''
+                                    }
+                                    
+                                    # Skip if ANY attribute contains phone-related keywords
+                                    phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                    is_phone_field = any(
+                                        any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                        for attr_value in element_attrs.values() if attr_value
+                                    )
+                                    
+                                    if not is_phone_field:
+                                        # Leave the text input empty as requested by user
+                                        print(f"  ✅ Found text input after clicking '{pattern}' - leaving empty as requested")
+                                    else:
+                                        print(f"  🚫 Skipped phone field after clicking '{pattern}': {element_attrs}")
                             except:
                                 pass
                             
@@ -1560,8 +2189,8 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        page.screenshot(path=f"{self.screenshot_dir}\\delete_options_selected.png")
-        print(f"📸 Screenshot saved: {self.screenshot_dir}\\delete_options_selected.png")
+        page.screenshot(path="dsr/screenshots/delete_options_selected.png")
+        print("📸 Screenshot saved: screenshots/delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
     
@@ -1751,13 +2380,13 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
-                                "textarea[placeholder*='details']:visible",
-                                "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible"
+                                "input[type='text']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "textarea:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])", 
+                                "input[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "input[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):not([type='tel'])",
+                                "textarea[placeholder*='details']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "textarea[placeholder*='information']:visible:not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone'])",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([type='tel']):not([type='phone']):not([placeholder*='phone']):not([placeholder*='Phone']):not([name*='phone']):not([id*='phone']):visible"
                             ]
                             
                             text_input_found = False
@@ -1766,10 +2395,31 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Double-check this is not a phone field
+                                            element_attrs = {
+                                                'placeholder': text_input.get_attribute('placeholder') or '',
+                                                'name': text_input.get_attribute('name') or '',
+                                                'id': text_input.get_attribute('id') or '',
+                                                'type': text_input.get_attribute('type') or '',
+                                                'aria-label': text_input.get_attribute('aria-label') or ''
+                                            }
+                                            
+                                            # Skip if ANY attribute contains phone-related keywords
+                                            phone_indicators = ['phone', 'telephone', 'tel', 'mobile', 'cell']
+                                            is_phone_field = any(
+                                                any(indicator.lower() in attr_value.lower() for indicator in phone_indicators)
+                                                for attr_value in element_attrs.values() if attr_value
+                                            )
+                                            
+                                            if is_phone_field:
+                                                print(f"  🚫 Skipping phone field: {element_attrs}")
+                                                continue
+                                            
+                                            # Check if this is a new text input (not pre-filled)
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
-                                                text_input.fill("Account closure request")
-                                                print(f"  ✅ Entered 'Account closure request' in text input for {description}")
+                                                # Leave the text input empty as requested by user
+                                                print(f"  ✅ Found text input for {description} - leaving empty as requested")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break
@@ -1797,8 +2447,8 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        page.screenshot(path=f"{self.screenshot_dir}\\close_account_options_selected.png")
-        print(f"📸 Screenshot saved: {self.screenshot_dir}\\close_account_options_selected.png")
+        page.screenshot(path="dsr/screenshots/close_account_options_selected.png")
+        print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
     
@@ -2165,8 +2815,8 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path=f"{self.screenshot_dir}\\captcha_debug.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\captcha_debug.png")
+            page.screenshot(path="dsr/screenshots/captcha_debug.png")
+            print("📸 Debug screenshot saved: screenshots/captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
             print("🔍 Checking for reCAPTCHA challenge after clicking...")
@@ -2199,8 +2849,8 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                page.screenshot(path=f"{self.screenshot_dir}\\captcha_challenge.png")
-                print(f"📸 Challenge screenshot saved: {self.screenshot_dir}\\captcha_challenge.png")
+                page.screenshot(path="dsr/screenshots/captcha_challenge.png")
+                print("📸 Challenge screenshot saved: screenshots/captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
                 max_wait_time = 60  # Wait up to 60 seconds
@@ -2253,9 +2903,9 @@ class TestPrivacyPortal:
         
         print("✅ Acknowledgments and verification completed")
     
-    def submit_form(self, page: Page):
-        """Submit the form"""
-        print("🚀 Attempting to submit form...")
+    def submit_form(self, page: Page, record_number: int):
+        """Submit the form and take screenshot after submission"""
+        print("🚀 Attempting to submit parent form...")
         
         # Look for submit button with enhanced selectors
         submit_selectors = [
@@ -2331,10 +2981,10 @@ class TestPrivacyPortal:
                     continue
         
         if form_submitted:
-            print("✅ Form submission initiated!")
+            print("✅ Parent form submission initiated!")
             
             # Wait for submission to complete
-            print("⏳ Waiting for form submission to complete...")
+            print("⏳ Waiting for parent form submission to complete...")
             try:
                 page.wait_for_load_state("networkidle", timeout=15000)
                 time.sleep(3)
@@ -2342,9 +2992,9 @@ class TestPrivacyPortal:
                 print("⚠️ Submission may still be processing...")
                 time.sleep(5)
             
-            # Take screenshot after submission
-            page.screenshot(path=f"{self.screenshot_dir}\\after_submission.png")
-            print(f"📸 Screenshot saved: {self.screenshot_dir}\\after_submission.png")
+            # Take screenshot AFTER submission
+            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png")
+            print(f"📸 Screenshot saved: after_submission_record_{record_number}.png")
             
             # Check for success message or confirmation
             success_indicators = [
@@ -2396,8 +3046,8 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            page.screenshot(path=f"{self.screenshot_dir}\\submit_button_not_found.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\submit_button_not_found.png")
+            page.screenshot(path="dsr/screenshots/submit_button_not_found.png")
+            print("📸 Debug screenshot saved: screenshots/submit_button_not_found.png")
 
 def test_inspect_form_elements():
     """Helper test to inspect form elements and their selectors"""
@@ -2464,47 +3114,27 @@ if __name__ == "__main__":
     test.setup_method()
     test.test_privacy_form_submission()
     
-    # Automatically generate Data Reading Success Report after automation
+    # Automatically generate Data Reading Success Report after completion
     print("\n" + "="*80)
     print("🎯 AUTOMATION COMPLETED! Generating Data Reading Success Report...")
     print("="*80)
     
-    try:
-        # Add the parent directory to the path to import report generator
-        parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        sys.path.append(parent_dir)
-        
-        # Try to import and run the report generator
+    if create_educator_reading_success_report:
         try:
-            from create_myself_reading_success_report import create_myself_reading_success_report
-            
-            # Generate timestamp for report
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            print(f"📊 Creating International Myself Data Reading Success Report...")
-            print(f"🕒 Timestamp: {timestamp}")
-            
-            # Run report generation
-            create_myself_reading_success_report()
-            
-            screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
-            print(f"🎉 SUCCESS! International Myself Data Reading Success Report generated:")
-            print(f"📁 Report File: {screenshot_dir}\\International_Myself_Data_Reading_Success_Report_{timestamp}.xlsx")
-            print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"📍 Absolute Path: {screenshot_dir}\\International_Myself_Data_Reading_Success_Report_{timestamp}.xlsx")
-            
-        except ImportError as e:
-            print(f"⚠️ Could not import report generator: {e}")
-            print("📝 Please ensure create_myself_reading_success_report.py exists in the parent directory")
+            report_file = create_educator_reading_success_report()
+            if report_file:
+                print(f"\n🎉 SUCCESS! Educator Data Reading Success Report generated:")
+                print(f"📁 Report File: {report_file}")
+                print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                print("❌ Failed to generate report")
         except Exception as e:
-            print(f"⚠️ Error generating report: {e}")
-            print("📝 Report generation failed, but form automation completed successfully")
-    
-    except Exception as e:
-        print(f"⚠️ Error in report generation setup: {e}")
+            print(f"❌ Error generating report: {str(e)}")
+    else:
+        print("⚠️ Report generator not available - skipping report generation")
     
     print("\n✅ ALL TASKS COMPLETED!")
-    screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
-    print(f"📊 Check the {screenshot_dir}\\ folder for:")
+    print("📊 Check the dsr/screenshots/ folder for:")
     print("   • Form submission screenshots")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")

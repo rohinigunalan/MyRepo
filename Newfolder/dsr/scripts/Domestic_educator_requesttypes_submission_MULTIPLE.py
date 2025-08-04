@@ -2781,16 +2781,30 @@ class TestPrivacyPortal:
                             print(f"  ✅ Clicked {description}: '{option_info['text']}'")
                             time.sleep(2)  # Wait for any text input to appear
                             
-                            # Check for text input field after selecting the option
-                            print(f"  🔍 Looking for text input after selecting {description}...")
+                            # Check for text input field after selecting the option (ONLY for comments/descriptions, NOT email/phone/name fields)
+                            print(f"  🔍 Looking for comment/description text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
+                                # Only target textarea elements and specific comment/description fields
+                                "textarea:visible",
                                 "textarea[placeholder*='details']:visible",
                                 "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible"
+                                "textarea[placeholder*='comment']:visible",
+                                "textarea[placeholder*='description']:visible",
+                                "textarea[placeholder*='reason']:visible",
+                                "textarea[placeholder*='explain']:visible",
+                                # Target text inputs ONLY if they have comment/description context
+                                "input[type='text'][placeholder*='details']:visible",
+                                "input[type='text'][placeholder*='information']:visible",
+                                "input[type='text'][placeholder*='comment']:visible",
+                                "input[type='text'][placeholder*='description']:visible",
+                                "input[type='text'][placeholder*='reason']:visible",
+                                "input[type='text'][placeholder*='explain']:visible",
+                                "input[type='text'][aria-label*='details']:visible",
+                                "input[type='text'][aria-label*='information']:visible",
+                                "input[type='text'][aria-label*='comment']:visible",
+                                "input[type='text'][aria-label*='description']:visible",
+                                "input[type='text'][aria-label*='reason']:visible",
+                                "input[type='text'][aria-label*='explain']:visible"
                             ]
                             
                             text_input_found = False
@@ -2799,10 +2813,33 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Additional validation: make sure this is NOT an email/phone/name/address field
+                                            field_attributes = {}
+                                            try:
+                                                field_attributes['placeholder'] = text_input.get_attribute('placeholder') or ''
+                                                field_attributes['aria-label'] = text_input.get_attribute('aria-label') or ''
+                                                field_attributes['id'] = text_input.get_attribute('id') or ''
+                                                field_attributes['name'] = text_input.get_attribute('name') or ''
+                                                field_attributes['type'] = text_input.get_attribute('type') or ''
+                                            except:
+                                                pass
+                                            
+                                            # Check if any attribute suggests this is an email/phone/name/address field
+                                            all_attributes = ' '.join(field_attributes.values()).lower()
+                                            is_excluded_field = any(keyword in all_attributes for keyword in [
+                                                'email', 'phone', 'telephone', 'tel', 'name', 'first', 'last', 
+                                                'address', 'street', 'city', 'zip', 'postal', 'agent', 'student', 
+                                                'child', 'parent', 'guardian', 'birth', 'date', 'country', 'state'
+                                            ])
+                                            
+                                            if is_excluded_field:
+                                                print(f"  ⚠️ SKIPPING field (appears to be email/phone/name/address): {all_attributes[:100]}")
+                                                continue
+                                            
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
                                                 text_input.fill("Account closure request")
-                                                print(f"  ✅ Entered 'Account closure request' in text input for {description}")
+                                                print(f"  ✅ Entered 'Account closure request' in comment field for {description}")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break

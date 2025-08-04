@@ -51,8 +51,8 @@ class TestPrivacyPortal:
         """Load ALL form data from Educatoronbehalfofstudent_form_data.xlsx file for multiple educator records"""
         print("📂 Loading ALL educator form data from file...")
         
-        # Use the Educatoronbehalfofstudent_form_data.xlsx file specifically
-        excel_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"  # Fixed absolute path from project root
+        # Use the Domestic_Educatoronbehalfofstudent_form_data.xlsx file specifically
+        excel_file = "dsr/data/Domestic_Educatoronbehalfofstudent_form_data.xlsx"  # Updated to new file name
         
         try:
             if os.path.exists(excel_file):
@@ -62,13 +62,13 @@ class TestPrivacyPortal:
                     print("✅ Educator Excel file loaded successfully!")
                 except Exception as excel_error:
                     print(f"⚠️  Excel file error: {excel_error}")
-                    raise FileNotFoundError(f"Could not load Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
+                    raise FileNotFoundError(f"Could not load Domestic_Educatoronbehalfofstudent_form_data.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError(f"Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
+                raise FileNotFoundError(f"Domestic_Educatoronbehalfofstudent_form_data.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the Educatoronbehalfofstudent_form_data.xlsx file")
+                raise ValueError("No data found in the Domestic_Educatoronbehalfofstudent_form_data.xlsx file")
             
             print(f"📊 Found {len(df)} educator records in the file")
             # Return ALL records as a list of dictionaries

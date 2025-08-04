@@ -2,6 +2,9 @@ import pandas as pd
 import os
 from datetime import datetime
 
+# Define the screenshots directory constant for organized output
+SCREENSHOTS_DIR = "dsr/screenshots/Domestic_Educator_onbehalfofstudent"
+
 def create_educator_reading_success_report():
     """Create a report of successfully read data from educator Excel files (domestic or international)"""
     
@@ -125,10 +128,10 @@ def create_educator_reading_success_report():
         success_df = pd.DataFrame(success_data)
         
         # Ensure screenshots directory exists
-        os.makedirs('dsr/screenshots', exist_ok=True)
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
         
         # Create the report filename with timestamp
-        report_filename = f"dsr/screenshots/Educator_Data_Reading_Success_Report_{timestamp}.xlsx"
+        report_filename = f"{SCREENSHOTS_DIR}/Educator_Data_Reading_Success_Report_{timestamp}.xlsx"
         
         # Save to Excel with multiple sheets for different views
         with pd.ExcelWriter(report_filename, engine='openpyxl') as writer:

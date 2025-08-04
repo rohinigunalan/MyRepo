@@ -299,7 +299,7 @@ class TestPrivacyPortal:
                         # Try to take screenshot on error if page is still available
                         try:
                             if page and not page.is_closed():
-                                page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
+                                page.screenshot(path=f"{SCREENSHOTS_DIR}/error_record_{actual_record_number}.png")
                                 print(f"📸 Error screenshot saved for record {actual_record_number}")
                         except:
                             print("⚠️ Could not take error screenshot (page may be closed)")
@@ -344,7 +344,7 @@ class TestPrivacyPortal:
                 # Try to take screenshot on major error if page is still available
                 try:
                     if page and not page.is_closed():
-                        page.screenshot(path="dsr/screenshots/major_error_screenshot.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}/major_error_screenshot.png")
                         print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
                 except:
                     print("⚠️ Could not take major error screenshot (page may be closed)")
@@ -359,7 +359,7 @@ class TestPrivacyPortal:
                 
                 # Final completion message
                 print("\n✅ ALL DOMESTIC EDUCATOR AUTOMATION TASKS COMPLETED!")
-                print("📊 Check the dsr/screenshots/ folder for:")
+                print(f"📊 Check the {SCREENSHOTS_DIR} folder for:")
                 print("   • BEFORE submission screenshots (before_submission_record_XX.png)")
                 print("   • AFTER submission screenshots (after_submission_record_XX.png)")
                 print("   • Form submission process documentation")  
@@ -1078,7 +1078,7 @@ class TestPrivacyPortal:
         if not country_filled:
             print("⚠️ Could not fill country field - continuing anyway...")
             # Take a screenshot to see current state
-            page.screenshot(path="dsr/screenshots/country_field_issue.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/country_field_issue.png")
             print("📸 Screenshot saved: screenshots/country_field_issue.png")
 
         # State SECOND - Enhanced click logic for state dropdown
@@ -1659,7 +1659,7 @@ class TestPrivacyPortal:
         if not state_filled:
             print("⚠️ Could not fill state field - taking debug screenshot...")
             # Take a screenshot to see current state
-            page.screenshot(path="dsr/screenshots/state_field_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/state_field_debug.png")
             print("📸 Debug screenshot saved: screenshots/state_field_debug.png")
             
         print("✅ Contact information section completed")
@@ -2272,7 +2272,7 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/request_type_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/request_type_debug.png")
             print("📸 Debug screenshot saved: screenshots/request_type_debug.png")
         
         print("✅ Request type selection completed")
@@ -2662,7 +2662,7 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        page.screenshot(path="dsr/screenshots/delete_options_selected.png")
+        page.screenshot(path=f"{SCREENSHOTS_DIR}/delete_options_selected.png")
         print("📸 Screenshot saved: screenshots/delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
@@ -2936,7 +2936,7 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        page.screenshot(path="dsr/screenshots/close_account_options_selected.png")
+        page.screenshot(path=f"{SCREENSHOTS_DIR}/close_account_options_selected.png")
         print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
@@ -3304,7 +3304,7 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path="dsr/screenshots/captcha_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/captcha_debug.png")
             print("📸 Debug screenshot saved: screenshots/captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
@@ -3338,7 +3338,7 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                page.screenshot(path="dsr/screenshots/captcha_challenge.png")
+                page.screenshot(path=f"{SCREENSHOTS_DIR}/captcha_challenge.png")
                 print("📸 Challenge screenshot saved: screenshots/captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
@@ -3483,7 +3483,7 @@ class TestPrivacyPortal:
             
             # Take FULL PAGE screenshot IMMEDIATELY AFTER submission
             print(f"📸 Taking FULL PAGE screenshot IMMEDIATELY AFTER submission for record {record_number}...")
-            page.screenshot(path=f"dsr/screenshots/after_submission_record_{record_number}.png", full_page=True)
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/after_submission_record_{record_number}.png", full_page=True)
             print(f"✅ AFTER submission FULL PAGE screenshot saved: after_submission_record_{record_number}.png")
             
             # Check for success message or confirmation
@@ -3536,7 +3536,7 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            page.screenshot(path="dsr/screenshots/submit_button_not_found.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}/submit_button_not_found.png")
             print("📸 Debug screenshot saved: screenshots/submit_button_not_found.png")
 
 def test_inspect_form_elements():
@@ -3608,7 +3608,7 @@ if __name__ == "__main__":
     # No need for duplicate report generation here
     
     print("\n✅ ALL TASKS COMPLETED!")
-    print("📊 Check the dsr/screenshots/ folder for:")
+    print(f"📊 Check the {SCREENSHOTS_DIR} folder for:")
     print("   • Form submission screenshots")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")

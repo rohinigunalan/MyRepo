@@ -114,13 +114,20 @@ class TestPrivacyPortal:
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        # START FROM RECORD 20 (index 19 since 0-based)
-        start_record = 19  # Record 20 (0-based indexing)
-        records_to_process = self.all_form_data[start_record:]  # Get records from 20 onwards
+        # ALWAYS START FROM RECORD 20 (index 19 since 0-based) - As requested by user
+        start_record = 19  # Record 20 (0-based indexing) - ALWAYS start from row 20 of Excel
         
-        print(f"🎯 STARTING FROM RECORD {start_record + 1} - PROCESSING {len(records_to_process)} RECORDS FROM EXCEL FILE")
+        # Check if we have enough records, if not, show warning but continue with available records
+        if len(self.all_form_data) < 20:
+            print(f"⚠️ WARNING: Excel file only has {len(self.all_form_data)} records, but you requested to start from record 20.")
+            print(f"⚠️ No records will be processed since record 20 doesn't exist.")
+            records_to_process = []  # Empty list - no records to process
+        else:
+            records_to_process = self.all_form_data[start_record:]  # Get records from 20 onwards
+        
+        print(f"🎯 ALWAYS STARTING FROM RECORD 20 - PROCESSING {len(records_to_process)} RECORDS FROM EXCEL FILE")
         print(f"📊 Total records in file: {len(self.all_form_data)}")
-        print(f"📊 Records to process: {len(records_to_process)} (from record {start_record + 1} to {len(self.all_form_data)})")
+        print(f"📊 Records to process: {len(records_to_process)} (from record 20 to {len(self.all_form_data)})")
         
         with sync_playwright() as p:
             # Launch browser
@@ -128,9 +135,9 @@ class TestPrivacyPortal:
             page = browser.new_page()
             
             try:
-                # Process each record starting from record 20
+                # Process each record starting from record 20 (always)
                 for i, record_data in enumerate(records_to_process):
-                    actual_record_number = start_record + i + 1  # Calculate the actual record number
+                    actual_record_number = start_record + i + 1  # Calculate the actual record number (20, 21, 22, etc.)
                     
                     print(f"\n{'='*80}")
                     print(f"🔄 PROCESSING RECORD {actual_record_number} OF {len(self.all_form_data)} (Batch {i + 1} of {len(records_to_process)})")

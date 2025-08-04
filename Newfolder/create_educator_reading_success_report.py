@@ -12,25 +12,31 @@ def create_educator_reading_success_report():
     print(f"🕒 Timestamp: {timestamp}")
     
     # Check for both domestic and international Excel files
-    domestic_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
+    domestic_file = "dsr/data/Domestic_Educatoronbehalfofstudent_form_data.xlsx"
     international_file = "dsr/data/International_Educatoronbehalfofstudent_form_data.xlsx"
+    legacy_domestic_file = "dsr/data/Educatoronbehalfofstudent_form_data.xlsx"
     
     excel_file = None
     file_type = ""
     
-    # Priority: Check for international file first, then domestic
-    if os.path.exists(international_file):
-        excel_file = international_file
-        file_type = "International"
-        print(f"📂 Found International educator file: {excel_file}")
-    elif os.path.exists(domestic_file):
+    # Priority: Check for domestic file first, then international, then legacy
+    if os.path.exists(domestic_file):
         excel_file = domestic_file
         file_type = "Domestic"
         print(f"📂 Found Domestic educator file: {excel_file}")
+    elif os.path.exists(international_file):
+        excel_file = international_file
+        file_type = "International"
+        print(f"📂 Found International educator file: {excel_file}")
+    elif os.path.exists(legacy_domestic_file):
+        excel_file = legacy_domestic_file
+        file_type = "Legacy_Domestic"
+        print(f"📂 Found Legacy Domestic educator file: {excel_file}")
     else:
-        print(f"❌ Neither Excel file found:")
+        print(f"❌ No Excel file found:")
         print(f"   - Domestic: {domestic_file}")
         print(f"   - International: {international_file}")
+        print(f"   - Legacy Domestic: {legacy_domestic_file}")
         return None
     
     try:

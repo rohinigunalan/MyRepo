@@ -37,6 +37,16 @@ try:
 except ImportError:
     print("⚠️ Warning: Could not import create_educator_reading_success_report function")
     create_educator_reading_success_report = None
+import sys
+from datetime import datetime
+
+# Add the parent directory to sys.path to import the report generator
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from create_educator_reading_success_report import create_educator_reading_success_report
+except ImportError:
+    print("⚠️ Warning: Could not import create_educator_reading_success_report function")
+    create_educator_reading_success_report = None
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -213,6 +223,25 @@ class TestPrivacyPortal:
                 print(f"📊 Processed records {start_record + 1} to {len(self.all_form_data)}")
                 print("✅ Multiple record form automation completed!")
                 
+                # Automatically generate Data Reading Success Report after completion
+                print("\n" + "="*80)
+                print("🎯 AUTOMATION COMPLETED! Generating Domestic Educator Data Reading Success Report...")
+                print("="*80)
+                
+                if create_educator_reading_success_report:
+                    try:
+                        report_file = create_educator_reading_success_report()
+                        if report_file:
+                            print(f"\n🎉 SUCCESS! Domestic Educator Data Reading Success Report generated:")
+                            print(f"📁 Report File: {report_file}")
+                            print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                        else:
+                            print("❌ Failed to generate report")
+                    except Exception as e:
+                        print(f"❌ Error generating report: {str(e)}")
+                else:
+                    print("⚠️ Report generator not available - skipping report generation")
+                
             except Exception as e:
                 # Try to take screenshot on major error if page is still available
                 try:
@@ -229,6 +258,13 @@ class TestPrivacyPortal:
                 print("⏸️ FINAL PAUSE: Keeping browser open for 10 seconds to review final state...")
                 time.sleep(10)
                 browser.close()
+                
+                # Final completion message
+                print("\n✅ ALL DOMESTIC EDUCATOR AUTOMATION TASKS COMPLETED!")
+                print("📊 Check the dsr/screenshots/ folder for:")
+                print("   • Form submission screenshots")  
+                print("   • Data Reading Success Report (Excel file)")
+                print("   • Automation logs and results")
     
     def fill_subject_information(self, page: Page):
         """Fill subject information section for EDUCATOR/AGENT requests"""

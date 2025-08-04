@@ -3596,27 +3596,13 @@ if __name__ == "__main__":
     test.setup_method()
     test.test_privacy_form_submission()
     
-    # Automatically generate Data Reading Success Report after completion
-    print("\n" + "="*80)
-    print("🎯 AUTOMATION COMPLETED! Generating Data Reading Success Report...")
-    print("="*80)
-    
-    if create_educator_reading_success_report:
-        try:
-            report_file = create_educator_reading_success_report()
-            if report_file:
-                print(f"\n🎉 SUCCESS! Educator Data Reading Success Report generated:")
-                print(f"📁 Report File: {report_file}")
-                print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            else:
-                print("❌ Failed to generate report")
-        except Exception as e:
-            print(f"❌ Error generating report: {str(e)}")
-    else:
-        print("⚠️ Report generator not available - skipping report generation")
+    # Note: Report generation is now handled within test_privacy_form_submission() method
+    # No need for duplicate report generation here
     
     print("\n✅ ALL TASKS COMPLETED!")
     print("📊 Check the dsr/screenshots/ folder for:")
     print("   • Form submission screenshots")
+    print("   • Data Reading Success Report (Excel file)")
+    print("   • Automation logs and results")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")

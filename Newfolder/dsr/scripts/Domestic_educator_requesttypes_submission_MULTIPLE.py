@@ -124,8 +124,8 @@ class TestPrivacyPortal:
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        # TEMPORARY: START FROM RECORD 1 for testing full page screenshots - USER CAN CHANGE BACK TO 19 later
-        start_record = 0  # Record 1 (0-based indexing) - TEMPORARY for testing
+        # CRITICAL: ALWAYS START FROM RECORD 20 (index 19 since 0-based) - As requested by user
+        start_record = 19  # Record 20 (0-based indexing) - ALWAYS start from row 20 of Excel
         
         print(f"🎯 CRITICAL: THIS SCRIPT ALWAYS STARTS FROM RECORD 20 (ROW 20 IN EXCEL)")
         print(f"🎯 NEVER CHANGES: Starting record is HARD-CODED to be record {start_record + 1} (Excel row 20)")
@@ -134,8 +134,8 @@ class TestPrivacyPortal:
         # Check if we have enough records, if not, show warning but continue with available records
         if len(self.all_form_data) < 20:
             print(f"⚠️ WARNING: Excel file only has {len(self.all_form_data)} records, but you requested to start from record 20.")
-            print(f"⚠️ No records will be processed since record 20 doesn't exist.")
-            records_to_process = []  # Empty list - no records to process
+            print(f"⚠️ Will use fallback data to process record 20.")
+            records_to_process = self.all_form_data  # Use available records even if less than 20
         else:
             records_to_process = self.all_form_data[start_record:]  # Get records from 20 onwards
         

@@ -761,7 +761,7 @@ class TestPrivacyPortal:
             except Exception as debug_error:
                 print(f"⚠️ Debug error: {debug_error}")
             
-        # Phone Number - enhanced selectors
+        # Phone Number - enhanced selectors with validation
         phone_selectors = [
             "input[type='tel']",
             "input[name='phone']",
@@ -771,10 +771,27 @@ class TestPrivacyPortal:
             "input[placeholder*='Phone']",
             "input[data-testid*='phone']"
         ]
+        
+        # Get phone number from Excel and validate it
+        raw_phone = str(self.form_data.get('Phone Number', '5712345567')).strip()
+        
+        # Clean and validate phone number - only use if it contains mostly digits
+        import re
+        phone_digits = re.sub(r'[^\d]', '', raw_phone)  # Remove all non-digits
+        
+        if len(phone_digits) >= 10 and phone_digits.isdigit():
+            # Use the phone number from Excel if it has at least 10 digits
+            phone_to_use = raw_phone
+            print(f"📞 Using phone from Excel: '{phone_to_use}' (digits: {phone_digits})")
+        else:
+            # Use default phone if Excel value is invalid
+            phone_to_use = "5712345567"
+            print(f"📞 Excel phone invalid ('{raw_phone}'), using default: '{phone_to_use}'")
+        
         for selector in phone_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('Phone Number', '5712345567')))
+                    page.fill(selector, phone_to_use)
                     print(f"✅ Phone filled with selector: {selector}")
                     time.sleep(1)
                     break
@@ -1753,11 +1770,25 @@ class TestPrivacyPortal:
                     if input_elem.is_visible() and not input_elem.input_value():
                         placeholder = input_elem.get_attribute("placeholder") or ""
                         name = input_elem.get_attribute("name") or ""
-                        print(f"🔍 Found empty text input - name: '{name}', placeholder: '{placeholder}'")
-                        # Fill with N/A if it looks like it might need it
-                        if any(word in placeholder.lower() for word in ["school", "institution", "affiliation", "organization", "company"]):
+                        id_attr = input_elem.get_attribute("id") or ""
+                        aria_label = input_elem.get_attribute("aria-label") or ""
+                        
+                        # Create combined text for checking
+                        combined_text = f"{placeholder} {name} {id_attr} {aria_label}".lower()
+                        
+                        print(f"🔍 Found empty text input - name: '{name}', placeholder: '{placeholder}', id: '{id_attr}', aria-label: '{aria_label}'")
+                        
+                        # Skip phone, email, name, and date fields completely
+                        if any(keyword in combined_text for keyword in ["phone", "email", "name", "first", "last", "date", "birth", "tel", "telephone"]):
+                            print(f"⏭️ Skipping field (phone/email/name/date field): {combined_text}")
+                            continue
+                            
+                        # Fill with N/A only for specific field types
+                        if any(word in combined_text for word in ["school", "institution", "affiliation", "organization", "company"]):
                             input_elem.fill("N/A")
-                            print(f"✅ Filled empty input with 'N/A' - placeholder: '{placeholder}'")
+                            print(f"✅ Filled empty input with 'N/A' - combined text: '{combined_text}'")
+                        else:
+                            print(f"⏭️ Skipping field (doesn't match N/A criteria): {combined_text}")
                 except:
                     continue
         except:
@@ -2417,16 +2448,20 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
-                                "textarea:visible", 
-                                "input[placeholder*='details']:visible",
-                                "input[placeholder*='information']:visible",
-                                "textarea[placeholder*='details']:visible",
-                                "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible",
-                                ".text-input:visible",
-                                "[data-testid*='text']:visible",
-                                "[aria-label*='text']:visible"
+                                # Only target specific comment/description fields, NOT phone fields
+                                "textarea:visible",  # Textarea is safer - more likely to be for comments
+                                "input[type='text'][placeholder*='comment']:visible",
+                                "input[type='text'][placeholder*='description']:visible", 
+                                "input[type='text'][placeholder*='detail']:visible",
+                                "input[type='text'][placeholder*='reason']:visible",
+                                "input[type='text'][placeholder*='explain']:visible",
+                                "input[type='text'][aria-label*='comment']:visible",
+                                "input[type='text'][aria-label*='description']:visible",
+                                "input[type='text'][aria-label*='detail']:visible",
+                                "input[type='text'][id*='comment']:visible",
+                                "input[type='text'][id*='description']:visible",
+                                "input[type='text'][name*='comment']:visible",
+                                "input[type='text'][name*='description']:visible"
                             ]
                             
                             text_input_found = False
@@ -2435,12 +2470,29 @@ class TestPrivacyPortal:
                                     text_inputs = page.locator(text_selector).all()
                                     for text_input in text_inputs:
                                         if text_input.is_visible():
+                                            # Additional validation: make sure this is NOT a phone/email/name field
+                                            field_attributes = {
+                                                'placeholder': text_input.get_attribute('placeholder') or '',
+                                                'aria_label': text_input.get_attribute('aria-label') or '',
+                                                'id': text_input.get_attribute('id') or '',
+                                                'name': text_input.get_attribute('name') or '',
+                                                'type': text_input.get_attribute('type') or ''
+                                            }
+                                            
+                                            combined_field_text = ' '.join(field_attributes.values()).lower()
+                                            
+                                            # Skip if this looks like a phone, email, name, or date field
+                                            if any(keyword in combined_field_text for keyword in ['phone', 'tel', 'email', 'name', 'first', 'last', 'date', 'birth', 'address', 'city', 'zip', 'postal']):
+                                                print(f"  ⚠️ Skipping field (phone/email/name/address field): {combined_field_text}")
+                                                continue
+                                            
                                             # Check if this is a new text input (not pre-filled)
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
-                                                # This looks like the text input for the delete option
+                                                # This looks like the text input for the delete option comments
                                                 text_input.fill("test DSR")
-                                                print(f"  ✅ Entered 'test DSR' in text input for {description}")
+                                                print(f"  ✅ Entered 'test DSR' in comment field for {description}")
+                                                print(f"  📝 Field attributes: {field_attributes}")
                                                 text_input_found = True
                                                 time.sleep(1)
                                                 break
@@ -2464,10 +2516,23 @@ class TestPrivacyPortal:
                                 
                                 # Try text input after force click too
                                 try:
-                                    text_input = page.locator("input[type='text']:visible, textarea:visible").first
-                                    if text_input.is_visible():
-                                        text_input.fill("test DSR")
-                                        print(f"  ✅ Entered 'test DSR' after force-click")
+                                    # Only look for specific comment/description fields, not any text input
+                                    comment_selectors = [
+                                        "textarea:visible",
+                                        "input[type='text'][placeholder*='comment']:visible",
+                                        "input[type='text'][placeholder*='description']:visible",
+                                        "input[type='text'][aria-label*='comment']:visible"
+                                    ]
+                                    
+                                    for selector in comment_selectors:
+                                        comment_field = page.locator(selector).first
+                                        if comment_field.is_visible():
+                                            # Verify this is not a phone/email/name field
+                                            field_attrs = f"{comment_field.get_attribute('placeholder') or ''} {comment_field.get_attribute('aria-label') or ''} {comment_field.get_attribute('id') or ''}".lower()
+                                            if not any(keyword in field_attrs for keyword in ['phone', 'tel', 'email', 'name', 'first', 'last', 'date', 'birth', 'address']):
+                                                comment_field.fill("test DSR")
+                                                print(f"  ✅ Entered 'test DSR' in comment field after force-click")
+                                                break
                                 except:
                                     pass
                                 
@@ -2499,10 +2564,23 @@ class TestPrivacyPortal:
                             
                             # Check for text input after clicking
                             try:
-                                text_input = page.locator("input[type='text']:visible, textarea:visible").first
-                                if text_input.is_visible():
-                                    text_input.fill("test DSR")
-                                    print(f"  ✅ Entered 'test DSR' after clicking '{pattern}'")
+                                # Only look for specific comment/description fields, not any text input
+                                comment_selectors = [
+                                    "textarea:visible",
+                                    "input[type='text'][placeholder*='comment']:visible",
+                                    "input[type='text'][placeholder*='description']:visible",
+                                    "input[type='text'][aria-label*='comment']:visible"
+                                ]
+                                
+                                for selector in comment_selectors:
+                                    comment_field = page.locator(selector).first
+                                    if comment_field.is_visible():
+                                        # Verify this is not a phone/email/name field
+                                        field_attrs = f"{comment_field.get_attribute('placeholder') or ''} {comment_field.get_attribute('aria-label') or ''} {comment_field.get_attribute('id') or ''}".lower()
+                                        if not any(keyword in field_attrs for keyword in ['phone', 'tel', 'email', 'name', 'first', 'last', 'date', 'birth', 'address']):
+                                            comment_field.fill("test DSR")
+                                            print(f"  ✅ Entered 'test DSR' in comment field after clicking '{pattern}'")
+                                            break
                             except:
                                 pass
                             

@@ -29,6 +29,10 @@ import pandas as pd
 import os
 import sys
 from datetime import datetime
+import re
+
+# Define the screenshots directory for Domestic Educator automation
+SCREENSHOTS_DIR = "dsr/screenshots/Domestic_Educator_onbehalfofstudent"
 
 # Add the parent directory to sys.path to import the report generator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -262,7 +266,11 @@ class TestPrivacyPortal:
                             
                             # Take FULL PAGE screenshot BEFORE submission (with all input fields filled)
                             print(f"📸 Taking FULL PAGE screenshot BEFORE submission for record {actual_record_number}...")
-                            page.screenshot(path=f"dsr/screenshots/before_submission_record_{actual_record_number}.png", full_page=True)
+                            
+                            # Ensure screenshots directory exists
+                            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                            
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}/before_submission_record_{actual_record_number}.png", full_page=True)
                             print(f"✅ BEFORE submission FULL PAGE screenshot saved: before_submission_record_{actual_record_number}.png")
                             
                             # Submit the form
@@ -276,7 +284,7 @@ class TestPrivacyPortal:
                             print(f"⚠️ Error in form processing for record {actual_record_number}: {str(e)}")
                             failed_submissions += 1
                             try:
-                                page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
+                                page.screenshot(path=f"{SCREENSHOTS_DIR}/error_record_{actual_record_number}.png")
                                 print(f"📸 Error screenshot saved for record {actual_record_number}")
                             except:
                                 print("⚠️ Could not take error screenshot")

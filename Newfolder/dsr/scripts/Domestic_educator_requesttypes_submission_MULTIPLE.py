@@ -124,8 +124,12 @@ class TestPrivacyPortal:
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        # ALWAYS START FROM RECORD 20 (index 19 since 0-based) - As requested by user
+        # CRITICAL: ALWAYS START FROM RECORD 20 (index 19 since 0-based) - As requested by user
         start_record = 19  # Record 20 (0-based indexing) - ALWAYS start from row 20 of Excel
+        
+        print(f"🎯 CRITICAL: THIS SCRIPT ALWAYS STARTS FROM RECORD 20 (ROW 20 IN EXCEL)")
+        print(f"🎯 NEVER CHANGES: Starting record is HARD-CODED to be record {start_record + 1} (Excel row 20)")
+        print(f"🎯 USER REQUEST: Process records starting from row 20 onwards")
         
         # Check if we have enough records, if not, show warning but continue with available records
         if len(self.all_form_data) < 20:
@@ -142,7 +146,10 @@ class TestPrivacyPortal:
         with sync_playwright() as p:
             # Launch browser
             browser = p.chromium.launch(headless=False)  # Set to True for headless mode
-            page = browser.new_page()
+            
+            # Track successful submissions
+            successful_submissions = 0
+            failed_submissions = 0
             
             try:
                 # Process each record starting from record 20 (always)
@@ -166,6 +173,15 @@ class TestPrivacyPortal:
                     print(f"   State: {record_data.get('stateOrProvince', 'N/A')}")
                     
                     try:
+                        # Check if page/browser is still available, if not create new one
+                        try:
+                            # Test if page is still usable
+                            page.title()
+                            print(f"🌐 Using existing browser page for record {actual_record_number}...")
+                        except:
+                            print(f"🔄 Browser page closed, creating new page for record {actual_record_number}...")
+                            page = browser.new_page()
+                        
                         # Navigate to the privacy portal for each record
                         print(f"\n🌐 Navigating to form for record {actual_record_number}...")
                         page.goto(self.url)
@@ -193,18 +209,26 @@ class TestPrivacyPortal:
                             # Submit the form
                             self.submit_form(page, actual_record_number)
                             
+                            # If we reach here, submission was successful
+                            successful_submissions += 1
+                            print(f"✅ RECORD {actual_record_number} AUTOMATION COMPLETED SUCCESSFULLY!")
+                            
                         except Exception as e:
-                            print(f"⚠️ Error in parent form processing: {str(e)}")
-                            page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
+                            print(f"⚠️ Error in form processing for record {actual_record_number}: {str(e)}")
+                            failed_submissions += 1
+                            try:
+                                page.screenshot(path=f"dsr/screenshots/error_record_{actual_record_number}.png")
+                                print(f"📸 Error screenshot saved for record {actual_record_number}")
+                            except:
+                                print("⚠️ Could not take error screenshot")
                         
                         # Pause after submission to see results
-                        print(f"⏸️ PAUSE: Record {actual_record_number} submission completed. Observing results for 3 seconds...")
+                        print(f"⏸️ PAUSE: Record {actual_record_number} processing completed. Observing results for 3 seconds...")
                         time.sleep(3)
-                        
-                        print(f"✅ RECORD {actual_record_number} AUTOMATION COMPLETED SUCCESSFULLY!")
                         
                     except Exception as e:
                         print(f"❌ Error processing record {actual_record_number}: {str(e)}")
+                        failed_submissions += 1
                         # Try to take screenshot on error if page is still available
                         try:
                             if page and not page.is_closed():
@@ -219,8 +243,11 @@ class TestPrivacyPortal:
                         print(f"\n⏸️ PAUSING 5 SECONDS BEFORE PROCESSING NEXT RECORD...")
                         time.sleep(5)
                 
-                print(f"\n🎉 ALL {len(records_to_process)} RECORDS PROCESSED SUCCESSFULLY!")
+                print(f"\n🎉 PROCESSING COMPLETED!")
                 print(f"📊 Processed records {start_record + 1} to {len(self.all_form_data)}")
+                print(f"✅ Successful submissions: {successful_submissions}")
+                print(f"❌ Failed submissions: {failed_submissions}")
+                print(f"📊 Total processed: {successful_submissions + failed_submissions}")
                 print("✅ Multiple record form automation completed!")
                 
                 # Automatically generate Data Reading Success Report after completion
@@ -228,19 +255,23 @@ class TestPrivacyPortal:
                 print("🎯 AUTOMATION COMPLETED! Generating Domestic Educator Data Reading Success Report...")
                 print("="*80)
                 
-                if create_educator_reading_success_report:
-                    try:
-                        report_file = create_educator_reading_success_report()
-                        if report_file:
-                            print(f"\n🎉 SUCCESS! Domestic Educator Data Reading Success Report generated:")
-                            print(f"📁 Report File: {report_file}")
-                            print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                        else:
-                            print("❌ Failed to generate report")
-                    except Exception as e:
-                        print(f"❌ Error generating report: {str(e)}")
+                if successful_submissions > 0:
+                    if create_educator_reading_success_report:
+                        try:
+                            report_file = create_educator_reading_success_report()
+                            if report_file:
+                                print(f"\n🎉 SUCCESS! Domestic Educator Data Reading Success Report generated:")
+                                print(f"📁 Report File: {report_file}")
+                                print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                                print(f"✅ Report covers {successful_submissions} successful submissions")
+                            else:
+                                print("❌ Failed to generate report")
+                        except Exception as e:
+                            print(f"❌ Error generating report: {str(e)}")
+                    else:
+                        print("⚠️ Report generator not available - skipping report generation")
                 else:
-                    print("⚠️ Report generator not available - skipping report generation")
+                    print("⚠️ No successful submissions - skipping report generation")
                 
             except Exception as e:
                 # Try to take screenshot on major error if page is still available

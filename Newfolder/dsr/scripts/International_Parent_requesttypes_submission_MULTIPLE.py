@@ -22,9 +22,23 @@ The .venv contains all necessary dependencies and is properly configured for thi
 
 import pytest
 from playwright.sync_api import sync_playwright, Page, expect
-import time
 import pandas as pd
 import os
+import sys
+from datetime import datetime
+import re
+import time
+
+# Define the screenshots directory for International Parent automation
+SCREENSHOTS_DIR = "dsr/screenshots/International_Parent_onbehalfofstudent"
+
+# Add the parent directory to sys.path to import the report generator
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from create_parent_reading_success_report import create_parent_reading_success_report
+except ImportError:
+    print("⚠️ Warning: Could not import create_parent_reading_success_report function")
+    create_parent_reading_success_report = None
 
 class TestPrivacyPortal:
     """Test suite for OneTrust Privacy Portal form automation"""
@@ -40,26 +54,7 @@ class TestPrivacyPortal:
         print("📂 Loading ALL parent form data from file...")
         
         # Use the International_Parent_form_data.xlsx file specifically
-        # Handle both running from root folder and from scripts folder
-        excel_file_options = [
-            "dsr/data/International_Parent_form_data.xlsx",  # When running from root
-            "../data/International_Parent_form_data.xlsx",  # When running from scripts folder
-            "International_Parent_form_data.xlsx",  # Direct path
-        ]
-        
-        excel_file = None
-        for file_option in excel_file_options:
-            if os.path.exists(file_option):
-                excel_file = file_option
-                break
-        
-        if not excel_file:
-            # Try absolute path as fallback
-            absolute_path = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\International_Parent_form_data.xlsx"
-            if os.path.exists(absolute_path):
-                excel_file = absolute_path
-            else:
-                raise FileNotFoundError(f"International_Parent_form_data.xlsx file not found in any of these locations: {excel_file_options} or {absolute_path}")
+        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\International_Parent_form_data.xlsx"
         
         try:
             if excel_file:
@@ -159,13 +154,23 @@ class TestPrivacyPortal:
             }]
         
     def test_privacy_form_submission(self):
-        """Test filling and submitting the privacy portal form for ALL records"""
-        print("🚨 IMPORTANT NOTE: This script will automate form filling for ALL records in Excel,")
+        """Test filling and submitting the privacy portal form starting from Record 20"""
+        print("🚨 IMPORTANT NOTE: This script will automate form filling starting from Record 20,")
         print("   but you may need to manually solve reCAPTCHA challenges if they appear.")
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
+        # Starting from Record 20 (index 19)
+        start_index = 19
+        print(f"🎯 STARTING FROM RECORD 20 (index {start_index})")
+        print(f"📊 TOTAL RECORDS AVAILABLE: {len(self.all_form_data)}")
+        
+        if start_index >= len(self.all_form_data):
+            print(f"❌ ERROR: Start index {start_index} exceeds available records ({len(self.all_form_data)})")
+            return
+            
+        records_to_process = self.all_form_data[start_index:]
+        print(f"🔄 WILL PROCESS {len(records_to_process)} RECORDS (from Record 20 onwards)")
         
         with sync_playwright() as p:
             # Launch browser
@@ -173,10 +178,13 @@ class TestPrivacyPortal:
             page = browser.new_page()
             
             try:
-                # Process each record
-                for record_index, record_data in enumerate(self.all_form_data):
+                # Process each record starting from Record 20
+                for i, record_data in enumerate(records_to_process):
+                    actual_record_number = start_index + i + 1  # Real record number in Excel
+                    current_iteration = i + 1  # Current processing iteration
+                    
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"🔄 PROCESSING RECORD {actual_record_number} ({current_iteration} of {len(records_to_process)} remaining)")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -195,7 +203,7 @@ class TestPrivacyPortal:
                     
                     try:
                         # Navigate to the privacy portal for each record
-                        print(f"\n🌐 Navigating to form for record {record_index + 1}...")
+                        print(f"\n🌐 Navigating to form for record {actual_record_number}...")
                         page.goto(self.url)
                         
                         # Wait for page to load
@@ -203,7 +211,7 @@ class TestPrivacyPortal:
                         time.sleep(2)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING PARENT FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING INTERNATIONAL PARENT FORM FILLING PROCESS FOR RECORD {actual_record_number}...")
                         try:
                             self.fill_subject_information(page)
                             self.fill_contact_information(page)
@@ -214,50 +222,64 @@ class TestPrivacyPortal:
                             self.handle_close_account_suboptions(page)
                             self.handle_acknowledgments(page)
                             
-                            # Take screenshot BEFORE submission (after all fields are filled)
-                            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-                            page.screenshot(path=os.path.join(screenshots_dir, f"before_submission_record_{record_index + 1}.png"))
-                            print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                            # Take screenshot BEFORE submission (after all fields are filled) using organized directory
+                            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                            screenshot_filename = f"before_submission_record_{actual_record_number}.png"
+                            screenshot_path = os.path.join(SCREENSHOTS_DIR, screenshot_filename)
+                            page.screenshot(path=screenshot_path, full_page=True)
+                            print(f"📸 Full page screenshot saved: {screenshot_filename}")
                             
                             # Submit the form
-                            self.submit_form(page, record_index + 1)
+                            self.submit_form(page, actual_record_number)
+                            
+                            # Take screenshot AFTER submission
+                            after_screenshot_filename = f"after_submission_record_{actual_record_number}.png"
+                            after_screenshot_path = os.path.join(SCREENSHOTS_DIR, after_screenshot_filename)
+                            page.screenshot(path=after_screenshot_path, full_page=True)
+                            print(f"📸 Post-submission screenshot saved: {after_screenshot_filename}")
                             
                         except Exception as e:
-                            print(f"⚠️ Error in parent form processing: {str(e)}")
-                            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-                            page.screenshot(path=os.path.join(screenshots_dir, f"error_record_{record_index + 1}.png"))
+                            print(f"⚠️ Error in international parent form processing: {str(e)}")
+                            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                            error_screenshot_filename = f"error_record_{actual_record_number}.png"
+                            error_screenshot_path = os.path.join(SCREENSHOTS_DIR, error_screenshot_filename)
+                            page.screenshot(path=error_screenshot_path, full_page=True)
+                            print(f"📸 Error screenshot saved: {error_screenshot_filename}")
                         
                         # Pause after submission to see results
-                        print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
+                        print(f"⏸️ PAUSE: Record {actual_record_number} submission completed. Observing results for 3 seconds...")
                         time.sleep(3)
                         
-                        print(f"✅ RECORD {record_index + 1} AUTOMATION COMPLETED SUCCESSFULLY!")
+                        print(f"✅ RECORD {actual_record_number} AUTOMATION COMPLETED SUCCESSFULLY!")
                         
                     except Exception as e:
-                        print(f"❌ Error processing record {record_index + 1}: {str(e)}")
-                        # Take screenshot on error
-                        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-                        page.screenshot(path=os.path.join(screenshots_dir, f"error_record_{record_index + 1}.png"))
-                        print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        print(f"❌ Error processing record {actual_record_number}: {str(e)}")
+                        # Take screenshot on error using organized directory
+                        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                        error_screenshot_filename = f"error_record_{actual_record_number}.png"
+                        error_screenshot_path = os.path.join(SCREENSHOTS_DIR, error_screenshot_filename)
+                        page.screenshot(path=error_screenshot_path, full_page=True)
+                        print(f"📸 Error screenshot saved: {error_screenshot_filename}")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
-                    if record_index < len(self.all_form_data) - 1:
+                    if i < len(records_to_process) - 1:
                         print(f"\n⏸️ PAUSING 5 SECONDS BEFORE PROCESSING NEXT RECORD...")
                         time.sleep(5)
                 
-                print(f"\n🎉 ALL {len(self.all_form_data)} RECORDS PROCESSED SUCCESSFULLY!")
-                print("✅ Multiple record form automation completed!")
+                print(f"\n🎉 ALL {len(records_to_process)} RECORDS (from Record 20 onwards) PROCESSED SUCCESSFULLY!")
+                print("✅ International Parent multiple record form automation completed!")
                 
                 # Generate comprehensive success report
                 self.generate_success_report()
                 
             except Exception as e:
-                # Take screenshot on major error
-                screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-                page.screenshot(path=os.path.join(screenshots_dir, "major_error_screenshot.png"))
+                # Take screenshot on major error using organized directory
+                os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                major_error_screenshot = os.path.join(SCREENSHOTS_DIR, "major_error_screenshot.png")
+                page.screenshot(path=major_error_screenshot, full_page=True)
                 print(f"❌ Major error occurred: {str(e)}")
-                print("📸 Major error screenshot saved: screenshots/major_error_screenshot.png")
+                print(f"📸 Major error screenshot saved: {major_error_screenshot}")
                 raise
                 
             finally:
@@ -376,11 +398,10 @@ class TestPrivacyPortal:
                 print(line)
         
         # Ensure screenshots directory exists - use absolute path for correct location
-        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-        os.makedirs(screenshots_dir, exist_ok=True)
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
         
         # Save ONLY as Excel file (like other scripts)
-        excel_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.xlsx")
+        excel_filename = os.path.join(SCREENSHOTS_DIR, f"International_Parent_Success_Report_{timestamp}.xlsx")
         try:
             self._generate_excel_report(excel_filename, timestamp)
             print(f"✅ Excel report generated with 3 sheets: Summary, Record_Details, Technical_Details")
@@ -388,7 +409,7 @@ class TestPrivacyPortal:
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
             
-        print(f"\n📁 Success reports saved in: {screenshots_dir}")
+        print(f"\n📁 Success reports saved in: {SCREENSHOTS_DIR}")
         print(f"   � Excel: International_Parent_Success_Report_{timestamp}.xlsx")
         
         for i, record in enumerate(self.all_form_data, 1):
@@ -483,11 +504,10 @@ class TestPrivacyPortal:
                 print(line)
         
         # Ensure screenshots directory exists - use absolute path for correct location
-        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-        os.makedirs(screenshots_dir, exist_ok=True)
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
         
         # Save as Excel file with detailed data
-        excel_filename = os.path.join(screenshots_dir, f"International_Parent_Success_Report_{timestamp}.xlsx")
+        excel_filename = os.path.join(SCREENSHOTS_DIR, f"International_Parent_Success_Report_{timestamp}.xlsx")
         
         try:
             self._generate_excel_report(excel_filename, timestamp)
@@ -496,8 +516,31 @@ class TestPrivacyPortal:
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
             
-        print(f"\n📁 Success report saved in: {screenshots_dir}")
+        print(f"\n📁 Success report saved in: {SCREENSHOTS_DIR}")
         print(f"   📊 Excel: International_Parent_Success_Report_{timestamp}.xlsx")
+        
+        # Generate additional success report for International Parent
+        print("\n" + "="*80)
+        print("🎯 AUTOMATION COMPLETED! Generating International Parent Data Reading Success Report...")
+        print("="*80)
+        
+        if len(self.all_form_data) > 0:
+            if create_parent_reading_success_report:
+                try:
+                    report_file = create_parent_reading_success_report()
+                    if report_file:
+                        print(f"\n🎉 SUCCESS! International Parent Data Reading Success Report generated:")
+                        print(f"📁 Report File: {report_file}")
+                        print(f"📅 Generated at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                        print(f"✅ Report covers {len(self.all_form_data)} processed records")
+                    else:
+                        print("❌ Failed to generate report")
+                except Exception as e:
+                    print(f"❌ Error generating report: {str(e)}")
+            else:
+                print("⚠️ Report generator not available - skipping report generation")
+        else:
+            print("⚠️ No records processed - skipping report generation")
 
 
 
@@ -1568,9 +1611,9 @@ class TestPrivacyPortal:
         if not country_filled:
             print("⚠️ Could not fill country field - continuing anyway...")
             # Take a screenshot to see current state
-            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-            page.screenshot(path=os.path.join(screenshots_dir, "country_field_issue.png"))
-            print("📸 Screenshot saved: screenshots/country_field_issue.png")
+            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+            page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "country_field_issue.png"), full_page=True)
+            print("📸 Screenshot saved: country_field_issue.png")
 
         # State field handling skipped - no state column in International Parent Excel file
         print("🗽 State field handling skipped - no state column in International Parent Excel file")
@@ -2188,9 +2231,9 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-            page.screenshot(path=os.path.join(screenshots_dir, "request_type_debug.png"))
-            print("📸 Debug screenshot saved: screenshots/request_type_debug.png")
+            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+            page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "request_type_debug.png"), full_page=True)
+            print("📸 Debug screenshot saved: request_type_debug.png")
         
         print("✅ Request type selection completed")
     
@@ -2532,9 +2575,9 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-        page.screenshot(path=os.path.join(screenshots_dir, "delete_options_selected.png"))
-        print("📸 Screenshot saved: screenshots/delete_options_selected.png")
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+        page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "delete_options_selected.png"), full_page=True)
+        print("📸 Screenshot saved: delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
     
@@ -2770,9 +2813,9 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-        page.screenshot(path=os.path.join(screenshots_dir, "close_account_options_selected.png"))
-        print("📸 Screenshot saved: screenshots/close_account_options_selected.png")
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+        page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "close_account_options_selected.png"), full_page=True)
+        print("📸 Screenshot saved: close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
     
@@ -3139,9 +3182,9 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-            page.screenshot(path=os.path.join(screenshots_dir, "captcha_debug.png"))
-            print("📸 Debug screenshot saved: screenshots/captcha_debug.png")
+            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+            page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "captcha_debug.png"), full_page=True)
+            print("📸 Debug screenshot saved: captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
             print("🔍 Checking for reCAPTCHA challenge after clicking...")
@@ -3174,9 +3217,9 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-                page.screenshot(path=os.path.join(screenshots_dir, "captcha_challenge.png"))
-                print("📸 Challenge screenshot saved: screenshots/captcha_challenge.png")
+                os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+                page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "captcha_challenge.png"), full_page=True)
+                print("📸 Challenge screenshot saved: captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
                 max_wait_time = 60  # Wait up to 60 seconds
@@ -3372,9 +3415,9 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            screenshots_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "screenshots")
-            page.screenshot(path=os.path.join(screenshots_dir, "submit_button_not_found.png"))
-            print("📸 Debug screenshot saved: screenshots/submit_button_not_found.png")
+            os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+            page.screenshot(path=os.path.join(SCREENSHOTS_DIR, "submit_button_not_found.png"), full_page=True)
+            print("📸 Debug screenshot saved: submit_button_not_found.png")
 
 def test_inspect_form_elements():
     """Helper test to inspect form elements and their selectors"""

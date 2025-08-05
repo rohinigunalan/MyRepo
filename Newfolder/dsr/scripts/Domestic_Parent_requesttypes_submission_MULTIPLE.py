@@ -641,7 +641,7 @@ class TestPrivacyPortal:
         if not child_email_filled:
             print("⚠️ Child email field not found")
             
-        # Phone Number - enhanced selectors
+        # Phone Number - enhanced selectors with Excel validation
         phone_selectors = [
             "input[type='tel']",
             "input[name='phone']",
@@ -651,15 +651,45 @@ class TestPrivacyPortal:
             "input[placeholder*='Phone']",
             "input[data-testid*='phone']"
         ]
-        for selector in phone_selectors:
-            try:
-                if page.locator(selector).first.is_visible():
-                    page.fill(selector, str(self.form_data.get('phone', '5712345567')))
-                    print(f"✅ Phone filled with selector: {selector}")
-                    time.sleep(1)
-                    break
-            except:
-                continue
+        
+        # Get phone number from Excel - try multiple column name variations
+        phone_number_raw = str(self.form_data.get('phone', ''))
+        if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
+            phone_number_raw = str(self.form_data.get('Phone Number', ''))
+        if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
+            phone_number_raw = str(self.form_data.get('phoneNumber', ''))
+        if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
+            phone_number_raw = str(self.form_data.get('phone_number', ''))
+        
+        # If still no phone number found, check all columns for phone-like content
+        if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
+            print("⚠️ Phone number not found in expected columns, checking all columns...")
+            for key, value in self.form_data.items():
+                if 'phone' in key.lower() or 'tel' in key.lower():
+                    print(f"   Found potential phone column: {key} = {value}")
+                    if value and str(value) != 'nan' and str(value) != '':
+                        phone_number_raw = str(value)
+                        break
+        
+        # Only fill phone if Excel has a valid phone number
+        if phone_number_raw and phone_number_raw != 'nan' and phone_number_raw != '':
+            print(f"📞 Using phone number from Excel: '{phone_number_raw}'")
+            for selector in phone_selectors:
+                try:
+                    if page.locator(selector).first.is_visible():
+                        page.fill(selector, phone_number_raw)
+                        print(f"✅ Phone filled with '{phone_number_raw}' using selector: {selector}")
+                        time.sleep(1)
+                        break
+                except:
+                    continue
+        else:
+            print("📞 NO PHONE NUMBER in Excel - leaving phone field empty as per Excel data")
+            print("📋 Available columns in Excel record:")
+            for key, value in self.form_data.items():
+                if 'phone' in key.lower() or 'tel' in key.lower() or 'Phone' in key:
+                    print(f"     {key}: {value}")
+            print("✅ Phone field will remain empty to match Excel data")
             
         # Birth Date - try multiple selectors and formats
         birthdate_selectors = [

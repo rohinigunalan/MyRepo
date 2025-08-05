@@ -679,10 +679,35 @@ class TestPrivacyPortal:
         for selector in birthdate_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('Date of Birth', self.form_data.get('birthDate', '11/1/2008')))
+                    # Get birth date from Excel data - try multiple column name variations
+                    birth_date_raw = str(self.form_data.get('Date of Birth', ''))
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('birthDate', ''))
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('date_of_birth', ''))
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('DateOfBirth', ''))
+                    
+                    # If still no birth date found, check all columns for date-like content
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        print("⚠️ Birth date not found in expected columns, checking all columns...")
+                        for key, value in self.form_data.items():
+                            if 'birth' in key.lower() or 'date' in key.lower():
+                                print(f"   Found potential birth date column: {key} = {value}")
+                                if value and str(value) != 'nan' and str(value) != '':
+                                    birth_date_raw = str(value)
+                                    break
+                    
+                    # Final fallback - but warn user
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        print("❌ NO BIRTH DATE FOUND IN EXCEL! Using emergency fallback.")
+                        print("📋 Available columns in Excel record:")
+                        for key, value in self.form_data.items():
+                            print(f"     {key}: {value}")
+                        birth_date_raw = "04/25/2014"  # Better fallback date
+                    
                     print(f"🎂 Using birth date from Excel: '{birth_date_raw}'")
-                    date_formats = [birth_date_raw, "04/25/2014", "04/25/2014", "2014-04-25", "25/04/2014", "25-04-2014"]
+                    date_formats = [birth_date_raw, "04/25/2014", "2014-04-25", "25/04/2014", "25-04-2014"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)

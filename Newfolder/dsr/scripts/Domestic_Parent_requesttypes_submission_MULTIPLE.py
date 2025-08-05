@@ -652,10 +652,10 @@ class TestPrivacyPortal:
             "input[data-testid*='phone']"
         ]
         
-        # Get phone number from Excel - try multiple column name variations
-        phone_number_raw = str(self.form_data.get('phone', ''))
+        # Get phone number from Excel - try multiple column name variations (EXACT Excel column names)
+        phone_number_raw = str(self.form_data.get('Phone Number', ''))  # This is the EXACT column name in Excel
         if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
-            phone_number_raw = str(self.form_data.get('Phone Number', ''))
+            phone_number_raw = str(self.form_data.get('phone', ''))
         if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
             phone_number_raw = str(self.form_data.get('phoneNumber', ''))
         if not phone_number_raw or phone_number_raw == 'nan' or phone_number_raw == '':
@@ -709,8 +709,10 @@ class TestPrivacyPortal:
         for selector in birthdate_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    # Get birth date from Excel data - try multiple column name variations
-                    birth_date_raw = str(self.form_data.get('Date of Birth', ''))
+                    # Get birth date from Excel data - try EXACT Excel column names first
+                    birth_date_raw = str(self.form_data.get(' Date of Birth', ''))  # EXACT Excel column (with leading space)
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('Date of Birth', ''))  # Without space
                     if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
                         birth_date_raw = str(self.form_data.get('birthDate', ''))
                     if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':

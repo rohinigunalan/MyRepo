@@ -15,11 +15,15 @@ The .venv contains all necessary dependencies and is properly configured for thi
 
 import pytest
 from playwright.sync_api import sync_playwright, Page, expect
-import time
 import pandas as pd
 import os
 import sys
 from datetime import datetime
+import re
+import time
+
+# Define the screenshots directory for International Myself automation
+SCREENSHOTS_DIR = "dsr/screenshots/International_Myself"
 
 # Add the parent directory to sys.path to import the report generator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -37,91 +41,94 @@ class TestPrivacyPortal:
         self.url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
         self.all_form_data = self.load_form_data()  # Load ALL records
         self.form_data = {}  # Will be set for each individual record
-        self.screenshot_dir = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots"
     
     def load_form_data(self):
-        """Load ALL form data from Excel or CSV file for multiple records"""
-        print("📂 Loading ALL form data from file...")
+        """Load ALL form data from International_myself_requesttypes_submission_MULTIPLE.xlsx file for multiple records"""
+        print("📂 Loading ALL international myself form data from file...")
         
-        # Try to load from Excel first, then CSV
-        excel_file = "../data/International_Myself_form_data_updated.xlsx"
-        excel_file_backup = "../data/form_data.xlsx"
-        csv_file = "form_data.csv"
+        # Use absolute path to the International_myself_requesttypes_submission_MULTIPLE.xlsx file
+        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\International_myself_requesttypes_submission_MULTIPLE.xlsx"
+        
+        print(f"🔍 Loading international myself Excel file from: {excel_file}")
         
         try:
             if os.path.exists(excel_file):
-                print(f"📊 Attempting to read data from {excel_file}")
+                print(f"📊 Attempting to read international myself data from {excel_file}")
                 try:
                     df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
-                    print("✅ Excel file loaded successfully!")
+                    print("✅ International Myself Excel file loaded successfully!")
                 except Exception as excel_error:
-                    print(f"⚠️  Excel file error: {excel_error}")
-                    print("🔄 Trying CSV file as fallback...")
-                    if os.path.exists(csv_file):
-                        df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                        print("✅ CSV file loaded successfully!")
-                    else:
-                        raise FileNotFoundError("Neither Excel nor CSV file could be loaded")
-            elif os.path.exists(csv_file):
-                print(f"📊 Reading data from {csv_file}")
-                df = pd.read_csv(csv_file, keep_default_na=False, na_values=[''])
-                print("✅ CSV file loaded successfully!")
+                    print(f"⚠️ Excel file error: {excel_error}")
+                    raise FileNotFoundError(f"Could not load International_myself_requesttypes_submission_MULTIPLE.xlsx: {excel_error}")
             else:
-                raise FileNotFoundError("No form_data.xlsx or form_data.csv file found")
+                raise FileNotFoundError(f"International_myself_requesttypes_submission_MULTIPLE.xlsx file not found at: {excel_file}")
             
             # Get ALL rows of data instead of just the first
             if len(df) == 0:
-                raise ValueError("No data found in the file")
+                raise ValueError("No data found in the International_myself_requesttypes_submission_MULTIPLE.xlsx file")
             
-            print(f"📊 Found {len(df)} records in the file")
+            print(f"📊 Found {len(df)} international myself records in the file")
             # Return ALL records as a list of dictionaries
             all_records = df.to_dict(orient='records')
             
-            print("✅ All form data loaded successfully:")
+            print("✅ All international myself form data loaded successfully:")
             for i, record in enumerate(all_records):
-                print(f"  Record {i+1}: {record.get('First_Name', 'N/A')} {record.get('Last_Name', 'N/A')} - {record.get('Request_type', 'N/A')}")
+                first_name = record.get('First_Name', 'N/A')
+                last_name = record.get('Last_Name', 'N/A')
+                request_type = record.get('Request_type', 'N/A')
+                country = record.get('country', 'N/A')
+                print(f"  Record {i+1}: {first_name} {last_name} - Country: {country} - Request: {request_type}")
             
             return all_records
             
         except Exception as e:
-            print(f"❌ Error loading form data: {str(e)}")
-            print("📝 Using default fallback data...")
-            # Fallback to default data - return as list
+            print(f"❌ Error loading international myself form data: {str(e)}")
+            print("📝 Using default fallback data for international myself requests...")
+            # Fallback to default data - return as list with INTERNATIONAL data
             return [{
-                'Email Address': 'palmny1@mailinator.com',
-                'First_Name': 'RobNY',
-                'Last_Name': 'EdisonNY',
+                'Email Address': 'international.myself@mailinator.com',
+                'First_Name': 'John',
+                'Last_Name': 'InternationalMyself',
                 'birthDate': '11/1/2003',
                 'phone': '5712345567',
-                'country': 'US',
-                'postalCode': '14111',
-                'city': 'North Collins',
-                'streetAddress': '507 Central Avenue',
-                'studentSchoolName': 'South Lakes High School',
+                'country': 'India',
+                'postalCode': '110001',
+                'city': 'New Delhi',
+                'streetAddress': '123 International Street',
+                'studentSchoolName': 'International High School',
                 'studentGraduationYear': '2020',
                 'educatorSchoolAffiliation': 'N/A',
                 'Request_type': 'Request a copy of my data'
             }]
         
     def test_privacy_form_submission(self):
-        """Test filling and submitting the privacy portal form for ALL records"""
-        print("🚨 IMPORTANT NOTE: This script will automate form filling for ALL records in Excel,")
+        """Test filling and submitting the privacy portal form starting from Record 20"""
+        print("🚨 IMPORTANT NOTE: This script will automate form filling starting from Record 20,")
         print("   but you may need to manually solve reCAPTCHA challenges if they appear.")
         print("   The script will pause and wait for you to complete any image puzzles.")
         print("   Please stay near your computer to help with reCAPTCHA if needed!\n")
         
-        print(f"🎯 PROCESSING {len(self.all_form_data)} RECORDS FROM EXCEL FILE")
+        # Start from Record 20 (index 19)
+        start_index = 19  # Record 20 (1-based becomes 19 in 0-based indexing)
+        if start_index >= len(self.all_form_data):
+            print(f"❌ Start index {start_index + 1} is beyond available records ({len(self.all_form_data)})")
+            return
+            
+        records_to_process = self.all_form_data[start_index:]
+        print(f"🎯 PROCESSING {len(records_to_process)} RECORDS FROM EXCEL FILE (Starting from Record {start_index + 1})")
         
         with sync_playwright() as p:
             # Launch browser
-            browser = p.chromium.launch(headless=False)  # Set to True for headless mode
+            browser = p.chromium.launch(headless=False)
             page = browser.new_page()
             
             try:
-                # Process each record
-                for record_index, record_data in enumerate(self.all_form_data):
+                # Process each record starting from the specified index
+                for relative_index, record_data in enumerate(records_to_process):
+                    actual_record_number = start_index + relative_index + 1  # Actual record number in Excel
+                    
                     print(f"\n{'='*80}")
-                    print(f"🔄 PROCESSING RECORD {record_index + 1} OF {len(self.all_form_data)}")
+                    print(f"🔄 PROCESSING RECORD {actual_record_number} OF {len(self.all_form_data)} (Batch {relative_index + 1} of {len(records_to_process)})")
                     print(f"{'='*80}")
                     
                     # Set current record data
@@ -132,9 +139,10 @@ class TestPrivacyPortal:
                     print(f"   Name: {record_data.get('First_Name', 'N/A')} {record_data.get('Last_Name', 'N/A')}")
                     print(f"   Email: {record_data.get('Email Address', 'N/A')}")
                     print(f"   Request Type: {record_data.get('Request_type', 'N/A')}")
+                    
                     try:
                         # Navigate to the privacy portal for each record
-                        print(f"\n🌐 Navigating to form for record {record_index + 1}...")
+                        print(f"\n🌐 Navigating to form for record {actual_record_number}...")
                         page.goto(self.url)
                         
                         # Wait for page to load
@@ -142,16 +150,17 @@ class TestPrivacyPortal:
                         time.sleep(2)
 
                         # Fill out the form based on the current record's data
-                        print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {record_index + 1}...")
+                        print(f"\n🎯 STARTING FORM FILLING PROCESS FOR RECORD {actual_record_number}...")
+                        
                         try:
                             self.fill_subject_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in subject information: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_subject_info_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_subject_info_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after subject info
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_subject_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after subject information for record {record_index + 1}")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_subject_info_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved after subject information for record {actual_record_number}")
                         
                         # Pause after subject info
                         print("⏸️ PAUSE: Subject information filled. Continuing in 3 seconds...")
@@ -161,13 +170,13 @@ class TestPrivacyPortal:
                             self.fill_contact_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in contact information: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_contact_info_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_contact_info_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after contact info
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_contact_info_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved after contact information for record {record_index + 1}")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_contact_info_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved after contact information for record {actual_record_number}")
                         
-                        # Pause after contact info to observe dropdowns
+                        # Pause after contact info
                         print("⏸️ PAUSE: Contact information filled. Continuing in 3 seconds...")
                         time.sleep(3)
                         
@@ -175,7 +184,7 @@ class TestPrivacyPortal:
                             self.fill_additional_details(page)
                         except Exception as e:
                             print(f"⚠️ Error in additional details: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_additional_details_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_additional_details_record_{actual_record_number}.png", full_page=True)
                         
                         # Pause after additional details
                         print("⏸️ PAUSE: Additional details filled. Continuing in 2 seconds...")
@@ -185,7 +194,7 @@ class TestPrivacyPortal:
                             self.select_request_type(page)
                         except Exception as e:
                             print(f"⚠️ Error in request type selection: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_request_type_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_request_type_record_{actual_record_number}.png", full_page=True)
                         
                         # Pause after request type selection
                         print("⏸️ PAUSE: Request type selected. Continuing in 2 seconds...")
@@ -196,7 +205,7 @@ class TestPrivacyPortal:
                             self.handle_delete_data_suboptions(page)
                         except Exception as e:
                             print(f"⚠️ Error in delete data sub-options: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_delete_options_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_delete_options_record_{actual_record_number}.png", full_page=True)
                         
                         # Pause after delete options
                         print("⏸️ PAUSE: Delete options processed. Continuing in 2 seconds...")
@@ -207,7 +216,7 @@ class TestPrivacyPortal:
                             self.handle_close_account_suboptions(page)
                         except Exception as e:
                             print(f"⚠️ Error in close account sub-options: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_close_options_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_close_options_record_{actual_record_number}.png", full_page=True)
                         
                         # Pause after close account options
                         print("⏸️ PAUSE: Close account options processed. Continuing in 2 seconds...")
@@ -217,22 +226,22 @@ class TestPrivacyPortal:
                             self.handle_acknowledgments(page)
                         except Exception as e:
                             print(f"⚠️ Error in acknowledgments: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_acknowledgments_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_acknowledgments_record_{actual_record_number}.png", full_page=True)
                         
                         # Pause after acknowledgments
                         print("⏸️ PAUSE: Acknowledgments completed. Continuing in 2 seconds...")
                         time.sleep(2)
                         
                         # Take a screenshot after filling all fields
-                        page.screenshot(path=f"{self.screenshot_dir}\\form_filled_complete_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: form_filled_complete_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\form_filled_complete_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: form_filled_complete_record_{actual_record_number}.png")
                         
                         # Take a screenshot before submission (backup)
-                        page.screenshot(path=f"{self.screenshot_dir}\\before_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: before_submission_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\before_submission_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: before_submission_record_{actual_record_number}.png")
                         
                         # Pause before submission to review completed form
-                        print(f"⏸️ PAUSE: Form completely filled for record {record_index + 1}! Submitting in 3 seconds...")
+                        print(f"⏸️ PAUSE: Form completely filled for record {actual_record_number}! Submitting in 3 seconds...")
                         time.sleep(3)
                         
                         # Submit the form
@@ -240,38 +249,41 @@ class TestPrivacyPortal:
                             self.submit_form(page)
                         except Exception as e:
                             print(f"⚠️ Error during form submission: {str(e)}")
-                            page.screenshot(path=f"{self.screenshot_dir}\\error_submission_record_{record_index + 1}.png")
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_submission_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after submission
-                        page.screenshot(path=f"{self.screenshot_dir}\\after_submission_record_{record_index + 1}.png")
-                        print(f"📸 Screenshot saved: after_submission_record_{record_index + 1}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_submission_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: after_submission_record_{actual_record_number}.png")
                         
                         # Pause after submission to see results
-                        print(f"⏸️ PAUSE: Record {record_index + 1} submission completed. Observing results for 3 seconds...")
+                        print(f"⏸️ PAUSE: Record {actual_record_number} submission completed. Observing results for 3 seconds...")
                         time.sleep(3)
                         
-                        print(f"✅ RECORD {record_index + 1} AUTOMATION COMPLETED SUCCESSFULLY!")
+                        print(f"✅ RECORD {actual_record_number} AUTOMATION COMPLETED SUCCESSFULLY!")
                         
                     except Exception as e:
-                        print(f"❌ Error processing record {record_index + 1}: {str(e)}")
+                        print(f"❌ Error processing record {actual_record_number}: {str(e)}")
                         # Take screenshot on error
-                        page.screenshot(path=f"{self.screenshot_dir}\\error_record_{record_index + 1}.png")
-                        print(f"📸 Error screenshot saved for record {record_index + 1}")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Error screenshot saved for record {actual_record_number}")
                         # Continue with next record
                         
                     # Pause between records (except after the last one)
-                    if record_index < len(self.all_form_data) - 1:
+                    if relative_index < len(records_to_process) - 1:
                         print(f"\n⏸️ PAUSING 5 SECONDS BEFORE PROCESSING NEXT RECORD...")
                         time.sleep(5)
                 
-                print(f"\n🎉 ALL {len(self.all_form_data)} RECORDS PROCESSED SUCCESSFULLY!")
+                print(f"\n🎉 ALL {len(records_to_process)} RECORDS PROCESSED SUCCESSFULLY (Records {start_index + 1}-{start_index + len(records_to_process)})!")
                 print("✅ Multiple record form automation completed!")
+                
+                # Generate success report
+                self.generate_success_report(len(records_to_process), start_index + 1)
                 
             except Exception as e:
                 # Take screenshot on major error
-                page.screenshot(path=f"{self.screenshot_dir}\\major_error_screenshot.png")
+                page.screenshot(path=f"{SCREENSHOTS_DIR}\\major_error_screenshot.png", full_page=True)
                 print(f"❌ Major error occurred: {str(e)}")
-                print(f"📸 Major error screenshot saved: {self.screenshot_dir}\\major_error_screenshot.png")
+                print(f"📸 Major error screenshot saved: {SCREENSHOTS_DIR}\\major_error_screenshot.png")
                 raise
                 
             finally:
@@ -685,8 +697,8 @@ class TestPrivacyPortal:
             print(f"⚠️ Could not fill country field with '{country_from_excel}' - continuing anyway...")
             # Take a screenshot to see current state
             try:
-                page.screenshot(path=f"{self.screenshot_dir}\\country_field_issue.png")
-                print(f"📸 Screenshot saved: {self.screenshot_dir}\\country_field_issue.png")
+                page.screenshot(path=f"{SCREENSHOTS_DIR}\\country_field_issue.png", full_page=True)
+                print(f"📸 Screenshot saved: {SCREENSHOTS_DIR}\\country_field_issue.png")
             except:
                 pass
 
@@ -1217,8 +1229,8 @@ class TestPrivacyPortal:
                 print(f"  - '{option['label']}' (value: '{option['value']}')")
             
             # Take screenshot for debugging
-            page.screenshot(path=f"{self.screenshot_dir}\\request_type_debug.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\request_type_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}\\request_type_debug.png", full_page=True)
+            print(f"📸 Debug screenshot saved: {SCREENSHOTS_DIR}\\request_type_debug.png")
         
         print("✅ Request type selection completed")
     
@@ -1560,8 +1572,8 @@ class TestPrivacyPortal:
                     print(f"  ❌ All attempts failed for {description}")
         
         # Take screenshot after delete options selection
-        page.screenshot(path=f"{self.screenshot_dir}\\delete_options_selected.png")
-        print(f"📸 Screenshot saved: {self.screenshot_dir}\\delete_options_selected.png")
+        page.screenshot(path=f"{SCREENSHOTS_DIR}\\delete_options_selected.png", full_page=True)
+        print(f"📸 Screenshot saved: {SCREENSHOTS_DIR}\\delete_options_selected.png")
         
         print("✅ Delete data sub-options handling completed")
     
@@ -1797,8 +1809,8 @@ class TestPrivacyPortal:
                     print(f"    - '{opt['text']}'")
         
         # Take screenshot after close account options selection
-        page.screenshot(path=f"{self.screenshot_dir}\\close_account_options_selected.png")
-        print(f"📸 Screenshot saved: {self.screenshot_dir}\\close_account_options_selected.png")
+        page.screenshot(path=f"{SCREENSHOTS_DIR}\\close_account_options_selected.png", full_page=True)
+        print(f"📸 Screenshot saved: {SCREENSHOTS_DIR}\\close_account_options_selected.png")
         
         print("✅ Close account sub-options handling completed")
     
@@ -2165,8 +2177,8 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path=f"{self.screenshot_dir}\\captcha_debug.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\captcha_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}\\captcha_debug.png", full_page=True)
+            print(f"📸 Debug screenshot saved: {SCREENSHOTS_DIR}\\captcha_debug.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
             print("🔍 Checking for reCAPTCHA challenge after clicking...")
@@ -2199,8 +2211,8 @@ class TestPrivacyPortal:
                 print("🔍 Once you solve it, the script will continue automatically.")
                 
                 # Take screenshot of the challenge
-                page.screenshot(path=f"{self.screenshot_dir}\\captcha_challenge.png")
-                print(f"📸 Challenge screenshot saved: {self.screenshot_dir}\\captcha_challenge.png")
+                page.screenshot(path=f"{SCREENSHOTS_DIR}\\captcha_challenge.png", full_page=True)
+                print(f"📸 Challenge screenshot saved: {SCREENSHOTS_DIR}\\captcha_challenge.png")
                 
                 # Wait for the challenge to be solved (check periodically)
                 max_wait_time = 60  # Wait up to 60 seconds
@@ -2343,8 +2355,8 @@ class TestPrivacyPortal:
                 time.sleep(5)
             
             # Take screenshot after submission
-            page.screenshot(path=f"{self.screenshot_dir}\\after_submission.png")
-            print(f"📸 Screenshot saved: {self.screenshot_dir}\\after_submission.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_submission.png", full_page=True)
+            print(f"📸 Screenshot saved: {SCREENSHOTS_DIR}\\after_submission.png")
             
             # Check for success message or confirmation
             success_indicators = [
@@ -2396,8 +2408,23 @@ class TestPrivacyPortal:
                 print("  Could not enumerate buttons")
                 
             print("❌ Form submission failed - no accessible submit button found!")
-            page.screenshot(path=f"{self.screenshot_dir}\\submit_button_not_found.png")
-            print(f"📸 Debug screenshot saved: {self.screenshot_dir}\\submit_button_not_found.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}\\submit_button_not_found.png", full_page=True)
+            print(f"📸 Debug screenshot saved: {SCREENSHOTS_DIR}\\submit_button_not_found.png")
+
+    def generate_success_report(self, records_processed: int, start_record: int):
+        """Generate success report and Excel file"""
+        try:
+            # Add root directory to path for importing
+            import sys
+            import os
+            root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            sys.path.insert(0, root_dir)
+            
+            from create_myself_reading_success_report import create_myself_reading_success_report
+            create_myself_reading_success_report(records_processed, start_record)
+            print(f"📊 Success report generated for {records_processed} records (starting from Record {start_record})")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not generate success report: {str(e)}")
 
 def test_inspect_form_elements():
     """Helper test to inspect form elements and their selectors"""

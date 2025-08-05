@@ -31,6 +31,11 @@
 python fix_excel.py
 ```
 
+### 👨‍👩‍👧‍👦 Domestic Parent Automation (Records 20+):
+```powershell
+.\.venv\Scripts\python.exe -m pytest "dsr\scripts\Domestic_Parent_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission" -v -s
+```
+
 ## 🚨 COMMON ERRORS & FIXES
 
 | Error | Fix |

@@ -97,6 +97,15 @@ print("Playwright working!")
 5. **Select state** → Improved "New York" selection
 6. **Submit** → Success confirmation
 
+### 🔥 SUCCESSFUL AUTOMATION COMMANDS:
+
+#### 👨‍👩‍👧‍👦 Domestic Parent Automation (Records 20+):
+```powershell
+.\.venv\Scripts\python.exe -m pytest "dsr\scripts\Domestic_Parent_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission" -v -s
+```
+**Status**: ✅ Successfully processed 5 parent records (20-24) with different request types
+**Features**: Parent-on-behalf-of-child forms, multiple request types, organized screenshots
+
 ### 🚨 TROUBLESHOOTING CHECKLIST:
 - [ ] Virtual environment activated?
 - [ ] Using `.\` syntax in PowerShell?

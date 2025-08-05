@@ -96,7 +96,7 @@ class TestPrivacyPortal:
                 'Email of Child (Data Subject)': 'child@mailinator.com',
                 'First Name': 'Jane',
                 'Last Name': 'Doe',
-                'birthDate': '11/1/2008',
+                'Date of Birth': '04/25/2014',
                 'phone': '5712345567',
                 'country': 'US',
                 'stateOrProvince': 'New York',
@@ -145,7 +145,7 @@ class TestPrivacyPortal:
                 'Email of Child (Data Subject)': 'fallback.child@mailinator.com',
                 'First Name': 'Fallback',
                 'Last Name': 'Child',
-                'birthDate': '11/1/2008',
+                'Date of Birth': '04/25/2014',
                 'phone': '5712345567',
                 'country': 'US',
                 'stateOrProvince': 'New York',
@@ -680,8 +680,9 @@ class TestPrivacyPortal:
             try:
                 if page.locator(selector).first.is_visible():
                     # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('birthDate', '11/1/2008'))
-                    date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
+                    birth_date_raw = str(self.form_data.get('Date of Birth', self.form_data.get('birthDate', '11/1/2008')))
+                    print(f"🎂 Using birth date from Excel: '{birth_date_raw}'")
+                    date_formats = [birth_date_raw, "04/25/2014", "04/25/2014", "2014-04-25", "25/04/2014", "25-04-2014"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)

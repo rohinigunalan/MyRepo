@@ -307,23 +307,28 @@ class TestPrivacyPortal:
         print("\n📝 RECORD DETAILS:")
         
         for i, record in enumerate(self.all_form_data, 1):
-            # Try multiple possible field name variations for parent and child
-            parent_first = (record.get('Parent_first_name') or 
+            # FIXED: Use actual field names from International_Parent_form_data.xlsx
+            parent_first = (record.get(' First_Name_of parent_guardian') or 
+                          record.get('First_Name_of parent_guardian') or 
+                          record.get('Parent_first_name') or 
                           record.get('parent_first_name') or 
                           record.get('Parent First Name') or 
                           record.get('FirstName') or 
                           record.get('first_name') or 'N/A')
-            parent_last = (record.get('Parent_last_name') or 
+            parent_last = (record.get('Last Name of parent/guardian') or 
+                         record.get('Parent_last_name') or 
                          record.get('parent_last_name') or 
                          record.get('Parent Last Name') or 
                          record.get('LastName') or 
                          record.get('last_name') or 'N/A')
-            child_first = (record.get('Child_first_name') or 
+            child_first = (record.get('First Name') or 
+                         record.get('Child_first_name') or 
                          record.get('child_first_name') or 
                          record.get('Child First Name') or 
                          record.get('ChildFirstName') or 
                          record.get('child_name') or 'N/A')
-            child_last = (record.get('Child_last_name') or 
+            child_last = (record.get('Last Name') or 
+                        record.get('Child_last_name') or 
                         record.get('child_last_name') or 
                         record.get('Child Last Name') or 
                         record.get('ChildLastName') or 
@@ -413,23 +418,28 @@ class TestPrivacyPortal:
         print(f"   � Excel: International_Parent_Success_Report_{timestamp}.xlsx")
         
         for i, record in enumerate(self.all_form_data, 1):
-            # Try multiple possible field name variations for parent and child
-            parent_first = (record.get('Parent_first_name') or 
+            # FIXED: Use actual field names from International_Parent_form_data.xlsx
+            parent_first = (record.get(' First_Name_of parent_guardian') or 
+                          record.get('First_Name_of parent_guardian') or 
+                          record.get('Parent_first_name') or 
                           record.get('parent_first_name') or 
                           record.get('Parent First Name') or 
                           record.get('FirstName') or 
                           record.get('first_name') or 'N/A')
-            parent_last = (record.get('Parent_last_name') or 
+            parent_last = (record.get('Last Name of parent/guardian') or 
+                         record.get('Parent_last_name') or 
                          record.get('parent_last_name') or 
                          record.get('Parent Last Name') or 
                          record.get('LastName') or 
                          record.get('last_name') or 'N/A')
-            child_first = (record.get('Child_first_name') or 
+            child_first = (record.get('First Name') or 
+                         record.get('Child_first_name') or 
                          record.get('child_first_name') or 
                          record.get('Child First Name') or 
                          record.get('ChildFirstName') or 
                          record.get('child_name') or 'N/A')
-            child_last = (record.get('Child_last_name') or 
+            child_last = (record.get('Last Name') or 
+                        record.get('Child_last_name') or 
                         record.get('child_last_name') or 
                         record.get('Child Last Name') or 
                         record.get('ChildLastName') or 
@@ -654,22 +664,27 @@ class TestPrivacyPortal:
         
         # Add record details
         for i, record in enumerate(self.all_form_data, 1):
-            parent_first = (record.get('Parent_first_name') or 
+            parent_first = (record.get(' First_Name_of parent_guardian') or 
+                          record.get('First_Name_of parent_guardian') or 
+                          record.get('Parent_first_name') or 
                           record.get('parent_first_name') or 
                           record.get('Parent First Name') or 
                           record.get('FirstName') or 
                           record.get('first_name') or 'N/A')
-            parent_last = (record.get('Parent_last_name') or 
+            parent_last = (record.get('Last Name of parent/guardian') or 
+                         record.get('Parent_last_name') or 
                          record.get('parent_last_name') or 
                          record.get('Parent Last Name') or 
                          record.get('LastName') or 
                          record.get('last_name') or 'N/A')
-            child_first = (record.get('Child_first_name') or 
+            child_first = (record.get('First Name') or 
+                         record.get('Child_first_name') or 
                          record.get('child_first_name') or 
                          record.get('Child First Name') or 
                          record.get('ChildFirstName') or 
                          record.get('child_name') or 'N/A')
-            child_last = (record.get('Child_last_name') or 
+            child_last = (record.get('Last Name') or 
+                        record.get('Child_last_name') or 
                         record.get('child_last_name') or 
                         record.get('Child Last Name') or 
                         record.get('ChildLastName') or 
@@ -821,23 +836,28 @@ class TestPrivacyPortal:
         
         # Add record data
         for i, record in enumerate(self.all_form_data, 1):
-            # Extract parent and child names with fallback logic
-            parent_first = (record.get('Parent_first_name') or 
+            # FIXED: Extract parent and child names with correct field names
+            parent_first = (record.get(' First_Name_of parent_guardian') or 
+                          record.get('First_Name_of parent_guardian') or 
+                          record.get('Parent_first_name') or 
                           record.get('parent_first_name') or 
                           record.get('Parent First Name') or 
                           record.get('FirstName') or 
                           record.get('first_name') or 'N/A')
-            parent_last = (record.get('Parent_last_name') or 
+            parent_last = (record.get('Last Name of parent/guardian') or 
+                         record.get('Parent_last_name') or 
                          record.get('parent_last_name') or 
                          record.get('Parent Last Name') or 
                          record.get('LastName') or 
                          record.get('last_name') or 'N/A')
-            child_first = (record.get('Child_first_name') or 
+            child_first = (record.get('First Name') or 
+                         record.get('Child_first_name') or 
                          record.get('child_first_name') or 
                          record.get('Child First Name') or 
                          record.get('ChildFirstName') or 
                          record.get('child_name') or 'N/A')
-            child_last = (record.get('Child_last_name') or 
+            child_last = (record.get('Last Name') or 
+                        record.get('Child_last_name') or 
                         record.get('child_last_name') or 
                         record.get('Child Last Name') or 
                         record.get('ChildLastName') or 

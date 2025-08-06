@@ -409,7 +409,7 @@ class TestPrivacyPortal:
         excel_filename = os.path.join(SCREENSHOTS_DIR, f"International_Parent_Success_Report_{timestamp}.xlsx")
         try:
             self._generate_excel_report(excel_filename, timestamp)
-            print(f"✅ Excel report generated with 3 sheets: Summary, Record_Details, Technical_Details")
+            print(f"✅ Excel report generated with 4 sheets: Summary, Record_Details, Technical_Details, Original_Input_Data")
             print(f"📊 Success report saved as Excel file: {excel_filename}")
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
@@ -521,7 +521,7 @@ class TestPrivacyPortal:
         
         try:
             self._generate_excel_report(excel_filename, timestamp)
-            print(f"✅ Excel report generated with 3 sheets: Summary, Record_Details, Technical_Details")
+            print(f"✅ Excel report generated with 4 sheets: Summary, Record_Details, Technical_Details, Original_Input_Data")
             print(f"📊 Success report saved as Excel file: {excel_filename}")
         except Exception as e:
             print(f"⚠️ Could not save Excel report: {e}")
@@ -820,11 +820,27 @@ class TestPrivacyPortal:
         # Sheet 2: Record Details
         ws_records = wb.create_sheet("Record_Details")
         
-        # Headers for record details
+        # Comprehensive headers including ALL columns from input file plus processing info
         headers = [
-            "Record_Number", "Parent_First_Name", "Parent_Last_Name", 
-            "Child_First_Name", "Child_Last_Name", "Request_Type", 
-            "Country", "Status", "Processing_Notes"
+            "Record_Number", "Status", "Processing_Notes",
+            # Parent Information
+            "Parent_First_Name", "Parent_Last_Name", "Primary_Email_Address",
+            # Child Information  
+            "Child_First_Name", "Child_Last_Name", "Child_Email", "Birth_Date",
+            # Contact Information
+            "Phone_Number", "Country", "State_Province", "Postal_Code", "City", "Street_Address",
+            # Student Information
+            "Student_School_Name", "Student_Graduation_Year", 
+            # Educator Information
+            "Educator_School_Affiliation",
+            # Request Details
+            "Request_Type", "Additional_Details", "Who_Making_Request",
+            # All Original Excel Column Names (to preserve exact data)
+            "Original_Parent_First", "Original_Parent_Last", "Original_Child_First", "Original_Child_Last",
+            "Original_Primary_Email", "Original_Child_Email", "Original_Phone", "Original_Country",
+            "Original_State", "Original_Postal_Code", "Original_City", "Original_Address",
+            "Original_School_Name", "Original_Graduation_Year", "Original_Educator_Affiliation",
+            "Original_Request_Type", "Original_Additional_Details"
         ]
         
         # Add headers with styling
@@ -863,25 +879,83 @@ class TestPrivacyPortal:
                         record.get('ChildLastName') or 
                         record.get('child_lastname') or 'N/A')
             
-            request_type = record.get('Request_type', 'N/A')
-            country = record.get('country', 'N/A')
+            # Extract ALL available data from record
+            primary_email = record.get('Primary Email Address', record.get('primary_email', record.get('Primary_Email', record.get('parent_email', 'N/A'))))
+            child_email = record.get('Email of Child (Data Subject)', record.get('child_email', record.get('Child_Email', record.get('student_email', 'N/A'))))
+            birth_date = record.get('birthDate', record.get('birth_date', record.get('Birth_Date', record.get('DOB', 'N/A'))))
+            phone_number = record.get('Phone Number', record.get('phone', record.get('Phone', record.get('phone_number', 'N/A'))))
+            country = record.get('country', record.get('Country', 'N/A'))
+            state_province = record.get('stateOrProvince', record.get('state', record.get('State', record.get('province', 'N/A'))))
+            postal_code = record.get('postalCode', record.get('postal_code', record.get('Postal_Code', record.get('zip', 'N/A'))))
+            city = record.get('city', record.get('City', 'N/A'))
+            street_address = record.get('streetAddress', record.get('street_address', record.get('Street_Address', record.get('address', 'N/A'))))
+            student_school = record.get('studentSchoolName', record.get('student_school', record.get('Student_School', record.get('school', 'N/A'))))
+            graduation_year = record.get('studentGraduationYear', record.get('graduation_year', record.get('Graduation_Year', 'N/A')))
+            educator_affiliation = record.get('educatorSchoolAffiliation', record.get('educator_affiliation', record.get('Educator_Affiliation', 'N/A')))
+            request_type = record.get('Request_type', record.get('request_type', record.get('Request_Type', 'N/A')))
+            additional_details = record.get('additional_details', record.get('Additional_Details', record.get('details', 'N/A')))
+            who_making_request = record.get('who_making_request', record.get('Who_Making_Request', record.get('requestor', 'Parent on behalf of child')))
             
-            # Add row data
+            # Add comprehensive row data
             row_data = [
-                f"Record {i}",
-                parent_first,
-                parent_last,
-                child_first,
-                child_last,
-                request_type,
-                country,
-                "SUCCESSFULLY SUBMITTED",
-                "All form fields filled correctly, screenshots captured"
+                f"Record {i}",                    # Record_Number
+                "SUCCESSFULLY SUBMITTED",        # Status
+                "All form fields filled correctly, screenshots captured",  # Processing_Notes
+                
+                # Parent Information
+                parent_first,                    # Parent_First_Name
+                parent_last,                     # Parent_Last_Name
+                primary_email,                   # Primary_Email_Address
+                
+                # Child Information
+                child_first,                     # Child_First_Name
+                child_last,                      # Child_Last_Name
+                child_email,                     # Child_Email
+                birth_date,                      # Birth_Date
+                
+                # Contact Information
+                phone_number,                    # Phone_Number
+                country,                         # Country
+                state_province,                  # State_Province
+                postal_code,                     # Postal_Code
+                city,                           # City
+                street_address,                  # Street_Address
+                
+                # Student Information
+                student_school,                  # Student_School_Name
+                graduation_year,                 # Student_Graduation_Year
+                
+                # Educator Information
+                educator_affiliation,            # Educator_School_Affiliation
+                
+                # Request Details
+                request_type,                    # Request_Type
+                additional_details,              # Additional_Details
+                who_making_request,              # Who_Making_Request
+                
+                # Original Excel Column Values (preserving exact field names and values)
+                record.get(' First_Name_of parent_guardian', record.get('First_Name_of parent_guardian', 'N/A')),  # Original_Parent_First
+                record.get('Last Name of parent/guardian', 'N/A'),     # Original_Parent_Last
+                record.get('First Name', 'N/A'),                       # Original_Child_First
+                record.get('Last Name', 'N/A'),                        # Original_Child_Last
+                record.get('Primary Email Address', 'N/A'),            # Original_Primary_Email
+                record.get('Email of Child (Data Subject)', 'N/A'),    # Original_Child_Email
+                record.get('Phone Number', 'N/A'),                     # Original_Phone
+                record.get('country', 'N/A'),                          # Original_Country
+                record.get('stateOrProvince', 'N/A'),                  # Original_State
+                record.get('postalCode', 'N/A'),                       # Original_Postal_Code
+                record.get('city', 'N/A'),                             # Original_City
+                record.get('streetAddress', 'N/A'),                    # Original_Address
+                record.get('studentSchoolName', 'N/A'),                # Original_School_Name
+                record.get('studentGraduationYear', 'N/A'),            # Original_Graduation_Year
+                record.get('educatorSchoolAffiliation', 'N/A'),        # Original_Educator_Affiliation
+                record.get('Request_type', 'N/A'),                     # Original_Request_Type
+                record.get('additional_details', 'N/A')                # Original_Additional_Details
             ]
             
             for col, value in enumerate(row_data, 1):
                 cell = ws_records.cell(row=i + 1, column=col, value=value)
-                if col == 8:  # Status column
+                if col == 2:  # Status column
                     cell.fill = PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
                     cell.font = Font(bold=True)
         
@@ -949,9 +1023,77 @@ class TestPrivacyPortal:
             adjusted_width = min(max_length + 2, 80)
             ws_tech.column_dimensions[column].width = adjusted_width
         
+        # Sheet 4: Original Data (Raw Excel Input)
+        ws_original = wb.create_sheet("Original_Input_Data")
+        
+        # Get all unique column names from the data
+        all_columns = set()
+        for record in self.all_form_data:
+            all_columns.update(record.keys())
+        all_columns = sorted(list(all_columns))  # Sort for consistent ordering
+        
+        # Add "Record_Number" and "Status" columns at the beginning
+        headers_original = ["Record_Number", "Status"] + all_columns
+        
+        # Add headers with styling
+        for col, header in enumerate(headers_original, 1):
+            cell = ws_original.cell(row=1, column=col, value=header)
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="8e44ad", end_color="8e44ad", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Add all raw data exactly as it appears in the Excel file
+        for i, record in enumerate(self.all_form_data, 1):
+            # Add record number and status
+            ws_original.cell(row=i + 1, column=1, value=f"Record {i}")
+            ws_original.cell(row=i + 1, column=2, value="PROCESSED")
+            
+            # Add all original data
+            for col_idx, column_name in enumerate(all_columns, 3):  # Start from column 3
+                raw_value = record.get(column_name, 'N/A')
+                # Handle different data types
+                if raw_value is None:
+                    display_value = 'NULL'
+                elif str(raw_value).strip() == '':
+                    display_value = 'EMPTY'
+                elif str(raw_value).lower() in ['nan', 'none', 'null']:
+                    display_value = f'NaN_ORIGINAL[{raw_value}]'
+                else:
+                    display_value = str(raw_value)
+                
+                cell = ws_original.cell(row=i + 1, column=col_idx, value=display_value)
+                
+                # Color-code based on data type
+                if display_value in ['NULL', 'EMPTY']:
+                    cell.fill = PatternFill(start_color="ffcccc", end_color="ffcccc", fill_type="solid")
+                elif display_value.startswith('NaN_ORIGINAL'):
+                    cell.fill = PatternFill(start_color="fff2cc", end_color="fff2cc", fill_type="solid")
+        
+        # Auto-adjust column widths for original data sheet
+        for col in ws_original.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 40)
+            ws_original.column_dimensions[column].width = adjusted_width
+        
         # Save the workbook
         wb.save(filename)
         print(f"✅ Excel report generated with {len(wb.sheetnames)} sheets: {', '.join(wb.sheetnames)}")
+        
+        # Print sheet descriptions
+        print("📊 Sheet Descriptions:")
+        print("   1. Summary: Overview and performance metrics")
+        print("   2. Record_Details: Processed data with comprehensive field mapping")
+        print("   3. Technical_Details: Implementation details and fixes applied")
+        print("   4. Original_Input_Data: Raw Excel data exactly as imported (all columns)")
+        print(f"📈 Total columns in original data: {len(all_columns)}")
+        print(f"📋 Original Excel columns: {', '.join(all_columns[:10])}{'...' if len(all_columns) > 10 else ''}")
 
     def fill_subject_information(self, page: Page):
         """Fill subject information section for PARENT requests"""

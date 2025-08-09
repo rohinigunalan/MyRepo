@@ -41,7 +41,7 @@ class TestPrivacyPortal:
         print("📂 Loading ALL form data from Excel file...")
         
         # Use absolute path to Excel file (corrected to .xlsx)
-        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\Domestic_myself_requesttypes_submission_MULTIPLE.xlsx"
+        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\Domestic_Myself_form_data_updated.xlsx"
         
         try:
             print(f"📊 Attempting to read data from {excel_file}")

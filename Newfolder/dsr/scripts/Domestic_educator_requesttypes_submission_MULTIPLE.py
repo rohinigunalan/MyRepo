@@ -885,9 +885,63 @@ class TestPrivacyPortal:
         for selector in birthdate_selectors:
             try:
                 if page.locator(selector).first.is_visible():
-                    # Get birth date from Excel data and try different formats
-                    birth_date_raw = str(self.form_data.get('Date of Birth', '11/1/2008'))
-                    date_formats = [birth_date_raw, "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
+                    # Get birth date from Excel data - try EXACT Excel column names first
+                    birth_date_raw = str(self.form_data.get(' Date of Birth', ''))  # EXACT Excel column (with leading space)
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('Date of Birth', ''))  # Without space
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('birthDate', ''))
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('date_of_birth', ''))
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        birth_date_raw = str(self.form_data.get('DateOfBirth', ''))
+                    
+                    # If still no birth date found, check all columns for date-like content
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        print("⚠️ Birth date not found in expected columns, checking all columns...")
+                        for key, value in self.form_data.items():
+                            if 'birth' in key.lower() or 'date' in key.lower():
+                                print(f"   Found potential birth date column: {key} = {value}")
+                                if value and str(value) != 'nan' and str(value) != '':
+                                    birth_date_raw = str(value)
+                                    break
+                    
+                    # Final fallback - but warn user
+                    if not birth_date_raw or birth_date_raw == 'nan' or birth_date_raw == '':
+                        print("❌ NO BIRTH DATE FOUND IN EXCEL! Using emergency fallback.")
+                        print("📋 Available columns in Excel record:")
+                        for key, value in self.form_data.items():
+                            print(f"     {key}: {value}")
+                        birth_date_raw = "9/22/2004"  # Better fallback date for educator
+                    
+                    print(f"🎂 Using birth date from Excel: '{birth_date_raw}'")
+                    
+                    # Convert date to proper M/D/YYYY format (e.g., 9/22/2004)
+                    formatted_date = birth_date_raw
+                    try:
+                        # Handle various date formats and convert to M/D/YYYY
+                        from datetime import datetime
+                        import re
+                        
+                        # Clean the date string - remove time components
+                        date_str = str(birth_date_raw).split(' ')[0]  # Remove time if present
+                        
+                        # Try parsing different formats
+                        for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y', '%Y/%m/%d', '%m-%d-%Y', '%d-%m-%Y']:
+                            try:
+                                parsed_date = datetime.strptime(date_str, fmt)
+                                # Format as M/D/YYYY (no leading zeros)
+                                formatted_date = f"{parsed_date.month}/{parsed_date.day}/{parsed_date.year}"
+                                print(f"✅ Converted '{birth_date_raw}' to '{formatted_date}'")
+                                break
+                            except ValueError:
+                                continue
+                    except Exception as e:
+                        print(f"⚠️ Date conversion error: {e}")
+                        formatted_date = birth_date_raw  # Use original if conversion fails
+                    
+                    # Try multiple date formats including the formatted one
+                    date_formats = [formatted_date, birth_date_raw, "9/22/2004", "11/01/2008", "11/1/2008", "2008-11-01", "01/11/2008", "01-11-2008"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)

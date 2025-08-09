@@ -1739,13 +1739,14 @@ class TestPrivacyPortal:
             if excel_str.lower() in ['yes', 'true', '1', 'y']:
                 return True
                 
-            # If it contains descriptive text like "Student data (if any)", select it
+            # If it contains specific option text like "Student data (if any)", select it
             # This means the Excel has specific instructions for this option
-            if any(keyword in excel_str.lower() for keyword in ['data', 'student', 'parent', 'educator']):
+            if any(phrase in excel_str.lower() for phrase in ['student data (if any)', 'educator data (if any)', 'parent data (if any)']):
                 return True
                 
-            # For any other non-empty value, consider it as "select"
-            return len(excel_str) > 0
+            # Only select if there's a meaningful non-empty value (not just keywords)
+            # This prevents selection when Excel only contains column headers or descriptions
+            return False
         
         student_should_select = should_select_option(delete_student)
         parent_should_select = should_select_option(delete_parent)
@@ -2076,12 +2077,12 @@ class TestPrivacyPortal:
             if excel_str.lower() in ['yes', 'true', '1', 'y']:
                 return True
                 
-            # If it contains descriptive text like "Student account (if any)", select it
-            if any(keyword in excel_str.lower() for keyword in ['account', 'student', 'educator']):
+            # Check for specific descriptive text phrases (exact matches)
+            if excel_str in ["Student data (if any)", "Educator data (if any)"]:
                 return True
                 
-            # For any other non-empty value, consider it as "select"
-            return len(excel_str) > 0
+            # Don't select based on just keywords - require explicit instruction
+            return False
         
         student_should_select = should_select_option(close_student)
         educator_should_select = should_select_option(close_educator)

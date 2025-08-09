@@ -739,7 +739,33 @@ class TestPrivacyPortal:
                         birth_date_raw = "04/25/2014"  # Better fallback date
                     
                     print(f"🎂 Using birth date from Excel: '{birth_date_raw}'")
-                    date_formats = [birth_date_raw, "04/25/2014", "2014-04-25", "25/04/2014", "25-04-2014"]
+                    
+                    # Convert date to proper M/D/YYYY format (e.g., 3/15/2012)
+                    formatted_date = birth_date_raw
+                    try:
+                        # Handle various date formats and convert to M/D/YYYY
+                        from datetime import datetime
+                        import re
+                        
+                        # Clean the date string - remove time components
+                        date_str = str(birth_date_raw).split(' ')[0]  # Remove time if present
+                        
+                        # Try parsing different formats
+                        for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y', '%Y/%m/%d', '%m-%d-%Y', '%d-%m-%Y']:
+                            try:
+                                parsed_date = datetime.strptime(date_str, fmt)
+                                # Format as M/D/YYYY (no leading zeros)
+                                formatted_date = f"{parsed_date.month}/{parsed_date.day}/{parsed_date.year}"
+                                print(f"✅ Converted '{birth_date_raw}' to '{formatted_date}'")
+                                break
+                            except ValueError:
+                                continue
+                    except Exception as e:
+                        print(f"⚠️ Date conversion error: {e}")
+                        formatted_date = birth_date_raw  # Use original if conversion fails
+                    
+                    # Try multiple date formats including the formatted one
+                    date_formats = [formatted_date, birth_date_raw, "3/15/2012", "04/25/2014", "2014-04-25", "25/04/2014", "25-04-2014"]
                     for date_format in date_formats:
                         try:
                             page.fill(selector, date_format)

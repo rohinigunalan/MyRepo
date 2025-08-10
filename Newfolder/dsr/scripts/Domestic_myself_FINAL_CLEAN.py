@@ -2078,7 +2078,7 @@ class TestPrivacyPortal:
                 return True
                 
             # Check for specific descriptive text phrases (exact matches)
-            if excel_str in ["Student data (if any)", "Educator data (if any)"]:
+            if excel_str in ["Student account (if any)", "Educator account (if any)", "Student data (if any)", "Educator data (if any)"]:
                 return True
                 
             # Don't select based on just keywords - require explicit instruction
@@ -2246,7 +2246,7 @@ class TestPrivacyPortal:
                                         if text_input.is_visible():
                                             current_value = text_input.input_value()
                                             if not current_value or len(current_value.strip()) == 0:
-                                                text_input.fill("Account closure request")
+                                                # text_input.fill("Account closure request")  # DISABLED to prevent filling email fields
                                                 print(f"  ✅ Entered 'Account closure request' in text input for {description}")
                                                 text_input_found = True
                                                 time.sleep(1)
@@ -2998,3 +2998,4 @@ if __name__ == "__main__":
     print("   • Form submission screenshots")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")
+

@@ -8,7 +8,7 @@ This script should ALWAYS be run using the virtual environment (.venv) which has
 - Pytest
 
 TO RUN THIS SCRIPT:
-Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest myself_requesttypes_submission_MULTIPLE.py::TestPrivacyPortal::test_privacy_form_submission -v -s
+Use: & "C:/Users/rgunalan/OneDrive - College Board/Documents/GitHub/MyRepo/Newfolder/.venv/Scripts/python.exe" -m pytest Domestic_myself_FINAL_CLEAN.py::TestPrivacyPortal::test_privacy_form_submission -v -s
 
 The .venv contains all necessary dependencies and is properly configured for this automation.
 """

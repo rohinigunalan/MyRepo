@@ -65,7 +65,7 @@ class TestPrivacyPortal:
         """Load ALL form data from Master Combined Excel file"""
         print("📂 Loading Master Form Data...")
         
-        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\Combined\Master_All_Requests_form_data.xlsx"
+        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\Domestic_Myself_form_data_updated.xlsx"
         
         try:
             if not os.path.exists(excel_file):
@@ -162,6 +162,11 @@ class TestPrivacyPortal:
         """Determine the specific automation type from record data"""
         category = record.get('Request_Category', '').lower().strip()
         req_type = record.get('Request_Type', '').lower().strip()
+        
+        # If no category/type specified, default to Domestic Myself for this file
+        if not category and not req_type:
+            print("🎯 No category/type found, defaulting to Domestic Myself")
+            return "domestic_myself"
         
         # Normalize category
         if 'international' in category:

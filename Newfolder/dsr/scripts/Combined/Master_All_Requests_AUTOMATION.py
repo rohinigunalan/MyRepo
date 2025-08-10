@@ -231,7 +231,419 @@ class TestPrivacyPortal:
             
         return False
 
-print("🔨 STEP 4: Request detection and utilities added...")
+    def fill_form_by_type(self, page, record, automation_type):
+        """Route to appropriate form filling method based on automation type"""
+        print(f"🎯 Filling form for: {automation_type}")
+        
+        if 'parent' in automation_type:
+            self.fill_parent_form(page, record, automation_type)
+        elif 'myself' in automation_type:
+            self.fill_myself_form(page, record, automation_type)
+        elif 'educator' in automation_type:
+            self.fill_educator_form(page, record, automation_type)
+        else:
+            raise ValueError(f"Unknown automation type: {automation_type}")
+
+    def fill_parent_form(self, page, record, automation_type):
+        """Fill parent/guardian form"""
+        print("�‍👩‍👧‍👦 Filling PARENT form...")
+        
+        # Click parent option
+        try:
+            parent_selectors = [
+                "span:has-text('Parent/Guardian on behalf of my child')",
+                "span:has-text('Parent on behalf of child')",
+                "label:has-text('Parent')"
+            ]
+            
+            for selector in parent_selectors:
+                if page.locator(selector).count() > 0:
+                    page.click(selector)
+                    print(f"✅ Clicked parent option")
+                    time.sleep(1)
+                    break
+        except:
+            print("⚠️ Could not click parent option")
+        
+        # Fill parent information
+        self.fill_field(page, "input[id*='first']", record.get('Parent First Name', ''), "Parent first name")
+        self.fill_field(page, "input[id*='last']", record.get('Parent Last Name', ''), "Parent last name")
+        self.fill_field(page, "input[aria-label='Primary Email Address']", record.get('Primary Email Address', ''), "Parent email")
+        
+        # Fill child information
+        child_first = record.get('Child First Name', '')
+        child_last = record.get('Child Last Name', '')
+        if child_first:
+            self.fill_field(page, "input[aria-label*='Child'][aria-label*='First']", child_first, "Child first name")
+        if child_last:
+            self.fill_field(page, "input[aria-label*='Child'][aria-label*='Last']", child_last, "Child last name")
+        
+        # Common fields
+        self.fill_common_fields(page, record)
+
+    def fill_myself_form(self, page, record, automation_type):
+        """Fill myself form"""
+        print("👤 Filling MYSELF form...")
+        
+        # Click myself option
+        try:
+            myself_selectors = [
+                "span:has-text('Myself')",
+                "span:has-text('For myself')",
+                "label:has-text('Myself')"
+            ]
+            
+            for selector in myself_selectors:
+                if page.locator(selector).count() > 0:
+                    page.click(selector)
+                    print(f"✅ Clicked myself option")
+                    time.sleep(1)
+                    break
+        except:
+            print("⚠️ Could not click myself option")
+        
+        # Fill personal information
+        self.fill_field(page, "input[id*='first']", record.get('First Name', ''), "First name")
+        self.fill_field(page, "input[id*='last']", record.get('Last Name', ''), "Last name")
+        self.fill_field(page, "input[aria-label='Primary Email Address']", record.get('Primary Email Address', ''), "Email")
+        
+        # Common fields
+        self.fill_common_fields(page, record)
+
+    def fill_educator_form(self, page, record, automation_type):
+        """Fill educator/agent form"""
+        print("👨‍🏫 Filling EDUCATOR/AGENT form...")
+        
+        # Click educator/agent option
+        try:
+            educator_selectors = [
+                "span:has-text('Authorized Agent on behalf of someone else')",
+                "span:has-text('Educator')",
+                "label:has-text('Agent')"
+            ]
+            
+            for selector in educator_selectors:
+                if page.locator(selector).count() > 0:
+                    page.click(selector)
+                    print(f"✅ Clicked educator/agent option")
+                    time.sleep(1)
+                    break
+        except:
+            print("⚠️ Could not click educator option")
+        
+        # Fill agent information
+        self.fill_field(page, "input[aria-label*='Agent First Name']", record.get('Agent First Name', ''), "Agent first name")
+        self.fill_field(page, "input[aria-label*='Agent Last Name']", record.get('Agent Last Name', ''), "Agent last name")
+        self.fill_field(page, "input[aria-label='Agent Email Address']", record.get('Agent Email Address', ''), "Agent email")
+        self.fill_field(page, "input[aria-label*='Company']", record.get('Authorized Agent Company Name (insert N/A if not applicable)', 'N/A'), "Company name")
+        
+        # Fill student information
+        self.fill_field(page, "input[id*='first']", record.get('Student First Name', ''), "Student first name")
+        self.fill_field(page, "input[id*='last']", record.get('Student Last Name', ''), "Student last name")
+        
+        # Common fields
+        self.fill_common_fields(page, record)
+
+    def fill_field(self, page, selector, value, field_name):
+        """Safely fill a form field"""
+        if not value or pd.isna(value):
+            return
+        
+        try:
+            if page.locator(selector).count() > 0:
+                page.fill(selector, str(value))
+                print(f"✅ {field_name} filled: '{value}'")
+            else:
+                print(f"⚠️ {field_name} field not found")
+        except Exception as e:
+            print(f"⚠️ Error filling {field_name}: {str(e)}")
+
+    def fill_common_fields(self, page, record):
+        """Fill fields common to all form types"""
+        print("� Filling common fields...")
+        
+        # Phone number
+        phone = record.get('Phone Number', record.get('phone', '5712345567'))
+        self.fill_field(page, "input[id*='phone']", phone, "Phone")
+        
+        # Birth date
+        birth_date = record.get('Date of Birth', '')
+        if birth_date:
+            formatted_date = self.format_birth_date(birth_date)
+            self.fill_field(page, "input[id*='date']", formatted_date, "Birth date")
+        
+        # Address fields
+        self.fill_field(page, "input[id*='address']", record.get('Address', ''), "Address")
+        self.fill_field(page, "input[id*='city']", record.get('City', ''), "City")
+        self.fill_field(page, "input[id*='zip']", record.get('Zip Code', ''), "ZIP code")
+        
+        # Country and State
+        self.fill_location_fields(page, record)
+        
+        # Request type selection
+        self.select_request_type(page, record)
+        
+        # Handle request-specific options
+        self.handle_request_options(page, record)
+
+    def fill_location_fields(self, page, record):
+        """Fill country and state fields"""
+        try:
+            # Country
+            country = record.get('Country', 'United States')
+            if page.locator("input[id*='country']").count() > 0:
+                page.click("input[id*='country']")
+                time.sleep(1)
+                if page.locator(f"[role='option']:has-text('{country}')").count() > 0:
+                    page.click(f"[role='option']:has-text('{country}')")
+                    print(f"✅ Country selected: {country}")
+                    time.sleep(2)
+        except:
+            print("⚠️ Could not fill country")
+        
+        try:
+            # State
+            state = record.get('State', '')
+            if state and page.locator("input[id*='state']").count() > 0:
+                page.fill("input[id*='state']", state)
+                page.press("input[id*='state']", "Enter")
+                print(f"✅ State filled: {state}")
+        except:
+            print("⚠️ Could not fill state")
+
+    def select_request_type(self, page, record):
+        """Select the appropriate request type"""
+        request_type = record.get('Which of the following types of requests would you like to make?', '')
+        if not request_type:
+            return
+        
+        print(f"📋 Selecting request type: {request_type}")
+        
+        try:
+            # Try exact match first
+            if page.locator(f"text='{request_type}'").count() > 0:
+                page.click(f"text='{request_type}'")
+                print(f"✅ Selected exact match: {request_type}")
+                return
+            
+            # Try keyword-based matching
+            request_keywords = {
+                'copy': ['Request a copy', 'copy of my data'],
+                'delete': ['Request to delete', 'delete my data'],
+                'opt out': ['Opt out', 'object'],
+                'close': ['Close', 'deactivate', 'cancel'],
+                'parent': ['parent', 'cc information']
+            }
+            
+            for key, options in request_keywords.items():
+                if key in request_type.lower():
+                    for option in options:
+                        if page.locator(f"text*='{option}'").count() > 0:
+                            page.click(f"text*='{option}'")
+                            print(f"✅ Selected by keyword '{option}': {request_type}")
+                            return
+            
+            print(f"⚠️ Could not find matching request type for: {request_type}")
+            
+        except Exception as e:
+            print(f"⚠️ Error selecting request type: {str(e)}")
+
+    def handle_request_options(self, page, record):
+        """Handle delete/close options based on request type"""
+        request_type = record.get('Which of the following types of requests would you like to make?', '').lower()
+        
+        if 'delete' in request_type:
+            self.handle_delete_options(page, record)
+        elif 'close' in request_type or 'deactivate' in request_type:
+            self.handle_close_options(page, record)
+
+    def handle_delete_options(self, page, record):
+        """Handle delete data sub-options"""
+        print("🗑️ Handling delete data sub-options...")
+        
+        delete_options = {
+            'Student data (if any)': record.get('delete_student', ''),
+            'Parent data (if any)': record.get('delete_parent', ''),
+            'Educator data (if any)': record.get('delete_educator', '')
+        }
+        
+        for option_text, excel_value in delete_options.items():
+            if self.should_select_option(excel_value):
+                try:
+                    if page.locator(f"text='{option_text}'").count() > 0:
+                        page.click(f"text='{option_text}'")
+                        print(f"✅ Selected delete option: {option_text}")
+                except:
+                    print(f"⚠️ Could not select delete option: {option_text}")
+
+    def handle_close_options(self, page, record):
+        """Handle close account sub-options"""
+        print("🚪 Handling close account sub-options...")
+        
+        close_options = {
+            'Student account (if any)': record.get('close_student', ''),
+            'Educator account (if any)': record.get('close_educator', '')
+        }
+        
+        for option_text, excel_value in close_options.items():
+            if self.should_select_option(excel_value):
+                try:
+                    if page.locator(f"text='{option_text}'").count() > 0:
+                        page.click(f"text='{option_text}'")
+                        print(f"✅ Selected close option: {option_text}")
+                except:
+                    print(f"⚠️ Could not select close option: {option_text}")
+
+    def handle_form_submission(self, page, record_num, automation_type):
+        """Handle acknowledgments and form submission"""
+        try:
+            # Handle acknowledgment
+            if page.locator("text='I acknowledge'").count() > 0:
+                page.click("text='I acknowledge'")
+                print("✅ Acknowledgment clicked")
+            
+            # Take screenshot before submission
+            screenshot_path = f"{SCREENSHOTS_DIR}/before_submission_record_{record_num}_{automation_type}.png"
+            os.makedirs(os.path.dirname(screenshot_path), exist_ok=True)
+            page.screenshot(path=screenshot_path, full_page=True)
+            print(f"� Before submission screenshot saved")
+            
+            # Submit form
+            if page.locator("button:has-text('Submit')").count() > 0:
+                page.click("button:has-text('Submit')")
+                print("✅ Form submitted")
+                
+                # Wait for success message
+                time.sleep(3)
+                
+                # Take screenshot after submission
+                after_screenshot_path = f"{SCREENSHOTS_DIR}/after_submission_record_{record_num}_{automation_type}.png"
+                page.screenshot(path=after_screenshot_path, full_page=True)
+                print(f"📸 After submission screenshot saved")
+                
+                return True
+            else:
+                print("⚠️ Submit button not found")
+                return False
+                
+        except Exception as e:
+            print(f"⚠️ Error during form submission: {str(e)}")
+            return False
+
+    def test_privacy_form_submission(self):
+        """🚀 MAIN TEST METHOD - Master Combined Automation"""
+        
+        print("\n" + "="*80)
+        print("🚀 STARTING MASTER COMBINED AUTOMATION - ALL REQUEST TYPES")
+        print("="*80)
+        print("🎯 This script handles ALL 6 automation types in one run:")
+        print("   ✅ International Parent, Myself, Educator")
+        print("   ✅ Domestic Parent, Myself, Educator")
+        print("="*80)
+        
+        if not self.all_form_data:
+            pytest.fail("❌ No form data loaded. Cannot proceed with automation.")
+        
+        print(f"📊 Total records to process: {len(self.all_form_data)}")
+        
+        # Statistics tracking
+        stats = {
+            'total_processed': 0,
+            'successful_submissions': 0,
+            'failed_submissions': 0,
+            'by_type': {}
+        }
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False, slow_mo=1000)
+            context = browser.new_context(viewport={'width': 1920, 'height': 1080})
+            page = context.new_page()
+            
+            try:
+                for i, record in enumerate(self.all_form_data, 1):
+                    print(f"\n{'='*80}")
+                    print(f"🔄 PROCESSING RECORD {i} OF {len(self.all_form_data)}")
+                    print(f"{'='*80}")
+                    
+                    # Determine automation type
+                    automation_type = self.determine_automation_type(record)
+                    
+                    # Track statistics
+                    stats['total_processed'] += 1
+                    if automation_type not in stats['by_type']:
+                        stats['by_type'][automation_type] = {'attempted': 0, 'successful': 0}
+                    stats['by_type'][automation_type]['attempted'] += 1
+                    
+                    # Display record info
+                    category = record.get('Request_Category', 'Unknown')
+                    req_type = record.get('Request_Type', 'Unknown')
+                    request_details = record.get('Which of the following types of requests would you like to make?', '')
+                    
+                    print(f"🎯 Current Record Details:")
+                    print(f"   Automation Type: {automation_type}")
+                    print(f"   Category: {category}")
+                    print(f"   Request Type: {req_type}")
+                    print(f"   Request Details: {request_details}")
+                    
+                    try:
+                        # Navigate to form
+                        print(f"🌐 Navigating to privacy portal...")
+                        page.goto(self.form_url)
+                        page.wait_for_load_state('networkidle')
+                        
+                        # Fill form based on automation type
+                        self.fill_form_by_type(page, record, automation_type)
+                        
+                        # Submit form
+                        if self.handle_form_submission(page, i, automation_type):
+                            stats['successful_submissions'] += 1
+                            stats['by_type'][automation_type]['successful'] += 1
+                            print(f"✅ RECORD {i} COMPLETED SUCCESSFULLY!")
+                        else:
+                            stats['failed_submissions'] += 1
+                            print(f"❌ RECORD {i} SUBMISSION FAILED!")
+                        
+                    except Exception as e:
+                        print(f"❌ Error processing record {i}: {str(e)}")
+                        stats['failed_submissions'] += 1
+                        continue
+                    
+                    # Pause between records
+                    if i < len(self.all_form_data):
+                        print("⏸️ PAUSING 3 SECONDS BEFORE NEXT RECORD...")
+                        time.sleep(3)
+                
+            finally:
+                # Display final statistics
+                print(f"\n{'='*80}")
+                print("🎉 MASTER COMBINED AUTOMATION COMPLETED!")
+                print(f"{'='*80}")
+                print(f"📊 FINAL STATISTICS:")
+                print(f"   Total Records Processed: {stats['total_processed']}")
+                print(f"   ✅ Successful Submissions: {stats['successful_submissions']}")
+                print(f"   ❌ Failed Submissions: {stats['failed_submissions']}")
+                print(f"   📈 Success Rate: {(stats['successful_submissions']/stats['total_processed']*100):.1f}%")
+                
+                print(f"\n📋 BREAKDOWN BY AUTOMATION TYPE:")
+                for auto_type, type_stats in stats['by_type'].items():
+                    success_rate = (type_stats['successful']/type_stats['attempted']*100) if type_stats['attempted'] > 0 else 0
+                    print(f"   {auto_type}: {type_stats['successful']}/{type_stats['attempted']} ({success_rate:.1f}% success)")
+                
+                print(f"\n📁 DOCUMENTATION SAVED TO: {SCREENSHOTS_DIR}")
+                print(f"   • Before/after submission screenshots for all records")
+                print(f"   • Organized by automation type and record number")
+                print(f"{'='*80}")
+                
+                time.sleep(10)
+                browser.close()
+
+if __name__ == "__main__":
+    # Run the master automation directly
+    test_instance = TestPrivacyPortal()
+    test_instance.setup_method()
+    test_instance.test_privacy_form_submission()
+
+print("🎉 MASTER SCRIPT CREATION COMPLETE!")
 
 class TestPrivacyPortal:
     """Master Test Suite for ALL Privacy Portal form automation types"""

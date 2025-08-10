@@ -53,6 +53,191 @@ class TestPrivacyPortal:
     
     def setup_method(self):
         """Setup method called before each test"""
+        print("🔧 Setting up Master Combined Automation...")
+        
+        # Single URL for all form types
+        self.form_url = "https://privacyportaluat.onetrust.com/webform/b99e91a7-a15e-402d-913d-a09fe56fcd54/c31c1bfa-b0a7-4a7a-9fc0-22c44fa094d0"
+        
+        # Load ALL records from master Excel file
+        self.all_form_data = self.load_master_form_data()
+        
+    def load_master_form_data(self):
+        """Load ALL form data from Master Combined Excel file"""
+        print("📂 Loading Master Form Data...")
+        
+        excel_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\Combined\Master_All_Requests_form_data.xlsx"
+        
+        try:
+            if not os.path.exists(excel_file):
+                print(f"⚠️ Master Excel file not found, creating sample...")
+                return self.create_sample_data()
+            
+            df = pd.read_excel(excel_file, engine='openpyxl', na_filter=False, keep_default_na=False, dtype=str)
+            print(f"✅ Master Excel loaded: {len(df)} records")
+            
+            # Validate required columns
+            required_columns = ['Request_Category', 'Request_Type']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                raise ValueError(f"Missing columns: {missing_columns}")
+            
+            # Display breakdown
+            breakdown = df.groupby(['Request_Category', 'Request_Type']).size()
+            print("📋 Automation breakdown:")
+            for (category, req_type), count in breakdown.items():
+                print(f"   {category} {req_type}: {count} records")
+            
+            return df.to_dict('records')
+            
+        except Exception as e:
+            print(f"❌ Error loading data: {str(e)}")
+            return self.create_sample_data()
+    
+    def create_sample_data(self):
+        """Create sample data demonstrating all automation types"""
+        print("📝 Creating sample master data...")
+        
+        sample_data = [
+            # International Parent
+            {
+                'Request_Category': 'International',
+                'Request_Type': 'Parent',
+                'Parent First Name': 'John',
+                'Parent Last Name': 'Smith',
+                'Primary Email Address': 'john.smith@mailinator.com',
+                'Child First Name': 'Emily',
+                'Child Last Name': 'Smith',
+                'Date of Birth': '2010-05-15',
+                'Phone Number': '5712345678',
+                'Address': '123 Main St',
+                'City': 'New York',
+                'State': 'New York',
+                'Zip Code': '10001',
+                'Country': 'United States',
+                'Which of the following types of requests would you like to make?': 'Request a copy of my data'
+            },
+            # Domestic Myself
+            {
+                'Request_Category': 'Domestic',
+                'Request_Type': 'Myself',
+                'First Name': 'Sarah',
+                'Last Name': 'Johnson',
+                'Primary Email Address': 'sarah.johnson@mailinator.com',
+                'Date of Birth': '1995-08-22',
+                'Phone Number': '5719876543',
+                'Address': '456 Oak Ave',
+                'City': 'Denver',
+                'State': 'Colorado',
+                'Zip Code': '80202',
+                'Country': 'United States',
+                'Which of the following types of requests would you like to make?': 'request to delete my data',
+                'delete_student': 'Student data (if any)'
+            },
+            # Domestic Educator
+            {
+                'Request_Category': 'Domestic',
+                'Request_Type': 'Educator',
+                'Agent First Name': 'Maria',
+                'Agent Last Name': 'Garcia',
+                'Agent Email Address': 'maria.garcia@mailinator.com',
+                'Authorized Agent Company Name (insert N/A if not applicable)': 'N/A',
+                'Student First Name': 'Carlos',
+                'Student Last Name': 'Garcia',
+                'Primary Email Address': 'carlos.garcia@mailinator.com',
+                'Date of Birth': '2009-12-03',
+                'Phone Number': '5713334444',
+                'Address': '789 Pine Rd',
+                'City': 'Miami',
+                'State': 'Florida',
+                'Zip Code': '33101',
+                'Country': 'United States',
+                'Which of the following types of requests would you like to make?': 'Close/deactivate/cancel my College Board account',
+                'close_student': 'Student account (if any)'
+            }
+        ]
+        
+        return sample_data
+
+    def determine_automation_type(self, record):
+        """Determine the specific automation type from record data"""
+        category = record.get('Request_Category', '').lower().strip()
+        req_type = record.get('Request_Type', '').lower().strip()
+        
+        # Normalize category
+        if 'international' in category:
+            category = 'international'
+        else:
+            category = 'domestic'
+        
+        # Normalize request type
+        if 'parent' in req_type or 'guardian' in req_type:
+            req_type = 'parent'
+        elif 'myself' in req_type or 'self' in req_type:
+            req_type = 'myself'
+        elif 'educator' in req_type or 'agent' in req_type:
+            req_type = 'educator'
+        else:
+            print(f"⚠️ Unknown request type '{req_type}', defaulting to myself")
+            req_type = 'myself'
+        
+        automation_type = f"{category}_{req_type}"
+        print(f"🎯 Determined automation type: {automation_type}")
+        return automation_type
+
+    def format_birth_date(self, birth_date_str):
+        """Enhanced birth date formatting for all forms"""
+        if not birth_date_str or pd.isna(birth_date_str) or str(birth_date_str).strip() == '':
+            return ""
+        
+        try:
+            date_str = str(birth_date_str).strip()
+            
+            if 'T' in date_str:
+                date_obj = datetime.datetime.strptime(date_str.split('T')[0], '%Y-%m-%d')
+            elif ' ' in date_str and ':' in date_str:
+                date_obj = datetime.datetime.strptime(date_str.split(' ')[0], '%Y-%m-%d')
+            elif len(date_str) == 10 and date_str.count('-') == 2:
+                date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+            elif '/' in date_str:
+                return date_str
+            else:
+                return date_str
+            
+            formatted_date = f"{date_obj.month}/{date_obj.day}/{date_obj.year}"
+            print(f"✅ Converted '{birth_date_str}' to '{formatted_date}'")
+            return formatted_date
+            
+        except Exception as e:
+            print(f"⚠️ Error formatting birth date: {str(e)}")
+            return str(birth_date_str)
+
+    def should_select_option(self, excel_value):
+        """Smart option selection logic"""
+        if pd.isna(excel_value) or excel_value == "":
+            return False
+            
+        excel_str = str(excel_value).strip()
+        if not excel_str:
+            return False
+            
+        # Explicit positive values
+        if excel_str.lower() in ['yes', 'true', '1', 'y']:
+            return True
+            
+        # Specific descriptive text phrases
+        if excel_str in ["Student data (if any)", "Parent data (if any)", "Educator data (if any)",
+                        "Student account (if any)", "Educator account (if any)"]:
+            return True
+            
+        return False
+
+print("🔨 STEP 4: Request detection and utilities added...")
+
+class TestPrivacyPortal:
+    """Master Test Suite for ALL Privacy Portal form automation types"""
+    
+    def setup_method(self):
+        """Setup method called before each test"""
         print("� Setting up Master Combined Automation...")
         
         # Single URL for all form types (same endpoint, different logic)

@@ -22,8 +22,8 @@ def create_myself_reading_success_report():
     print(f"🕒 Timestamp: {timestamp}")
     
     # File paths
-    data_file = "dsr/data/Myself_form_data_updated.xlsx"
-    output_file = f"dsr/screenshots/Myself_Data_Reading_Success_Report_{timestamp}.xlsx"
+    data_file = "dsr/data/International_Myself_form_data_updated.xlsx"
+    output_file = f"dsr/screenshots/International_Myself_Data_Reading_Success_Report_{timestamp}.xlsx"
     
     # Ensure output directory exists
     os.makedirs("dsr/screenshots", exist_ok=True)
@@ -272,3 +272,4 @@ def create_myself_reading_success_report():
 
 if __name__ == "__main__":
     create_myself_reading_success_report()
+

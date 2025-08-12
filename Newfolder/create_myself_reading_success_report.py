@@ -22,11 +22,11 @@ def create_myself_reading_success_report():
     print(f"🕒 Timestamp: {timestamp}")
     
     # File paths
-    data_file = "dsr/data/International_Myself_form_data_updated.xlsx"
-    output_file = f"dsr/screenshots/International_Myself_Data_Reading_Success_Report_{timestamp}.xlsx"
+    data_file = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\data\International_Myself_form_data_updated.xlsx"
+    output_file = rf"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots\International_Myself\International_Myself_Data_Reading_Success_Report_{timestamp}.xlsx"
     
     # Ensure output directory exists
-    os.makedirs("dsr/screenshots", exist_ok=True)
+    os.makedirs(r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots\International_Myself", exist_ok=True)
     
     try:
         print(f"📂 Reading data from: {data_file}")
@@ -272,4 +272,5 @@ def create_myself_reading_success_report():
 
 if __name__ == "__main__":
     create_myself_reading_success_report()
+
 

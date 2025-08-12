@@ -1524,7 +1524,7 @@ class TestPrivacyPortal:
                                 
                                 # Try text input after force click too
                                 try:
-                                    text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                    text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([name*='phone']), textarea:visible").first
                                     if text_input.is_visible():
                                         text_input.fill("test DSR")
                                         print(f"  ✅ Entered 'test DSR' after force-click")
@@ -1559,7 +1559,7 @@ class TestPrivacyPortal:
                             
                             # Check for text input after clicking
                             try:
-                                text_input = page.locator("input[type='text']:visible, textarea:visible").first
+                                text_input = page.locator("input[type='text']:visible:not([placeholder*='phone']):not([name*='phone']), textarea:visible").first
                                 if text_input.is_visible():
                                     text_input.fill("test DSR")
                                     print(f"  ✅ Entered 'test DSR' after clicking '{pattern}'")

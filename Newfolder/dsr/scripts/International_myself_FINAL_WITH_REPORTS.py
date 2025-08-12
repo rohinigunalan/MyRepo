@@ -23,7 +23,10 @@ import re
 import time
 
 # Define the screenshots directory for International Myself automation
-SCREENSHOTS_DIR = "dsr/screenshots/International_Myself"
+SCREENSHOTS_DIR = r"C:\Users\rgunalan\OneDrive - College Board\Documents\GitHub\MyRepo\Newfolder\dsr\screenshots\International_Myself"
+
+# Generate timestamp for this automation session
+AUTOMATION_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 # Add the parent directory to sys.path to import the report generator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -156,10 +159,10 @@ class TestPrivacyPortal:
                             self.fill_subject_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in subject information: {str(e)}")
-                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_subject_info_record_{actual_record_number}.png", full_page=True)
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_subject_info_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after subject info
-                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_subject_info_record_{actual_record_number}.png", full_page=True)
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_subject_info_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
                         print(f"📸 Screenshot saved after subject information for record {actual_record_number}")
                         
                         # Pause after subject info
@@ -170,10 +173,10 @@ class TestPrivacyPortal:
                             self.fill_contact_information(page)
                         except Exception as e:
                             print(f"⚠️ Error in contact information: {str(e)}")
-                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_contact_info_record_{actual_record_number}.png", full_page=True)
+                            page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_contact_info_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after contact info
-                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_contact_info_record_{actual_record_number}.png", full_page=True)
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_contact_info_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
                         print(f"📸 Screenshot saved after contact information for record {actual_record_number}")
                         
                         # Pause after contact info
@@ -233,12 +236,12 @@ class TestPrivacyPortal:
                         time.sleep(2)
                         
                         # Take a screenshot after filling all fields
-                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\form_filled_complete_record_{actual_record_number}.png", full_page=True)
-                        print(f"📸 Screenshot saved: form_filled_complete_record_{actual_record_number}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\form_filled_complete_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: form_filled_complete_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png")
                         
                         # Take a screenshot before submission (backup)
-                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\before_submission_record_{actual_record_number}.png", full_page=True)
-                        print(f"📸 Screenshot saved: before_submission_record_{actual_record_number}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\before_submission_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: before_submission_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png")
                         
                         # Pause before submission to review completed form
                         print(f"⏸️ PAUSE: Form completely filled for record {actual_record_number}! Submitting in 3 seconds...")
@@ -252,8 +255,8 @@ class TestPrivacyPortal:
                             page.screenshot(path=f"{SCREENSHOTS_DIR}\\error_submission_record_{actual_record_number}.png", full_page=True)
                         
                         # Take screenshot after submission
-                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_submission_record_{actual_record_number}.png", full_page=True)
-                        print(f"📸 Screenshot saved: after_submission_record_{actual_record_number}.png")
+                        page.screenshot(path=f"{SCREENSHOTS_DIR}\\after_submission_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png", full_page=True)
+                        print(f"📸 Screenshot saved: after_submission_{AUTOMATION_TIMESTAMP}_record_{actual_record_number}.png")
                         
                         # Pause after submission to see results
                         print(f"⏸️ PAUSE: Record {actual_record_number} submission completed. Observing results for 3 seconds...")
@@ -2177,8 +2180,8 @@ class TestPrivacyPortal:
         if not captcha_handled:
             print("⚠️ Could not find 'I'm not a robot' checkbox")
             # Take screenshot for debugging
-            page.screenshot(path=f"{SCREENSHOTS_DIR}\\captcha_debug.png", full_page=True)
-            print(f"📸 Debug screenshot saved: {SCREENSHOTS_DIR}\\captcha_debug.png")
+            page.screenshot(path=f"{SCREENSHOTS_DIR}\\captcha_debug_{AUTOMATION_TIMESTAMP}.png", full_page=True)
+            print(f"📸 Debug screenshot saved: {SCREENSHOTS_DIR}\\captcha_debug_{AUTOMATION_TIMESTAMP}.png")
         else:
             # After clicking captcha, check if there's a challenge (image puzzle)
             print("🔍 Checking for reCAPTCHA challenge after clicking...")
@@ -2535,4 +2538,6 @@ if __name__ == "__main__":
     print("   • Form submission screenshots")
     print("   • Data Reading Success Report (Excel file)")
     print("   • Automation logs and results")
+
+
 

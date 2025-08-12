@@ -1477,13 +1477,13 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
+                                "input[type='text']:visible:not([placeholder*='phone']):not([name*='phone']):not([id*='phone'])",
                                 "textarea:visible", 
                                 "input[placeholder*='details']:visible",
                                 "input[placeholder*='information']:visible",
                                 "textarea[placeholder*='details']:visible",
                                 "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible",
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([placeholder*='phone']):not([name*='phone']):not([id*='phone']):visible",
                                 ".text-input:visible",
                                 "[data-testid*='text']:visible",
                                 "[aria-label*='text']:visible"
@@ -1766,13 +1766,13 @@ class TestPrivacyPortal:
                             # Check for text input field after selecting the option
                             print(f"  🔍 Looking for text input after selecting {description}...")
                             text_input_selectors = [
-                                "input[type='text']:visible",
+                                "input[type='text']:visible:not([placeholder*='phone']):not([name*='phone']):not([id*='phone'])",
                                 "textarea:visible", 
                                 "input[placeholder*='details']:visible",
                                 "input[placeholder*='information']:visible",
                                 "textarea[placeholder*='details']:visible",
                                 "textarea[placeholder*='information']:visible",
-                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):visible"
+                                "input:not([type='hidden']):not([type='radio']):not([type='checkbox']):not([placeholder*='phone']):not([name*='phone']):not([id*='phone']):visible"
                             ]
                             
                             text_input_found = False

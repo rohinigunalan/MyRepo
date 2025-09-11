@@ -5,8 +5,6 @@
     "testOrder": {
       "type": "object",
       "properties": {
-                        },
-                        "additionalProperties": false
         "testName": {"type": "string"},
         "testDate": {"type": "string"},
         "dayNum": {"type": "number"},
@@ -190,7 +188,9 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "affiliatedOrganizationName": {
+                        },
+                        "additionalProperties": false,
+                        "affiliatedOrganizationName": {
                             "type": "string",
                             "examples": ["Centerville Junior High School"]
                           },

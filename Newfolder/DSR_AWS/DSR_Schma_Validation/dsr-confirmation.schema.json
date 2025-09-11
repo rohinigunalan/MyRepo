@@ -735,7 +735,8 @@
                                           "type": "string",
                                           "examples": ["Y"]
                                         }
-                                      }
+                                      },
+                                      "additionalProperties": false
                                     }
                                   },
                                   "mathAbility": {

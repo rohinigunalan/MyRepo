@@ -844,6 +844,8 @@
                                   }
                                 },
                                 "additionalProperties": false
+                                },
+                                "additionalProperties": false
                               },
                               "sat": {
                                 "type": "object",

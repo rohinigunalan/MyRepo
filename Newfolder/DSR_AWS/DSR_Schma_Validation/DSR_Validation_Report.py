@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 DSR Schema Validation Report - Latest Version
 Validates JSON files against DSR confirmation schema
 
@@ -34,6 +34,8 @@ def validate_json_file(json_filename="MFCREP8A95_1.json"):
     print(f"📂 Base Path: {base_path}")
     print(f"📄 Schema File: dsr-confirmation.schema.json")
     print(f"📄 Target File: {json_filename}")
+    print(f"📂 Schema File Path: {schema_file}")
+    print(f"📂 JSON File Path: {json_file}")
     print()
     try:
         if not os.path.exists(schema_file):

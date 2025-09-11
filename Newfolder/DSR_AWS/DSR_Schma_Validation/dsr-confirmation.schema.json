@@ -188,9 +188,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                        },
-                        "additionalProperties": false,
-                        "affiliatedOrganizationName": {
+                          "affiliatedOrganizationName": {
                             "type": "string",
                             "examples": ["Centerville Junior High School"]
                           },
@@ -6612,4 +6610,3 @@
         }
       }
     }
-  }

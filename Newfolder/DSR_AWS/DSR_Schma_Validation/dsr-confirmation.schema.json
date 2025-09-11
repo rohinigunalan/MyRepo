@@ -5,6 +5,8 @@
     "testOrder": {
       "type": "object",
       "properties": {
+                        },
+                        "additionalProperties": false
         "testName": {"type": "string"},
         "testDate": {"type": "string"},
         "dayNum": {"type": "number"},

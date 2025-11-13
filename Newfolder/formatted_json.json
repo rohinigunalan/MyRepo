@@ -1,0 +1,30 @@
+{
+  "information": {
+    "subjects": [
+      {
+        "firstName": "Robert",
+        "lastName": "Smith",
+        "middleName": "S",
+        "emailAddress": "bob.smith@gmail.com",
+        "address": {
+          "streetAddress": "1310 NW Naito Pkwy, Unit 1006",
+          "city": "Portland",
+          "state": "Oregon",
+          "country": "United States",
+          "zipCode": "97209-3161"
+        },
+        "gender": "Female",
+        "birthdate": "09/01/1981",
+        "phoneNumber": "971-133-3313",
+        "alternatePhoneNumber": "503-318-5075",
+        "studentIds": ["8150231335"],
+        "domains": {
+          "accuplacer": {
+            "enrolledInHighSchool": "Y",
+            "attendingSchool": "Centerville High School"
+          }
+        }
+      }
+    ]
+  }
+}

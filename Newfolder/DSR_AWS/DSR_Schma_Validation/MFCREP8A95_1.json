@@ -1,0 +1,56 @@
+{
+
+    "requestId": "MFCREP8A95_1",
+
+    "appId": 505,
+
+    "action": "EXECUTED",
+
+    "detail": {
+
+        "responseDetails": {
+
+            "delete": {
+
+                "subjects": [
+
+                    {
+
+                        "firstName": "Bob",
+
+                        "lastName": "Smith",
+
+                        "personId": "12861951",
+
+                        "username": "bsmith",
+
+                        "emailAddress": "bob.smith@example.com",
+
+                        "channel": "consumer",
+
+                        "streetAddress": "1310 NW Naito Pkwy, Unit 1006",
+
+                        "city": "Portland",
+
+                        "state": "Oregon",
+
+                        "country": "United States",
+
+                        "zipCode": "97209-3161",
+
+                        "birthdate": "1981-09-01",
+
+                        "phoneNumber": "971-133-3313"
+
+                    }
+
+                ]
+
+            }
+
+        }
+
+    }
+
+}
+ 

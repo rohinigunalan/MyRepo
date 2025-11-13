@@ -1,0 +1,64 @@
+{
+   "requestId": "MFCREP8A95_1",
+   "appId": 505,
+   "action": "EXECUTED",
+   "detail": {
+      "responseDetails": {
+         "information": {
+            "subjects": [
+               {
+                  "firstName": "Robert",
+                  "lastName": "Smith",
+                  "middleName": "S",
+                  "personId": "200809165",
+                  "gender": "Female",
+                  "birthdate": "09/01/1981",
+                  "studentIds": [
+                     "8140131335",
+                     "8140131337",
+                     "8150231335"
+                  ],
+                  "domains": {
+                     "sat": {
+                        "registration": [
+                           {
+                              "registrationNumber": "S4561264"
+                           }
+                        ]
+                     },
+                     "psat": {
+                        "registration": [
+                           {
+                              "registrationNumber": "P4561264"
+                           }
+                        ]
+                     },
+                     "accommodationsManagement": {
+                        "data": {
+                           "ssdStudentExtraInfo": [
+                              {
+                                 "ssdStudentId": "231096000"
+                              }
+                           ],
+                           "accommodations": [
+                              {
+                                 "categoryName": "Extended Time",
+                                 "accommodationName": "Reading: Up to Time and One-Half (+50%)",
+                                 "accommodationStatus": "Approved",
+                                 "creationDate": "12/05/2024",
+                                 "decisionDate": "12/18/2024",
+                                 "expiration": "12/31/2027",
+                                 "schoolBased": false,
+                                 "statusDate": "12/18/2024",
+                                 "supplementalInfo": "Documented learning disability"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               }
+            ]
+         }
+      }
+   }
+}

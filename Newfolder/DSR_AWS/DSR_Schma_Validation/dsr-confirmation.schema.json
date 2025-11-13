@@ -1,0 +1,228 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "requestId": {"type": "string"},
+    "appId": {"type": "number"},
+    "action": {"type": "string"},
+    "detail": {
+      "type": "object",
+      "properties": {
+        "responseDetails": {
+          "type": "object",
+          "properties": {
+            "delete": {
+              "type": "object",
+              "properties": {
+                "subjects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "firstName": {"type": "string"},
+                      "lastName": {"type": "string"},
+                      "middleName": {"type": "string"},
+                      "personId": {"type": "string"},
+                      "gender": {"type": "string"},
+                      "birthdate": {"type": "string"},
+                      "studentIds": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                      },
+                      "domains": {
+                        "type": "object",
+                        "properties": {
+                          "sat": {
+                            "type": "object",
+                            "properties": {
+                              "registration": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "registrationNumber": {"type": "string"}
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "psat": {
+                            "type": "object",
+                            "properties": {
+                              "registration": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "registrationNumber": {"type": "string"}
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "accommodationsManagement": {
+                            "type": "object",
+                            "properties": {
+                              "data": {
+                                "type": "object",
+                                "properties": {
+                                  "ssdStudentExtraInfo": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "ssdStudentId": {"type": "string"}
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "accommodations": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "categoryName": {"type": "string"},
+                                        "accommodationName": {"type": "string"},
+                                        "accommodationStatus": {"type": "string"},
+                                        "creationDate": {"type": "string"},
+                                        "decisionDate": {"type": "string"},
+                                        "expiration": {"type": "string"},
+                                        "schoolBased": {"type": "boolean"},
+                                        "statusDate": {"type": "string"},
+                                        "supplementalInfo": {"type": "string"}
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "information": {
+              "type": "object",
+              "properties": {
+                "subjects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "firstName": {"type": "string"},
+                      "lastName": {"type": "string"},
+                      "middleName": {"type": "string"},
+                      "personId": {"type": "string"},
+                      "gender": {"type": "string"},
+                      "birthdate": {"type": "string"},
+                      "studentIds": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                      },
+                      "domains": {
+                        "type": "object",
+                        "properties": {
+                          "sat": {
+                            "type": "object",
+                            "properties": {
+                              "registration": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "registrationNumber": {"type": "string"}
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "psat": {
+                            "type": "object",
+                            "properties": {
+                              "registration": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "registrationNumber": {"type": "string"}
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "accommodationsManagement": {
+                            "type": "object",
+                            "properties": {
+                              "data": {
+                                "type": "object",
+                                "properties": {
+                                  "ssdStudentExtraInfo": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "ssdStudentId": {"type": "string"}
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "accommodations": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "categoryName": {"type": "string"},
+                                        "accommodationName": {"type": "string"},
+                                        "accommodationStatus": {"type": "string"},
+                                        "creationDate": {"type": "string"},
+                                        "decisionDate": {"type": "string"},
+                                        "expiration": {"type": "string"},
+                                        "schoolBased": {"type": "boolean"},
+                                        "statusDate": {"type": "string"},
+                                        "supplementalInfo": {"type": "string"}
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

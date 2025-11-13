@@ -33,45 +33,10 @@ message = {
     },
     "body": {
          "requestId": "AAA3VPFS2N_1",
-       "appId": "223",
-       "action": "EXECUTED",
-       "detail": {
-           "responseDetails": {
-               "information": {
-                   "subjects": [
-                       {
-                           "firstName": "Patricia",
-                           "lastName": "Klocko",
-                           "personId": 200675504,
-                           "catapultId": "us-east-1:8e07129e-afa2-c90a-cf17-e027e95e2903",
-                           "birthdate": "2005-09-05",
-                           "studentIds": [
-                               "91086fc801804b908917"
-                           ],
-                           "domains": {
-                               "psat": {
-                                   "testTakers": [
-                                       {
-                                           "assessmentEventRegNo": "P006223543",
-                                           "assessmentEventTitle": "PSAT 10",
-                                           "attendingInstitutionName": "NORTHFIELD HIGH SCHOOL",
-                                           "educationLevelDescription": "10th Grade",
-                                           "testingInstitutionName": "NORTHFIELD HIGH SCHOOL"
-                                       }
-                                   ]
-                               }
-                           }
-                       }
-                   ]
-               }
-           }
-       }
+        "appId": 229,
+        "action": "NO_DATA_FOUND"
    }
-  
-    }
-
-
-
+}
 # Publish the message to the SNS topic
 response = sns.publish(
     TopicArn=sns_topic_arn,

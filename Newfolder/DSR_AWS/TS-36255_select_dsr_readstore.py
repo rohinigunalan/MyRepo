@@ -27,12 +27,12 @@ table = dynamodb.Table(selected_table_name)
 
 # Query the table with filters
 print(f"\n=== Querying table: {selected_table_name} ===")
-print(f"Filters: createdTimestamp < '2025-10-15T20:39:27.973Z' AND dsrRecordType IN ('499', '501')\n")
+print(f"Filters: createdTimestamp < '2025-10-15T20:39:27.973Z' AND dsrRecordType IN ('398', '527')\n")
 
 # Scan with filter expression
 response = table.scan(
     FilterExpression=Attr('createdTimestamp').lt('2025-10-15T20:39:27.973Z') & 
-                     (Attr('dsrRecordType').eq('499') | Attr('dsrRecordType').eq('501'))
+                     (Attr('dsrRecordType').eq('398') | Attr('dsrRecordType').eq('527'))
 )
 items = response['Items']
 
@@ -40,7 +40,7 @@ items = response['Items']
 while 'LastEvaluatedKey' in response:
     response = table.scan(
         FilterExpression=Attr('createdTimestamp').lt('2025-10-15T20:39:27.973Z') & 
-                         (Attr('dsrRecordType').eq('499') | Attr('dsrRecordType').eq('501')),
+                         (Attr('dsrRecordType').eq('398') | Attr('dsrRecordType').eq('527')),
         ExclusiveStartKey=response['LastEvaluatedKey']
     )
     items.extend(response['Items'])

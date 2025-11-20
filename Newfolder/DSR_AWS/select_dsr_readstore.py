@@ -1,6 +1,7 @@
 import boto3
 import json
 from decimal import Decimal
+from boto3.dynamodb.conditions import Attr
 
 # Helper function to convert Decimal to standard Python types
 def decimal_default(obj):
@@ -16,38 +17,32 @@ session = boto3.Session(profile_name=aws_profile)
 
 # Create a DynamoDB client
 dynamodb = session.resource('dynamodb')
-dynamodb_client = session.client('dynamodb')
 
-# List all available tables
-print("\n=== Available DynamoDB Tables ===")
-tables = dynamodb_client.list_tables()
-table_names = tables['TableNames']
-
-for idx, table_name in enumerate(table_names, 1):
-    print(f"{idx}. {table_name}")
-
-# Prompt user to select a table
-print("\nEnter the number of the table you want to query: ", end='')
-table_choice = int(input())
-
-if table_choice < 1 or table_choice > len(table_names):
-    print("Invalid choice!")
-    exit(1)
-
-selected_table_name = table_names[table_choice - 1]
-print(f"\nSelected table: {selected_table_name}")
+# Directly use the specified table
+selected_table_name = 'uat-dsr-request-handler-DsrReadStore'
+print(f"\nQuerying table: {selected_table_name}")
 
 # Get the table
 table = dynamodb.Table(selected_table_name)
 
-# Scan the table to retrieve all items
-print(f"\n=== Scanning table: {selected_table_name} ===\n")
-response = table.scan()
+# Query the table with filters
+print(f"\n=== Querying table: {selected_table_name} ===")
+print(f"Filters: createdTimestamp = '2025-10-15T20:39:27.973Z' AND dsrRecordType IN ('499', '501')\n")
+
+# Scan with filter expression
+response = table.scan(
+    FilterExpression=Attr('createdTimestamp').eq('2025-10-15T20:39:27.973Z') & 
+                     (Attr('dsrRecordType').eq('499') | Attr('dsrRecordType').eq('501'))
+)
 items = response['Items']
 
 # Handle pagination if there are more items
 while 'LastEvaluatedKey' in response:
-    response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
+    response = table.scan(
+        FilterExpression=Attr('createdTimestamp').eq('2025-10-15T20:39:27.973Z') & 
+                         (Attr('dsrRecordType').eq('499') | Attr('dsrRecordType').eq('501')),
+        ExclusiveStartKey=response['LastEvaluatedKey']
+    )
     items.extend(response['Items'])
 
 # Display the results

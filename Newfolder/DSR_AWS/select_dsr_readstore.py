@@ -49,16 +49,22 @@ while 'LastEvaluatedKey' in response:
 print(f"Total records found: {len(items)}\n")
 
 if len(items) > 0:
-    # Get all unique keys from all records
-    all_keys = set()
-    for item in items:
-        all_keys.update(item.keys())
+    # Define the columns we want to display
+    display_columns = ['requestId', 'dsrRecordType', 'dsrStatus', 'action', 'createdTimestamp', 'updatedTimestamp']
     
-    # Sort keys for consistent column order
-    sorted_keys = sorted(all_keys)
+    # Column widths
+    col_widths = {
+        'requestId': 25,
+        'dsrRecordType': 15,
+        'dsrStatus': 12,
+        'action': 15,
+        'createdTimestamp': 26,
+        'updatedTimestamp': 26
+    }
     
     # Print header
-    header = " | ".join([f"{key:30}" for key in sorted_keys])
+    header_parts = [f"{col:{col_widths[col]}}" for col in display_columns]
+    header = " | ".join(header_parts)
     separator = "-" * len(header)
     
     print(header)
@@ -67,17 +73,17 @@ if len(items) > 0:
     # Print each row
     for item in items:
         row_values = []
-        for key in sorted_keys:
-            value = item.get(key, '')
-            # Convert value to string, handling nested objects
-            if isinstance(value, (dict, list)):
-                value_str = json.dumps(value, default=decimal_default)
-            else:
-                value_str = str(value)
-            # Truncate long values
-            if len(value_str) > 30:
-                value_str = value_str[:27] + "..."
-            row_values.append(f"{value_str:30}")
+        for col in display_columns:
+            value = item.get(col, '')
+            value_str = str(value) if value else ''
+            # Truncate if needed
+            max_width = col_widths[col]
+            if len(value_str) > max_width:
+                value_str = value_str[:max_width-3] + "..."
+            row_values.append(f"{value_str:{max_width}}")
         print(" | ".join(row_values))
+    
+    print(f"\n{separator}")
+    print(f"Total: {len(items)} records")
 else:
     print("No records found in the table.")

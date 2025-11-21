@@ -52,23 +52,31 @@ if len(items) > 0:
     # Get unique requestIds from the child records
     unique_request_ids = set(item['requestId'] for item in items)
     
-    # Fetch parent records (dsrRecordType = 'DSR') for these requestIds
-    # Filter to only include parents with status SUBMITTED or INITIATED
-    parent_records = {}
-    for request_id in unique_request_ids:
+    # Fetch ALL parent records (dsrRecordType = 'DSR') at once
+    print(f"Fetching all parent records (dsrRecordType='DSR')...")
+    
+    parent_response = table.scan(
+        FilterExpression=Attr('dsrRecordType').eq('DSR')
+    )
+    all_parents = parent_response['Items']
+    
+    # Handle pagination for parent records
+    while 'LastEvaluatedKey' in parent_response:
         parent_response = table.scan(
-            FilterExpression=Attr('requestId').eq(request_id) & 
-                           Attr('dsrRecordType').eq('DSR') &
-                           (Attr('dsrStatus').eq('SUBMITTED') | Attr('dsrStatus').eq('INITIATED'))
+            FilterExpression=Attr('dsrRecordType').eq('DSR'),
+            ExclusiveStartKey=parent_response['LastEvaluatedKey']
         )
-        if parent_response['Items']:
-            parent_records[request_id] = parent_response['Items'][0]
+        all_parents.extend(parent_response['Items'])
     
-    # Filter child items to only include those with matching parent records
-    filtered_items = [item for item in items if item['requestId'] in parent_records]
+    # Create a dictionary of parent records by requestId
+    parent_records = {parent['requestId']: parent for parent in all_parents if 'requestId' in parent}
     
-    print(f"Found {len(parent_records)} parent records with SUBMITTED/INITIATED status")
-    print(f"Filtered to {len(filtered_items)} child records with matching parents\n")
+    # Filter to only parents for our request IDs
+    relevant_parents = {req_id: parent_records[req_id] for req_id in unique_request_ids if req_id in parent_records}
+    
+    print(f"Found {len(all_parents)} total parent records in table")
+    print(f"Found {len(relevant_parents)} parent records for our {len(unique_request_ids)} unique request IDs")
+    print(f"Displaying all {len(items)} child records with parent status\n")
     
     # Define the columns we want to display
     display_columns = ['requestId', 'dsrRecordType', 'dsrStatus', 'parentStatus', 'action', 'createdTimestamp', 'updatedTimestamp']
@@ -93,10 +101,10 @@ if len(items) > 0:
     print(separator)
     
     # Print each row with parent status
-    for item in filtered_items:
+    for item in items:
         row_values = []
         request_id = item.get('requestId', '')
-        parent_status = parent_records.get(request_id, {}).get('dsrStatus', 'N/A')
+        parent_status = relevant_parents.get(request_id, {}).get('dsrStatus', 'N/A')
         
         for col in display_columns:
             if col == 'parentStatus':
@@ -113,6 +121,6 @@ if len(items) > 0:
         print(" | ".join(row_values))
     
     print(f"\n{separator}")
-    print(f"Total: {len(filtered_items)} child records with parent status SUBMITTED/INITIATED")
+    print(f"Total: {len(items)} child records with parent status")
 else:
     print("No records found in the table.")

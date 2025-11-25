@@ -1,0 +1,130 @@
+{
+	"info": {
+		"_postman_id": "dsr-replay-api-collection",
+		"name": "DSR Replay API",
+		"description": "Collection for DSR Replay API with authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Get Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();",
+							"let access_token = response.access_token;",
+							"pm.collectionVariables.set(\"access_token\", access_token);",
+							"console.log(\"Access token saved:\", access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Cookie",
+						"value": "XSRF-TOKEN=ac5cd416-1baa-4a78-9112-f71572437e67",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{cognito_url}}?grant_type=client_credentials&client_id={{client_id}}&client_secret={{client_secret}}&scope=cbot%2Fwrite",
+					"host": [
+						"{{cognito_url}}"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}"
+						},
+						{
+							"key": "scope",
+							"value": "cbot%2Fwrite"
+						}
+					]
+				},
+				"description": "Get OAuth2 token from Cognito and automatically save it to collection variables"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Replay API Call",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"requestId\": \"68HDZWN84M_1\",\n    \"appId\": \"525\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{replay_api_url}}",
+					"host": [
+						"{{replay_api_url}}"
+					]
+				},
+				"description": "Call the DSR replay API with the access token. Make sure to run 'Get Auth Token' first."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "cognito_url",
+			"value": "https://uat-onetrust.auth.us-east-1.amazoncognito.com/oauth2/token",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "7k21jrh4jr6d8e2a30tljmheqc",
+			"type": "string"
+		},
+		{
+			"key": "client_secret",
+			"value": "1hvmefps6o0euo2ssl5eht9b0q0itb4ofa461auqkag2aa3g6b9d",
+			"type": "string"
+		},
+		{
+			"key": "replay_api_url",
+			"value": "https://15suwkrmfj.execute-api.us-east-1.amazonaws.com/dsr/replay",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

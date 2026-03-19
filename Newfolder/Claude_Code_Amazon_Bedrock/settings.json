@@ -1,0 +1,35 @@
+{
+    "claudeCode.environmentVariables": [
+        {
+            "name": "CLAUDE_CODE_USE_BEDROCK",
+            "value": "1"
+        },
+        {
+            "name": "AWS_REGION",
+            "value": "us-east-1"
+        },
+        {
+            "name": "AWS_ACCESS_KEY_ID",
+            "value": "ASIAWSTSJXW4ZXDDOGNY"
+        },
+        {
+            "name": "AWS_SECRET_ACCESS_KEY",
+            "value": "Z4F+Tws+0oStZHyUPF1D8HGCGC/hCvfYHNioLq0w"
+        },
+        {
+            "name": "AWS_SESSION_TOKEN",
+            "value": "IQoJb3JpZ2luX2VjEFgaCXVzLWVhc3QtMSJHMEUCIQDLUqjU39q5IeDteg52ymRK8EZrFK8SDL4YTywfSPnl8QIgDs0yOdt8sEmQvA1+joIdaw/48p6Ro2X5/vY8hgpgLcwqlgIIIRAEGgw0NTIyODUwMjE2MjUiDCnqgaAh+GYxSd9b0yrzAWCxm4N0/UMeR3Lf0YIiwAM2fZw5+HAa4z/RMRf/iTy0+eCU8T6NE4LElo2GwV4MVSRMiE2elTQCueuGkLvNjH71rayZ9E5+3erbC1JlwNacXbnKRkYxNNg1sZD8UzIt2QZL9oYIVbVWq/dZJBKfDeMSLpGUeDKRVGEk53OiPTj5o7DW1L9x2P/vFU++xvcIUN8vF/0LmUCgCWucYWCOTWqobkVo31Pr1wUNawyoflpHSq+Z0IwhiKa1L9Eg0wdNOR62pZhBaF3fjppGNtZZX17AV/lNxHoAMTkCVRdkfxIXycaBVbOzZjyFqGiR8Etd2PdigTCYufDNBjqdAUOlINLsaNfKVciCOgD1yTwG4MayWNTaXGlWSiitafnT3Nffk8CWZagHvMeDFEScWiq1qwaULUzkwuB5FWbk42NjeMa4BPENPEVQvoZ5XZrl1QQA45fg+nm3nsmf31EKKZumgNIXW3af/ceneYPTu6fhrvAXYD9Ig7wY8iDzbFdV7UDkrPtCNR9ECzXAyRtM/k1rkkJjLrJVghFuCyM="
+        }
+    ],
+    "git.openRepositoryInParentFolders": "always",
+    "security.workspace.trust.untrustedFiles": "open",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.enableSmartCommit": true,
+    "workbench.editorAssociations": {
+        "{git,gitlens,conflictResolution,vscode-local-history}:/**/*.tc.json": "default",
+        "{git,gitlens,conflictResolution,vscode-local-history}:/**/*.{asl.json,asl.yaml,asl.yml}": "default",
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.xlsx": "default"
+    },
+    "claudeCode.preferredLocation": "panel"
+}

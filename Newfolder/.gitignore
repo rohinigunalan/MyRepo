@@ -38,3 +38,9 @@ Thumbs.db
 *.tmp
 *.bak
 *.backup
+
+# Test artifacts
+tests/playwright/test-results/
+tests/playwright/playwright-report/
+screenshots/
+*.mp4

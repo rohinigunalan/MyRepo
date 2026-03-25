@@ -1,0 +1,27 @@
+{
+    "claudeCode.environmentVariables": [
+        {
+            "name": "CLAUDE_CODE_USE_BEDROCK",
+            "value": "1"
+        },
+        {
+            "name": "AWS_REGION",
+            "value": "us-east-1"
+        },
+        {
+            "name": "AWS_PROFILE",
+            "value": "cb-e2etest-nonprod-dev-cli"
+        }
+    ],
+    "git.openRepositoryInParentFolders": "always",
+    "security.workspace.trust.untrustedFiles": "open",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.enableSmartCommit": true,
+    "workbench.editorAssociations": {
+        "{git,gitlens,conflictResolution,vscode-local-history}:/**/*.tc.json": "default",
+        "{git,gitlens,conflictResolution,vscode-local-history}:/**/*.{asl.json,asl.yaml,asl.yml}": "default",
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.xlsx": "default"
+    },
+    "claudeCode.preferredLocation": "panel"
+}

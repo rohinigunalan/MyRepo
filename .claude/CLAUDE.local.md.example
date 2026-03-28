@@ -1,0 +1,107 @@
+# Personal Configuration (Copy to CLAUDE.local.md)
+
+This is a **template** for personal notes and preferences that apply across all Main projects.
+
+**Instructions:**
+1. Copy this file: `cp CLAUDE.local.md.example CLAUDE.local.md`
+2. Edit `CLAUDE.local.md` with your personal settings
+3. File is gitignored - won't be committed
+
+---
+
+## My Development Environment
+
+### Machine Details
+- Hostname: [Your machine name]
+- OS: macOS [version]
+- Location: [Office/Home/Remote]
+
+### Network Setup
+- VPN: [VPN name/details if applicable]
+- Proxy access: [Yes/No/Details]
+- Network restrictions: [Any firewall rules or limitations]
+
+---
+
+## My Preferences
+
+### Communication Style
+[Add your preferences, e.g.:]
+- Prefer detailed explanations
+- Show me the code, don't just describe it
+- Always explain "why" not just "what"
+
+### Development Workflow
+[Add your workflow preferences, e.g.:]
+- Always activate virtual environment first
+- Run tests before committing
+- Use verbose output by default
+
+### Testing Approach
+[Your testing preferences, e.g.:]
+- Run with coverage report
+- Show print statements during tests
+- Take screenshots on failure
+
+---
+
+## Project-Specific Notes
+
+### SSD
+- Proxy: [Your proxy details if different]
+- Chrome profile: [If using specific profile]
+- Test credentials: [Where you keep them]
+
+### [Other Projects]
+- [Add notes for other projects]
+
+---
+
+## Personal Shortcuts
+
+### Aliases
+```bash
+# Add any personal bash aliases
+alias activate-ssd="cd ~/Document/Main/SSD && source .venvmac/bin/activate"
+alias run-tests="pytest tests/ -v -s"
+```
+
+### Custom Commands
+[Document any personal workflow commands you use]
+
+---
+
+## Machine-Specific Paths
+
+### Development Tools
+- Python: [path to your python]
+- IDE: [VS Code / PyCharm / other]
+- Git: [git config details if non-standard]
+
+### Credentials/Keys
+- SSH keys location: [if non-standard]
+- GPG key: [if using]
+- API keys: [Where you store them securely]
+
+---
+
+## Reminders for Myself
+
+[Add any personal reminders, gotchas you keep forgetting, etc.]
+
+- Remember to activate VPN before running SSD tests
+- Proxy server only accessible from office network
+- Always check Chrome is running on port 9222
+- [Add more as needed]
+
+---
+
+## Personal TODO
+
+- [ ] [Things you need to do in this codebase]
+- [ ] [Setup tasks]
+- [ ] [Learning objectives]
+
+---
+
+*This file is personal and gitignored - add whatever helps YOU work better!*

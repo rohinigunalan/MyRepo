@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schema/settings.schema.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(grep*)",
+      "Bash(find*)",
+      "Bash(pwd*)",
+      "Bash(which*)",
+      "Bash(echo*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(python* --version*)",
+      "Bash(pip list*)",
+      "Bash(pip show*)",
+      "Bash(source */activate*)",
+      "Bash(pytest --collect-only*)",
+      "Bash(pytest --help*)",
+      "Bash(tree*)",
+      "Bash(wc*)",
+      "Bash(head*)",
+      "Bash(tail*)"
+    ],
+    "deny": [
+      "Bash(rm -rf*)",
+      "Bash(rm -r /*)",
+      "Bash(sudo*)",
+      "Bash(chmod 777*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(git push -f*)",
+      "Bash(git rebase*)",
+      "Write(.env*)",
+      "Write(**/.env*)",
+      "Write(**/secrets*)",
+      "Write(**/*secret*)",
+      "Write(**/*password*)",
+      "Write(**/*credentials*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Edit(.env*)",
+      "Edit(**/secrets*)"
+    ]
+  },
+  "environment": {},
+  "hooks": {}
+}

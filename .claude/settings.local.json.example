@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schema/settings.schema.json",
+  "permissions": {
+    "allow": [
+      "// Add personal permissions here that override settings.json",
+      "// Example: Allow commands you frequently use",
+      "// Bash(npm run dev*)",
+      "// Bash(docker*)",
+      "// Write(my-personal-folder/**)"
+    ],
+    "deny": [
+      "// Add personal denies here",
+      "// Example: Block commands you never want Claude to run",
+      "// Bash(git push*)",
+      "// Write(important-folder/**)"
+    ]
+  },
+  "environment": {
+    "// Add personal environment variables": "",
+    "// Example:": "",
+    "MY_DEBUG_MODE": "true",
+    "PERSONAL_SETTING": "value"
+  },
+  "hooks": {
+    "// Add personal hooks": "",
+    "// Example:": "",
+    "// onToolUse": {
+    //   "Bash(pytest*)": "echo 'Running tests...'"
+    // }
+  }
+}

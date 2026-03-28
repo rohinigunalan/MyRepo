@@ -1,0 +1,11 @@
+# Personal configuration - not committed to git
+CLAUDE.local.md
+settings.local.json
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# Cache/temp
+*.tmp
+*.cache

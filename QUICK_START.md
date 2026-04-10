@@ -4,10 +4,12 @@
 
 ```bash
 # 1. Connect Claude Code (every 12 hours)
-aws sts get-caller-identity --profile bedrock-secure
+refresh-aws
+# OR: ~/.aws/setMfaSessionToken.sh -p cb-e2etest-nonprod-dev
 
 # 2. For AWS work (if needed)
-aws sts get-caller-identity --profile cb-apexamresponse-nonprod-reader
+connect-apexam
+# OR: aws sts get-caller-identity --profile cb-apexamresponse-nonprod-reader
 ```
 
 **That's it!** Enter MFA when prompted. Valid for 12 hours.
@@ -36,13 +38,13 @@ python query_with_cli_creds.py 4443Y7XU 94 26
 
 **Claude Code not connecting?**
 ```bash
-aws sts get-caller-identity --profile bedrock-secure
+refresh-aws
 ```
 
-**Script asks for MFA every time?**
+**DynamoDB script asks for MFA every time?**
 ```bash
 # Authenticate first, then run script
-aws sts get-caller-identity --profile cb-apexamresponse-nonprod-reader
+connect-apexam
 python query_with_cli_creds.py 4443Y7XU 94 26
 ```
 

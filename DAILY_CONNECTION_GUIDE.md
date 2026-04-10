@@ -11,18 +11,25 @@ Quick reference for connecting to AWS services and Claude Code each day.
 When Claude Code prompts for connection or after 12 hours:
 
 ```bash
-aws sts get-caller-identity --profile bedrock-secure
+# Option 1: Using alias
+refresh-aws
+
+# Option 2: Full command
+~/.aws/setMfaSessionToken.sh -p cb-e2etest-nonprod-dev
 ```
 
 **What happens:**
 - Prompts for MFA code (6 digits from authenticator app)
-- Caches credentials for 12 hours
+- Creates/updates cb-e2etest-nonprod-dev-cli profile
+- Credentials valid for 12 hours
 - Claude Code will work automatically
 
 **Check if still valid:**
 ```bash
 ~/.aws/check-claude-creds.sh
 ```
+
+**Note:** Claude Code VS Code extension requires the script method and cannot use AWS CLI's built-in cache.
 
 ---
 

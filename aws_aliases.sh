@@ -2,8 +2,8 @@
 # AWS Connection Aliases
 # Add to ~/.zshrc: source ~/Document/Main/aws_aliases.sh
 
-# Claude Code connection
-alias connect-claude='aws sts get-caller-identity --profile bedrock-secure'
+# Claude Code connection (must use script method for VS Code extension)
+alias refresh-aws='~/.aws/setMfaSessionToken.sh -p cb-e2etest-nonprod-dev'
 alias check-claude='~/.aws/check-claude-creds.sh'
 
 # AWS work profiles
@@ -21,9 +21,9 @@ alias aws-status='echo "Claude Code:" && check-claude && echo "" && echo "AWS Ca
 echo "✅ AWS aliases loaded!"
 echo ""
 echo "Available commands:"
-echo "  connect-claude    - Connect Claude Code (12hr cache)"
+echo "  refresh-aws       - Connect Claude Code (12hr cache) - REQUIRED for Claude"
 echo "  check-claude      - Check Claude credentials status"
-echo "  connect-apexam    - Connect to APExam DynamoDB"
-echo "  connect-e2e       - Connect to E2E testing"
+echo "  connect-apexam    - Connect to APExam DynamoDB (12hr cache)"
+echo "  connect-e2e       - Connect to E2E testing (12hr cache)"
 echo "  query-dynamo      - Query DynamoDB (usage: query-dynamo <pKey> <code> <year>)"
 echo "  aws-status        - Show all credential status"
